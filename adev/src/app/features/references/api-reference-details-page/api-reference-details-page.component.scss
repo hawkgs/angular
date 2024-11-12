@@ -37,6 +37,7 @@
 
     @include mq.for-desktop-down {
       padding: var(--layout-padding);
+      max-width: none;
     }
 
     &::-webkit-scrollbar-thumb {
