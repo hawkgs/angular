@@ -33,6 +33,8 @@ export class ReferenceScrollHandler {
     }
 
     this.setupCodeToCListeners(tocSelector);
+    this.setScrollEventHandlers();
+    this.listenToResizeCardContainer();
     this.setupFragmentChangeListener();
   }
 
@@ -79,6 +81,68 @@ export class ReferenceScrollHandler {
           this.router.navigate([], {fragment: memberId, replaceUrl: true});
         }
       });
+  }
+
+  private setScrollEventHandlers(): void {
+    const scroll$ = fromEvent(this.document, 'scroll').pipe(
+      auditTime(SCROLL_EVENT_DELAY),
+      takeUntilDestroyed(this.destroyRef),
+    );
+
+    scroll$.subscribe(() => this.setActiveCodeLine());
+  }
+
+  private listenToResizeCardContainer(): void {
+    const membersCardContainer = this.document.querySelector(
+      API_REFERENCE_DETAILS_PAGE_MEMBERS_CLASS_NAME,
+    );
+    if (membersCardContainer) {
+      afterNextRender(
+        () => {
+          const resizeObserver = new ResizeObserver(() => {
+            this.updateCardsOffsetTop();
+            this.setActiveCodeLine();
+          });
+          resizeObserver.observe(membersCardContainer);
+          this.destroyRef.onDestroy(() => resizeObserver.disconnect());
+        },
+        {injector: this.injector},
+      );
+    }
+  }
+
+  private setActiveCodeLine(): void {
+    const activeCard = Array.from(this.cardOffsetTop)
+      .filter(([_, offsetTop]) => {
+        return offsetTop < this.window.scrollY + this.membersMarginTopInPx() + SCROLL_THRESHOLD;
+      })
+      .pop();
+
+    if (!activeCard) {
+      return;
+    }
+
+    const activeLines = this.document.querySelectorAll<HTMLButtonElement>(
+      `button.${API_TAB_ACTIVE_CODE_LINE}`,
+    );
+
+    const activeLine = activeLines.length > 0 ? activeLines.item(0) : null;
+    const previousActiveMemberId = this.getMemberId(activeLine);
+    const currentActiveMemberId = activeCard[0];
+
+    if (previousActiveMemberId && previousActiveMemberId !== currentActiveMemberId) {
+      for (const line of Array.from(activeLines)) {
+        line.classList.remove(API_TAB_ACTIVE_CODE_LINE);
+      }
+    } else {
+      const lines = this.document.querySelectorAll<HTMLButtonElement>(
+        `button[${MEMBER_ID_ATTRIBUTE}="${currentActiveMemberId}"]`,
+      );
+      for (const line of Array.from(lines)) {
+        line.classList.add(API_TAB_ACTIVE_CODE_LINE);
+      }
+      this.document.getElementById(`${currentActiveMemberId}`)?.focus({preventScroll: true});
+    }
   }
 
   private scrollToCard(card: HTMLDivElement | null): void {
