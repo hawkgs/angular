@@ -249,7 +249,7 @@
     header {
       display: flex;
       flex-direction: column;
-      border-radius: 0.25rem;
+      border-radius: 0.25rem 0.25rem 0 0;
       background-color: var(--octonary-contrast);
       position: relative;
       z-index: 10;
@@ -278,7 +278,7 @@
       h3 {
         display: inline-block;
         font-family: var(--code-font);
-        font-size: 1.25rem;
+        font-size: 1rem;
         letter-spacing: -0.025rem;
         margin: 0;
       }
