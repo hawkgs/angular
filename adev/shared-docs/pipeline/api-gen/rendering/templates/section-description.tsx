@@ -8,14 +8,14 @@
 
 import {Fragment, h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
-import {normalizeTabUrl} from '../transforms/url-transforms';
+import {normalizeSectionUrl} from '../transforms/url-transforms';
 import {RawHtml} from './raw-html';
 import {CodeSymbol} from './code-symbols';
 
-const DESCRIPTION_TAB_NAME = 'Description';
+const DESCRIPTION_SECTION_NAME = 'Description';
 
-/** Component to render the description tab. */
-export function TabDescription(props: {entry: DocEntryRenderable}) {
+/** Component to render the description section. */
+export function SectionDescription(props: {entry: DocEntryRenderable}) {
   const exportedBy = props.entry.jsdocTags.filter((t) => t.name === 'ngModule');
   if (
     (!props.entry.htmlDescription ||
@@ -26,7 +26,12 @@ export function TabDescription(props: {entry: DocEntryRenderable}) {
   }
 
   return (
-    <div data-tab={DESCRIPTION_TAB_NAME} data-tab-url={normalizeTabUrl(DESCRIPTION_TAB_NAME)}>
+    <div
+      data-section={DESCRIPTION_SECTION_NAME}
+      data-section-url={normalizeSectionUrl(DESCRIPTION_SECTION_NAME)}
+    >
+      <h3>{DESCRIPTION_SECTION_NAME}</h3>
+      <hr />
       <RawHtml value={props.entry.htmlDescription} />
 
       {exportedBy.length ? (

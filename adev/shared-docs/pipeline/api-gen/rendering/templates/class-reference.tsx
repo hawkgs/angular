@@ -11,18 +11,18 @@ import {ClassEntryRenderable, DecoratorEntryRenderable} from '../entities/render
 import {ClassMemberList} from './class-member-list';
 import {HeaderApi} from './header-api';
 import {REFERENCE_MEMBERS_CONTAINER} from '../styling/css-classes';
-import {TabDescription} from './tab-description';
-import {TabUsageNotes} from './tab-usage-notes';
-import {TabApi} from './tab-api';
+import {SectionDescription} from './section-description';
+import {SectionUsageNotes} from './section-usage-notes';
+import {SectionApi} from './section-api';
 
 /** Component to render a class API reference document. */
 export function ClassReference(entry: ClassEntryRenderable | DecoratorEntryRenderable) {
   return (
     <div class="api">
       <HeaderApi entry={entry} />
-      <TabApi entry={entry} />
-      <TabDescription entry={entry} />
-      <TabUsageNotes entry={entry} />
+      <SectionApi entry={entry} />
+      <SectionDescription entry={entry} />
+      <SectionUsageNotes entry={entry} />
       {entry.members.length > 0 ? (
         <div class={REFERENCE_MEMBERS_CONTAINER}>
           <ClassMemberList members={entry.members} />

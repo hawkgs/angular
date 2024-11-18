@@ -8,19 +8,24 @@
 
 import {Fragment, h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
-import {normalizeTabUrl} from '../transforms/url-transforms';
+import {normalizeSectionUrl} from '../transforms/url-transforms';
 import {RawHtml} from './raw-html';
 
-const USAGE_NOTES_TAB_NAME = 'Usage Notes';
+const USAGE_NOTES_SECTION_NAME = 'Usage Notes';
 
-/** Component to render the usage notes tab. */
-export function TabUsageNotes(props: {entry: DocEntryRenderable}) {
+/** Component to render the usage notes section. */
+export function SectionUsageNotes(props: {entry: DocEntryRenderable}) {
   if (!props.entry.htmlUsageNotes) {
-    return (<></>);
+    return <></>;
   }
 
   return (
-    <div data-tab={USAGE_NOTES_TAB_NAME} data-tab-url={normalizeTabUrl(USAGE_NOTES_TAB_NAME)}>
+    <div
+      data-section={USAGE_NOTES_SECTION_NAME}
+      data-section-url={normalizeSectionUrl(USAGE_NOTES_SECTION_NAME)}
+    >
+      <h3>{USAGE_NOTES_SECTION_NAME}</h3>
+      <hr />
       <RawHtml value={props.entry.htmlUsageNotes} />
     </div>
   );

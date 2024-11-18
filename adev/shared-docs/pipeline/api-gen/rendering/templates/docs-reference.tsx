@@ -9,14 +9,14 @@
 import {h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
 import {HeaderApi} from './header-api';
-import {TabDescription} from './tab-description';
+import {SectionDescription} from './section-description';
 
 /** Component to render a block or element API reference document. */
 export function DocsReference(entry: DocEntryRenderable) {
   return (
     <div class="api">
       <HeaderApi entry={entry} />
-      <TabDescription entry={entry} />
+      <SectionDescription entry={entry} />
     </div>
   );
 }
