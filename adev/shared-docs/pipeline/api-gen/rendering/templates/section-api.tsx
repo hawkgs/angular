@@ -9,16 +9,18 @@
 import {h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
 import {HasRenderableToc} from '../entities/traits';
-import {normalizeTabUrl} from '../transforms/url-transforms';
+import {normalizeSectionUrl} from '../transforms/url-transforms';
 import {CodeTableOfContents} from './code-table-of-contents';
 
-const API_TAB_NAME = 'API';
+const API_SECTION_NAME = 'API';
 
-/** Component to render the API tab. */
-export function TabApi(props: {entry: DocEntryRenderable & HasRenderableToc}) {
+/** Component to render the API section. */
+export function SectionApi(props: {entry: DocEntryRenderable & HasRenderableToc}) {
   return (
-    <div data-tab={API_TAB_NAME} data-tab-url={normalizeTabUrl(API_TAB_NAME)}>
-      <div class={'docs-reference-api-tab'}>
+    <div data-section={API_SECTION_NAME} data-section-url={normalizeSectionUrl(API_SECTION_NAME)}>
+      <h3>{API_SECTION_NAME}</h3>
+      <hr />
+      <div class={'docs-reference-api-section'}>
         <CodeTableOfContents entry={props.entry} />
       </div>
     </div>

@@ -7,7 +7,10 @@
  */
 
 import {h} from 'preact';
-import {FunctionEntryRenderable, FunctionSignatureMetadataRenderable} from '../entities/renderables';
+import {
+  FunctionEntryRenderable,
+  FunctionSignatureMetadataRenderable,
+} from '../entities/renderables';
 import {
   REFERENCE_MEMBERS,
   REFERENCE_MEMBERS_CONTAINER,
@@ -17,9 +20,9 @@ import {
 } from '../styling/css-classes';
 import {ClassMethodInfo} from './class-method-info';
 import {HeaderApi} from './header-api';
-import {TabApi} from './tab-api';
-import {TabDescription} from './tab-description';
-import {TabUsageNotes} from './tab-usage-notes';
+import {SectionApi} from './section-api';
+import {SectionDescription} from './section-description';
+import {SectionUsageNotes} from './section-usage-notes';
 import {HighlightTypeScript} from './highlight-ts';
 import {printInitializerFunctionSignatureLine} from '../transforms/code-transforms';
 import {getFunctionMetadataRenderable} from '../transforms/function-transforms';
@@ -69,9 +72,8 @@ export function FunctionReference(entry: FunctionEntryRenderable) {
   return (
     <div class="api">
       <HeaderApi entry={entry} />
-      <TabApi entry={entry} />
-      <TabDescription entry={entry} />
-      <TabUsageNotes entry={entry} />
+      <hr />
+      <SectionApi entry={entry} />
       <div className={REFERENCE_MEMBERS_CONTAINER}>
         <div className={REFERENCE_MEMBERS}>
           {entry.signatures.map((s, i) =>
@@ -86,6 +88,9 @@ export function FunctionReference(entry: FunctionEntryRenderable) {
           )}
         </div>
       </div>
+
+      <SectionDescription entry={entry} />
+      <SectionUsageNotes entry={entry} />
     </div>
   );
 }

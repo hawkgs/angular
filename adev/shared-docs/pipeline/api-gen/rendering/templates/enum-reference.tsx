@@ -9,8 +9,8 @@
 import {h, Fragment} from 'preact';
 import {EnumEntryRenderable, MemberEntryRenderable} from '../entities/renderables';
 import {HeaderApi} from './header-api';
-import {TabDescription} from './tab-description';
-import {TabApi} from './tab-api';
+import {SectionDescription} from './section-description';
+import {SectionApi} from './section-api';
 import {REFERENCE_MEMBERS, REFERENCE_MEMBERS_CONTAINER} from '../styling/css-classes';
 import {ClassMember} from './class-member';
 
@@ -19,19 +19,19 @@ export function EnumReference(entry: EnumEntryRenderable) {
   return (
     <div class="api">
       <HeaderApi entry={entry} />
-      <TabApi entry={entry} />
-      <TabDescription entry={entry} />
-      {
-        entry.members.length > 0
-          ? (
-            <div class={REFERENCE_MEMBERS_CONTAINER}>
-              <div class={REFERENCE_MEMBERS}>
-                {entry.members.map((member: MemberEntryRenderable) => (<ClassMember member={member}/>))}
-              </div>
-            </div>
-            )
-          : (<></>)
-      }
+      <SectionApi entry={entry} />
+      {entry.members.length > 0 ? (
+        <div class={REFERENCE_MEMBERS_CONTAINER}>
+          <div class={REFERENCE_MEMBERS}>
+            {entry.members.map((member: MemberEntryRenderable) => (
+              <ClassMember member={member} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
+      <SectionDescription entry={entry} />
     </div>
   );
 }

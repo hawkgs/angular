@@ -65,16 +65,7 @@
     }
   }
 
-  .adev-reference-tab-body {
-    margin-block-start: 1.5rem;
-    docs-viewer > div {
-      :first-child {
-        margin-top: 0;
-      }
-    }
-  }
-
-  .docs-reference-api-tab {
+  .docs-reference-api-section {
     display: flex;
     gap: 1.81rem;
     align-items: flex-start;

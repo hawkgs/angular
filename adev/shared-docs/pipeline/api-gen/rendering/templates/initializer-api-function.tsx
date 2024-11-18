@@ -9,8 +9,8 @@
 import {h, JSX} from 'preact';
 import {InitializerApiFunctionRenderable} from '../entities/renderables';
 import {HeaderApi} from './header-api';
-import {TabApi} from './tab-api';
-import {TabUsageNotes} from './tab-usage-notes';
+import {SectionApi} from './section-api';
+import {SectionUsageNotes} from './section-usage-notes';
 import {REFERENCE_MEMBERS, REFERENCE_MEMBERS_CONTAINER} from '../styling/css-classes';
 import {getFunctionMetadataRenderable} from '../transforms/function-transforms';
 import {signatureCard} from './function-reference';
@@ -36,8 +36,8 @@ export function InitializerApiFunction(entry: InitializerApiFunctionRenderable) 
   return (
     <div class="api">
       <HeaderApi entry={entry} showFullDescription={true} />
-      <TabApi entry={entry} />
-      <TabUsageNotes entry={entry} />
+      <SectionApi entry={entry} />
+      <SectionUsageNotes entry={entry} />
 
       <div class={REFERENCE_MEMBERS_CONTAINER}>
         <div class={REFERENCE_MEMBERS}>

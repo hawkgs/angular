@@ -20,8 +20,8 @@ export const normalizePath = (path: string): string => {
   return path;
 };
 
-export const normalizeTabUrl = (tabName: string): string => {
-  return tabName
+export const normalizeSectionUrl = (sectionName: string): string => {
+  return sectionName
     .toLowerCase()
     .replace(/<code>(.*?)<\/code>/g, '$1') // remove <code>
     .replace(/<strong>(.*?)<\/strong>/g, '$1') // remove <strong>
