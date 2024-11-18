@@ -18,7 +18,7 @@ import {AppScroller} from '../../../app-scroller';
   standalone: true,
   imports: [DocViewer],
   templateUrl: './api-reference-details-page.component.html',
-  styleUrls: ['./api-reference-details-page.component.scss'],
+  styleUrls: ['./api-reference-details-page.component.scss', '../../styles/docs-viewer.scss'],
   providers: [ReferenceScrollHandler],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

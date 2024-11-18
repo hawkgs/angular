@@ -10,7 +10,7 @@ import {Fragment, h} from 'preact';
 import {ClassEntryRenderable, DecoratorEntryRenderable} from '../entities/renderables';
 import {ClassMemberList} from './class-member-list';
 import {HeaderApi} from './header-api';
-import {REFERENCE_MEMBERS_CONTAINER} from '../styling/css-classes';
+import {REFERENCE_MEMBERS} from '../styling/css-classes';
 import {SectionDescription} from './section-description';
 import {SectionUsageNotes} from './section-usage-notes';
 import {SectionApi} from './section-api';
@@ -24,7 +24,7 @@ export function ClassReference(entry: ClassEntryRenderable | DecoratorEntryRende
       <SectionDescription entry={entry} />
       <SectionUsageNotes entry={entry} />
       {entry.members.length > 0 ? (
-        <div class={REFERENCE_MEMBERS_CONTAINER}>
+        <div class={REFERENCE_MEMBERS}>
           <ClassMemberList members={entry.members} />
         </div>
       ) : (
