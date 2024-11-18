@@ -1,5 +1,3 @@
-<div class="adev-header-and-tabs">
-  @if (docContent(); as docContent) {
-    <docs-viewer [docContent]="docContent.contents"></docs-viewer>
-  }
-</div>
+@if (docContent(); as docContent) {
+  <docs-viewer [docContent]="docContent.contents"></docs-viewer>
+}

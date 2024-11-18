@@ -30,10 +30,7 @@ export const CLI_TOC = '.adev-reference-cli-toc';
   standalone: true,
   imports: [DocViewer],
   templateUrl: './cli-reference-details-page.component.html',
-  styleUrls: [
-    './cli-reference-details-page.component.scss',
-    '../api-reference-details-page/api-reference-details-page.component.scss',
-  ],
+  styleUrls: ['./cli-reference-details-page.component.scss', '../../styles/docs-viewer.scss'],
   providers: [ReferenceScrollHandler],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

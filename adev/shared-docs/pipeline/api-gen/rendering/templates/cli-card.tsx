@@ -9,15 +9,13 @@
 import {Fragment, h} from 'preact';
 import {CliCardRenderable} from '../entities/renderables';
 import {DeprecatedLabel} from './deprecated-label';
-import { REFERENCE_MEMBER_CARD, REFERENCE_MEMBER_CARD_HEADER } from '../styling/css-classes';
+import {REFERENCE_MEMBER_CARD, REFERENCE_MEMBER_CARD_HEADER} from '../styling/css-classes';
 
 export function CliCard(props: {card: CliCardRenderable}) {
   return (
     <div id={props.card.type} class={REFERENCE_MEMBER_CARD} tabIndex={-1}>
-      <header>
-        <div class={REFERENCE_MEMBER_CARD_HEADER}>
-          <h3>{props.card.type}</h3>
-        </div>
+      <header class={REFERENCE_MEMBER_CARD_HEADER}>
+        <h3>{props.card.type}</h3>
       </header>
       <div class="docs-reference-card-body">
         {props.card.items.map((item) => (

@@ -13,7 +13,6 @@ import {
 } from '../entities/renderables';
 import {
   REFERENCE_MEMBERS,
-  REFERENCE_MEMBERS_CONTAINER,
   REFERENCE_MEMBER_CARD,
   REFERENCE_MEMBER_CARD_BODY,
   REFERENCE_MEMBER_CARD_HEADER,
@@ -74,19 +73,17 @@ export function FunctionReference(entry: FunctionEntryRenderable) {
       <HeaderApi entry={entry} />
       <hr />
       <SectionApi entry={entry} />
-      <div className={REFERENCE_MEMBERS_CONTAINER}>
-        <div className={REFERENCE_MEMBERS}>
-          {entry.signatures.map((s, i) =>
-            signatureCard(
-              s.name,
-              getFunctionMetadataRenderable(s, entry.moduleName),
-              {
-                id: `${s.name}_${i}`,
-              },
-              printSignaturesAsHeader,
-            ),
-          )}
-        </div>
+      <div className={REFERENCE_MEMBERS}>
+        {entry.signatures.map((s, i) =>
+          signatureCard(
+            s.name,
+            getFunctionMetadataRenderable(s, entry.moduleName),
+            {
+              id: `${s.name}_${i}`,
+            },
+            printSignaturesAsHeader,
+          ),
+        )}
       </div>
 
       <SectionDescription entry={entry} />

@@ -11,7 +11,7 @@ import {InitializerApiFunctionRenderable} from '../entities/renderables';
 import {HeaderApi} from './header-api';
 import {SectionApi} from './section-api';
 import {SectionUsageNotes} from './section-usage-notes';
-import {REFERENCE_MEMBERS, REFERENCE_MEMBERS_CONTAINER} from '../styling/css-classes';
+import {REFERENCE_MEMBERS} from '../styling/css-classes';
 import {getFunctionMetadataRenderable} from '../transforms/function-transforms';
 import {signatureCard} from './function-reference';
 
@@ -39,36 +39,34 @@ export function InitializerApiFunction(entry: InitializerApiFunctionRenderable) 
       <SectionApi entry={entry} />
       <SectionUsageNotes entry={entry} />
 
-      <div class={REFERENCE_MEMBERS_CONTAINER}>
-        <div class={REFERENCE_MEMBERS}>
-          {entry.callFunction.signatures.map((s, i) =>
-            signatureCard(
-              s.name,
-              getFunctionMetadataRenderable(s, entry.moduleName),
-              {
-                id: `${s.name}_${i}`,
-              },
-              printSignaturesAsHeader,
-            ),
-          )}
+      <div class={REFERENCE_MEMBERS}>
+        {entry.callFunction.signatures.map((s, i) =>
+          signatureCard(
+            s.name,
+            getFunctionMetadataRenderable(s, entry.moduleName),
+            {
+              id: `${s.name}_${i}`,
+            },
+            printSignaturesAsHeader,
+          ),
+        )}
 
-          {entry.subFunctions.reduce(
-            (elements, subFunction) => [
-              ...elements,
-              ...subFunction.signatures.map((s, i) =>
-                signatureCard(
-                  `${entry.name}.${s.name}`,
-                  getFunctionMetadataRenderable(s, entry.moduleName),
-                  {
-                    id: `${entry.name}_${s.name}_${i}`,
-                  },
-                  printSignaturesAsHeader,
-                ),
+        {entry.subFunctions.reduce(
+          (elements, subFunction) => [
+            ...elements,
+            ...subFunction.signatures.map((s, i) =>
+              signatureCard(
+                `${entry.name}.${s.name}`,
+                getFunctionMetadataRenderable(s, entry.moduleName),
+                {
+                  id: `${entry.name}_${s.name}_${i}`,
+                },
+                printSignaturesAsHeader,
               ),
-            ],
-            [] as JSX.Element[],
-          )}
-        </div>
+            ),
+          ],
+          [] as JSX.Element[],
+        )}
       </div>
     </div>
   );
