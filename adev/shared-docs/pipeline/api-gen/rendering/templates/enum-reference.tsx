@@ -11,13 +11,13 @@ import {EnumEntryRenderable, MemberEntryRenderable} from '../entities/renderable
 import {HeaderApi} from './header-api';
 import {SectionDescription} from './section-description';
 import {SectionApi} from './section-api';
-import {REFERENCE_MEMBERS} from '../styling/css-classes';
+import {API_REFERENCE_CONTAINER, REFERENCE_MEMBERS} from '../styling/css-classes';
 import {ClassMember} from './class-member';
 
 /** Component to render a enum API reference document. */
 export function EnumReference(entry: EnumEntryRenderable) {
   return (
-    <div class="api">
+    <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} />
       <SectionApi entry={entry} />
       {entry.members.length > 0 ? (

@@ -1,4 +1,5 @@
 @use '@angular/docs/styles/media-queries' as mq;
+@use '@angular/docs/styles/reference' as ref;
 
 :host {
   display: block;
@@ -36,4 +37,9 @@
   h6 {
     font-size: 0.6rem;
   }
+}
+
+::ng-deep {
+  @include ref.reference-common();
+  @include ref.api-reference();
 }

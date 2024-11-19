@@ -11,7 +11,7 @@ import {InitializerApiFunctionRenderable} from '../entities/renderables';
 import {HeaderApi} from './header-api';
 import {SectionApi} from './section-api';
 import {SectionUsageNotes} from './section-usage-notes';
-import {REFERENCE_MEMBERS} from '../styling/css-classes';
+import {API_REFERENCE_CONTAINER, REFERENCE_MEMBERS} from '../styling/css-classes';
 import {getFunctionMetadataRenderable} from '../transforms/function-transforms';
 import {signatureCard} from './function-reference';
 
@@ -34,7 +34,7 @@ export function InitializerApiFunction(entry: InitializerApiFunctionRenderable) 
   }
 
   return (
-    <div class="api">
+    <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} showFullDescription={true} />
       <SectionApi entry={entry} />
       <SectionUsageNotes entry={entry} />

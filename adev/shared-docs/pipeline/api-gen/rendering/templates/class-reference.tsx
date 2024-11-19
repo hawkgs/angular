@@ -10,7 +10,7 @@ import {Fragment, h} from 'preact';
 import {ClassEntryRenderable, DecoratorEntryRenderable} from '../entities/renderables';
 import {ClassMemberList} from './class-member-list';
 import {HeaderApi} from './header-api';
-import {REFERENCE_MEMBERS} from '../styling/css-classes';
+import {API_REFERENCE_CONTAINER, REFERENCE_MEMBERS} from '../styling/css-classes';
 import {SectionDescription} from './section-description';
 import {SectionUsageNotes} from './section-usage-notes';
 import {SectionApi} from './section-api';
@@ -18,7 +18,7 @@ import {SectionApi} from './section-api';
 /** Component to render a class API reference document. */
 export function ClassReference(entry: ClassEntryRenderable | DecoratorEntryRenderable) {
   return (
-    <div class="api">
+    <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} />
       <SectionApi entry={entry} />
       <SectionDescription entry={entry} />

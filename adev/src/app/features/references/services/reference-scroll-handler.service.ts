@@ -18,6 +18,7 @@ import {AppScroller} from '../../../app-scroller';
 // Adds some space/margin between the top of the target element and the top of viewport.
 const SCROLL_MARGIN_TOP = 100;
 
+// Note(Georgi): Might be redundant
 @Injectable()
 export class ReferenceScrollHandler {
   private readonly destroyRef = inject(DestroyRef);
