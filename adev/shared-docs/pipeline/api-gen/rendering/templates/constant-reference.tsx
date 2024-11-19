@@ -12,11 +12,12 @@ import {HeaderApi} from './header-api';
 import {SectionDescription} from './section-description';
 import {SectionUsageNotes} from './section-usage-notes';
 import {SectionApi} from './section-api';
+import {API_REFERENCE_CONTAINER} from '../styling/css-classes';
 
 /** Component to render a constant API reference document. */
 export function ConstantReference(entry: ConstantEntryRenderable) {
   return (
-    <div class="api">
+    <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} />
       <SectionApi entry={entry} />
       <SectionDescription entry={entry} />

@@ -1,2 +1,3 @@
-<docs-viewer [docContent]="mainContentInnerHtml()" />
-<docs-viewer [docContent]="cardsInnerHtml()" (contentLoaded)="contentLoaded()" />
+@if (docContent(); as docContent) {
+  <docs-viewer [docContent]="docContent.contents"></docs-viewer>
+}

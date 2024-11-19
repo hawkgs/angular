@@ -33,6 +33,7 @@ import {AppScroller} from '../../../app-scroller';
 export const SCROLL_EVENT_DELAY = 20;
 export const SCROLL_THRESHOLD = 20;
 
+// Note(Georgi): Might be redundant
 @Injectable()
 export class ReferenceScrollHandler implements OnDestroy {
   private readonly destroyRef = inject(DestroyRef);

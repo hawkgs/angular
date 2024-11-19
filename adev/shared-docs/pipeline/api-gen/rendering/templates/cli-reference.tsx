@@ -16,7 +16,7 @@ import {RawHtml} from './raw-html';
 /** Component to render a CLI command reference document. */
 export function CliCommandReference(entry: CliCommandRenderable) {
   return (
-    <div className="cli">
+    <div className="docs-cli">
       <div className="docs-reference-cli-content">
         <HeaderCli command={entry} />
         {[entry.name, ...entry.aliases].map((command) => (

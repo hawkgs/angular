@@ -12,6 +12,7 @@ import {
   FunctionSignatureMetadataRenderable,
 } from '../entities/renderables';
 import {
+  API_REFERENCE_CONTAINER,
   REFERENCE_MEMBERS,
   REFERENCE_MEMBER_CARD,
   REFERENCE_MEMBER_CARD_BODY,
@@ -69,9 +70,8 @@ export function FunctionReference(entry: FunctionEntryRenderable) {
   const printSignaturesAsHeader = entry.signatures.length > 1;
 
   return (
-    <div class="api">
+    <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} />
-      <hr />
       <SectionApi entry={entry} />
       <div className={REFERENCE_MEMBERS}>
         {entry.signatures.map((s, i) =>
