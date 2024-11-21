@@ -9,20 +9,17 @@
 import {h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
 import {HasRenderableToc} from '../entities/traits';
-import {convertSectionNameToId} from '../transforms/reference-section-id';
 import {CodeTableOfContents} from './code-table-of-contents';
-import {SECTION_CONTAINER, SECTION_TITLE} from '../styling/css-classes';
+import {SECTION_CONTAINER} from '../styling/css-classes';
+import {SectionHeading} from './section-heading';
 
 const API_SECTION_NAME = 'API';
 
 /** Component to render the API section. */
 export function SectionApi(props: {entry: DocEntryRenderable & HasRenderableToc}) {
   return (
-    <div
-      className={SECTION_CONTAINER + ' docs-reference-api-section'}
-      id={convertSectionNameToId(API_SECTION_NAME)}
-    >
-      <h3 className={SECTION_TITLE}>{API_SECTION_NAME}</h3>
+    <div className={SECTION_CONTAINER + ' docs-reference-api-section'}>
+      <SectionHeading name={API_SECTION_NAME} />
       <CodeTableOfContents entry={props.entry} />
     </div>
   );
