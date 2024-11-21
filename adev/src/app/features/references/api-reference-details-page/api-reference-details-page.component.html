@@ -1,3 +1,7 @@
 @if (docContent(); as docContent) {
-  <docs-viewer [docContent]="docContent.contents" [hasToc]="true"></docs-viewer>
+  <docs-viewer
+    [docContent]="docContent.contents"
+    [hasToc]="true"
+    (contentLoaded)="onContentLoaded()"
+  ></docs-viewer>
 }

@@ -7,6 +7,7 @@
  */
 
 import {ChangeDetectionStrategy, Component, inject, input} from '@angular/core';
+import {DOCUMENT, Location} from '@angular/common';
 import {DocContent, DocViewer} from '@angular/docs';
 import {ApiItemType} from './../interfaces/api-item-type';
 import {AppScroller} from '../../../app-scroller';
@@ -21,6 +22,8 @@ import {AppScroller} from '../../../app-scroller';
 })
 export default class ApiReferenceDetailsPage {
   private readonly appScroller = inject(AppScroller);
+  private readonly location = inject(Location);
+  private readonly document = inject(DOCUMENT);
 
   docContent = input<DocContent | undefined>();
 
@@ -33,5 +36,17 @@ export default class ApiReferenceDetailsPage {
 
   ngOnDestroy() {
     this.appScroller.disableScrolling = false;
+  }
+
+  onContentLoaded() {
+    this.scrollToSectionId();
+  }
+
+  private scrollToSectionId() {
+    const [_, sectionId] = this.location.path(true).split('#');
+    if (sectionId) {
+      const sectionHeading = this.document.getElementById(sectionId);
+      sectionHeading?.scrollIntoView({behavior: 'instant'});
+    }
   }
 }
