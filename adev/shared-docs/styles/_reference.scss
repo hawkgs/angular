@@ -1,3 +1,5 @@
+@use './anchor' as anchor;
+
 /* Common styles for the API & CLI references */
 @mixin reference-common() {
   .docs-code {
@@ -62,10 +64,15 @@
   }
 
   .docs-reference-section {
-    .docs-reference-section-title {
+    .docs-reference-section-heading {
       border-block-end: 1px solid var(--senary-contrast);
-      margin-block-start: 2rem;
+      margin-block-start: 3rem;
       padding-block-end: 0.75rem;
+
+      a {
+        @include anchor.docs-anchor();
+        color: inherit;
+      }
     }
   }
 

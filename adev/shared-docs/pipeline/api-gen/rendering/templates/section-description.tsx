@@ -8,10 +8,10 @@
 
 import {Fragment, h} from 'preact';
 import {DocEntryRenderable} from '../entities/renderables';
-import {convertSectionNameToId} from '../transforms/reference-section-id';
 import {RawHtml} from './raw-html';
 import {CodeSymbol} from './code-symbols';
-import {SECTION_CONTAINER, SECTION_TITLE} from '../styling/css-classes';
+import {SECTION_CONTAINER} from '../styling/css-classes';
+import {SectionHeading} from './section-heading';
 
 const DESCRIPTION_SECTION_NAME = 'Description';
 
@@ -27,8 +27,8 @@ export function SectionDescription(props: {entry: DocEntryRenderable}) {
   }
 
   return (
-    <div className={SECTION_CONTAINER} id={convertSectionNameToId(DESCRIPTION_SECTION_NAME)}>
-      <h3 className={SECTION_TITLE}>{DESCRIPTION_SECTION_NAME}</h3>
+    <div className={SECTION_CONTAINER}>
+      <SectionHeading name={DESCRIPTION_SECTION_NAME} />
       <RawHtml value={props.entry.htmlDescription} />
 
       {exportedBy.length ? (

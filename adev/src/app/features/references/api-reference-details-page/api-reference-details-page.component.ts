@@ -23,7 +23,6 @@ export default class ApiReferenceDetailsPage {
   private readonly appScroller = inject(AppScroller);
 
   docContent = input<DocContent | undefined>();
-  tab = input<string | undefined>();
 
   // aliases
   ApiItemType = ApiItemType;
