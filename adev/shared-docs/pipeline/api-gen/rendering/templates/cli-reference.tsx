@@ -12,6 +12,7 @@ import {REFERENCE_MEMBERS} from '../styling/css-classes';
 import {CliCard} from './cli-card';
 import {HeaderCli} from './header-cli';
 import {RawHtml} from './raw-html';
+import {SectionHeading} from './section-heading';
 
 /** Component to render a CLI command reference document. */
 export function CliCommandReference(entry: CliCommandRenderable) {
@@ -63,7 +64,10 @@ export function CliCommandReference(entry: CliCommandRenderable) {
       </div>
       <div className={REFERENCE_MEMBERS}>
         {entry.cards.map((card) => (
-          <CliCard card={card} />
+          <>
+            <SectionHeading name={card.type} />
+            <CliCard card={card} />
+          </>
         ))}
       </div>
     </div>
