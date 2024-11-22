@@ -65,9 +65,7 @@
 
   .docs-reference-section {
     .docs-reference-section-heading {
-      border-block-end: 1px solid var(--senary-contrast);
       padding-block-start: 3rem;
-      padding-block-end: 0.75rem;
 
       a {
         @include anchor.docs-anchor();
