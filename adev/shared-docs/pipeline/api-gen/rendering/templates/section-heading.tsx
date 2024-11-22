@@ -16,7 +16,7 @@ export function SectionHeading(props: {name: string}) {
   const label = 'Link to ' + props.name + ' section';
 
   return (
-    <h2 id={id} className={SECTION_HEADING}>
+    <h2 id={id} class={SECTION_HEADING}>
       <a href={'#' + id} aria-label={label} tabIndex={-1}>
         {props.name}
       </a>
