@@ -9,8 +9,8 @@
 import {ChangeDetectionStrategy, Component, inject, input} from '@angular/core';
 import {DOCUMENT, Location} from '@angular/common';
 import {DocContent, DocViewer} from '@angular/docs';
-import {ApiItemType} from './../interfaces/api-item-type';
-import {AppScroller} from '../../../app-scroller';
+import {ReferenceScrollHandler} from '../services/reference-scroll-handler.service';
+import {API_SECTION_CLASS_NAME} from '../constants/api-reference-prerender.constants';
 
 @Component({
   selector: 'adev-reference-page',
@@ -18,28 +18,19 @@ import {AppScroller} from '../../../app-scroller';
   imports: [DocViewer],
   templateUrl: './api-reference-details-page.component.html',
   styleUrls: ['./api-reference-details-page.component.scss'],
+  providers: [ReferenceScrollHandler],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class ApiReferenceDetailsPage {
-  private readonly appScroller = inject(AppScroller);
+  private readonly referenceScrollHandler = inject(ReferenceScrollHandler);
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
 
   docContent = input<DocContent | undefined>();
 
-  // aliases
-  ApiItemType = ApiItemType;
-
-  constructor() {
-    this.appScroller.disableScrolling = true;
-  }
-
-  ngOnDestroy() {
-    this.appScroller.disableScrolling = false;
-  }
-
   onContentLoaded() {
-    this.scrollToSectionId();
+    // this.scrollToSectionId();
+    this.referenceScrollHandler.setupListeners(API_SECTION_CLASS_NAME);
   }
 
   private scrollToSectionId() {
