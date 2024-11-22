@@ -21,8 +21,6 @@ export function ClassReference(entry: ClassEntryRenderable | DecoratorEntryRende
     <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} />
       <SectionApi entry={entry} />
-      <SectionDescription entry={entry} />
-      <SectionUsageNotes entry={entry} />
       {entry.members.length > 0 ? (
         <div class={REFERENCE_MEMBERS}>
           <ClassMemberList members={entry.members} />
@@ -30,6 +28,8 @@ export function ClassReference(entry: ClassEntryRenderable | DecoratorEntryRende
       ) : (
         <></>
       )}
+      <SectionDescription entry={entry} />
+      <SectionUsageNotes entry={entry} />
     </div>
   );
 }
