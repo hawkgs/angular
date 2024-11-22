@@ -17,8 +17,8 @@ import {
 
 export function CliCard(props: {card: CliCardRenderable}) {
   return (
-    <div id={props.card.type} class={REFERENCE_MEMBER_CARD} tabIndex={-1}>
-      <header class={REFERENCE_MEMBER_CARD_HEADER}>
+    <div class={REFERENCE_MEMBER_CARD}>
+      <header id={props.card.type} class={REFERENCE_MEMBER_CARD_HEADER} tabIndex={-1}>
         <h3>{props.card.type}</h3>
       </header>
       <div className={REFERENCE_MEMBER_CARD_BODY}>

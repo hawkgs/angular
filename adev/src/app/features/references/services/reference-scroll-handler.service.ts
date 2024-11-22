@@ -10,22 +10,17 @@ import {DOCUMENT, isPlatformBrowser} from '@angular/common';
 import {DestroyRef, Injectable, PLATFORM_ID, inject} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {fromEvent} from 'rxjs';
-import {MEMBER_ID_ATTRIBUTE} from '../constants/api-reference-prerender.constants';
-import {WINDOW} from '@angular/docs';
+import {
+  API_REFERENCE_MEMBER_CARD_CLASS_NAME,
+  MEMBER_ID_ATTRIBUTE,
+} from '../constants/api-reference-prerender.constants';
 import {Router} from '@angular/router';
-import {AppScroller} from '../../../app-scroller';
 
-// Adds some space/margin between the top of the target element and the top of viewport.
-const SCROLL_MARGIN_TOP = 100;
-
-// Note(Georgi): Might be redundant
 @Injectable()
 export class ReferenceScrollHandler {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
-  private readonly window = inject(WINDOW);
   private readonly router = inject(Router);
-  private readonly appScroller = inject(AppScroller);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   setupListeners(tocSelector: string): void {
@@ -34,30 +29,11 @@ export class ReferenceScrollHandler {
     }
 
     this.setupCodeToCListeners(tocSelector);
-    this.setScrollEventHandlers();
-    this.listenToResizeCardContainer();
-    this.setupFragmentChangeListener();
-  }
-
-  private setupFragmentChangeListener() {
-    this.router.routerState.root.fragment
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((fragment) => {
-        // If there is no fragment or the scroll event has a position (traversing through history),
-        // allow the scroller to handler scrolling instead of going to the fragment
-        if (!fragment || this.appScroller.lastScrollEvent?.position) {
-          this.appScroller.scroll();
-          return;
-        }
-
-        const card = this.document.getElementById(fragment) as HTMLDivElement | null;
-        card?.focus();
-        this.scrollToCard(card);
-      });
+    this.setupMemberCardListeners();
   }
 
   private setupCodeToCListeners(tocSelector: string): void {
-    const tocContainer = this.document.querySelector<HTMLDivElement>(tocSelector);
+    const tocContainer = this.document.querySelector<HTMLDivElement>(`.${tocSelector}`);
 
     if (!tocContainer) {
       return;
@@ -84,81 +60,30 @@ export class ReferenceScrollHandler {
       });
   }
 
-  private setScrollEventHandlers(): void {
-    const scroll$ = fromEvent(this.document, 'scroll').pipe(
-      auditTime(SCROLL_EVENT_DELAY),
-      takeUntilDestroyed(this.destroyRef),
-    );
+  private setupMemberCardListeners(): void {
+    this.getAllMemberCards().forEach((card) => {
+      const header = card.querySelector('header');
 
-    scroll$.subscribe(() => this.setActiveCodeLine());
-  }
-
-  private listenToResizeCardContainer(): void {
-    const membersCardContainer = this.document.querySelector(
-      API_REFERENCE_DETAILS_PAGE_MEMBERS_CLASS_NAME,
-    );
-    if (membersCardContainer) {
-      afterNextRender(
-        () => {
-          const resizeObserver = new ResizeObserver(() => {
-            this.updateCardsOffsetTop();
-            this.setActiveCodeLine();
-          });
-          resizeObserver.observe(membersCardContainer);
-          this.destroyRef.onDestroy(() => resizeObserver.disconnect());
-        },
-        {injector: this.injector},
-      );
-    }
-  }
-
-  private setActiveCodeLine(): void {
-    const activeCard = Array.from(this.cardOffsetTop)
-      .filter(([_, offsetTop]) => {
-        return offsetTop < this.window.scrollY + this.membersMarginTopInPx() + SCROLL_THRESHOLD;
-      })
-      .pop();
-
-    if (!activeCard) {
-      return;
-    }
-
-    const activeLines = this.document.querySelectorAll<HTMLButtonElement>(
-      `button.${API_TAB_ACTIVE_CODE_LINE}`,
-    );
-
-    const activeLine = activeLines.length > 0 ? activeLines.item(0) : null;
-    const previousActiveMemberId = this.getMemberId(activeLine);
-    const currentActiveMemberId = activeCard[0];
-
-    if (previousActiveMemberId && previousActiveMemberId !== currentActiveMemberId) {
-      for (const line of Array.from(activeLines)) {
-        line.classList.remove(API_TAB_ACTIVE_CODE_LINE);
+      if (!header) {
+        return;
       }
-    } else {
-      const lines = this.document.querySelectorAll<HTMLButtonElement>(
-        `button[${MEMBER_ID_ATTRIBUTE}="${currentActiveMemberId}"]`,
-      );
-      for (const line of Array.from(lines)) {
-        line.classList.add(API_TAB_ACTIVE_CODE_LINE);
-      }
-      this.document.getElementById(`${currentActiveMemberId}`)?.focus({preventScroll: true});
-    }
-  }
+      fromEvent(header, 'click')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event) => {
+          const target = event.target as HTMLElement;
+          if (target instanceof HTMLAnchorElement) {
+            return;
+          }
 
-  private scrollToCard(card: HTMLDivElement | null): void {
-    if (!card) {
-      return;
-    }
-
-    if (card !== <HTMLElement>document.activeElement) {
-      (<HTMLElement>document.activeElement).blur();
-    }
-
-    this.window.scrollTo({
-      top: card!.offsetTop - SCROLL_MARGIN_TOP,
-      behavior: 'smooth',
+          this.router.navigate([], {fragment: header.id, replaceUrl: true});
+        });
     });
+  }
+
+  private getAllMemberCards(): NodeListOf<HTMLDivElement> {
+    return this.document.querySelectorAll<HTMLDivElement>(
+      `.${API_REFERENCE_MEMBER_CARD_CLASS_NAME}`,
+    );
   }
 
   private getMemberId(lineButton: HTMLButtonElement | null): string | undefined {

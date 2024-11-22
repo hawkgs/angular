@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {h} from 'preact';
+import {h, Fragment} from 'preact';
 import {
   FunctionEntryRenderable,
   FunctionSignatureMetadataRenderable,
@@ -35,8 +35,8 @@ export const signatureCard = (
   printSignaturesAsHeader: boolean,
 ) => {
   return (
-    <div class={REFERENCE_MEMBER_CARD} id={opts.id} tabIndex={-1}>
-      <header>
+    <div class={REFERENCE_MEMBER_CARD}>
+      <header id={opts.id} tabIndex={-1} class={REFERENCE_MEMBER_CARD_HEADER}>
         {printSignaturesAsHeader ? (
           <code>
             <HighlightTypeScript
@@ -49,12 +49,12 @@ export const signatureCard = (
             />
           </code>
         ) : (
-          <div className={REFERENCE_MEMBER_CARD_HEADER}>
+          <>
             <h3>{name}</h3>
             <div>
               <CodeSymbol code={signature.returnType} />
             </div>
-          </div>
+          </>
         )}
       </header>
       <div class={REFERENCE_MEMBER_CARD_BODY}>
