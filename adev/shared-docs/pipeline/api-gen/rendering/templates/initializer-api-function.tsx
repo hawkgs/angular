@@ -37,7 +37,6 @@ export function InitializerApiFunction(entry: InitializerApiFunctionRenderable) 
     <div className={API_REFERENCE_CONTAINER}>
       <HeaderApi entry={entry} showFullDescription={true} />
       <SectionApi entry={entry} />
-      <SectionUsageNotes entry={entry} />
 
       <div class={REFERENCE_MEMBERS}>
         {entry.callFunction.signatures.map((s, i) =>
@@ -68,6 +67,8 @@ export function InitializerApiFunction(entry: InitializerApiFunctionRenderable) 
           [] as JSX.Element[],
         )}
       </div>
+
+      <SectionUsageNotes entry={entry} />
     </div>
   );
 }

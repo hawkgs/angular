@@ -75,11 +75,13 @@
   .docs-reference-members {
     box-sizing: border-box;
     width: 100%;
-    margin-top: 1rem;
-
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    &:not(:first-child) {
+      margin-top: 1rem;
+    }
 
     .docs-reference-member-card {
       border: 1px solid var(--senary-contrast);
