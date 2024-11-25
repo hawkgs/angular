@@ -10,10 +10,7 @@ import {DOCUMENT, isPlatformBrowser} from '@angular/common';
 import {DestroyRef, Injectable, PLATFORM_ID, inject} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {fromEvent} from 'rxjs';
-import {
-  API_REFERENCE_MEMBER_CARD_CLASS_NAME,
-  MEMBER_ID_ATTRIBUTE,
-} from '../constants/api-reference-prerender.constants';
+import {MEMBER_ID_ATTRIBUTE} from '../constants/api-reference-prerender.constants';
 import {Router} from '@angular/router';
 
 @Injectable()
@@ -29,7 +26,6 @@ export class ReferenceScrollHandler {
     }
 
     this.setupCodeToCListeners(tocSelector);
-    this.setupMemberCardListeners();
   }
 
   private setupCodeToCListeners(tocSelector: string): void {
@@ -58,32 +54,6 @@ export class ReferenceScrollHandler {
           this.router.navigate([], {fragment: memberId, replaceUrl: true});
         }
       });
-  }
-
-  private setupMemberCardListeners(): void {
-    this.getAllMemberCards().forEach((card) => {
-      const header = card.querySelector('header');
-
-      if (!header) {
-        return;
-      }
-      fromEvent(header, 'click')
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((event) => {
-          const target = event.target as HTMLElement;
-          if (target instanceof HTMLAnchorElement) {
-            return;
-          }
-
-          this.router.navigate([], {fragment: header.id, replaceUrl: true});
-        });
-    });
-  }
-
-  private getAllMemberCards(): NodeListOf<HTMLDivElement> {
-    return this.document.querySelectorAll<HTMLDivElement>(
-      `.${API_REFERENCE_MEMBER_CARD_CLASS_NAME}`,
-    );
   }
 
   private getMemberId(lineButton: HTMLButtonElement | null): string | undefined {
