@@ -35,8 +35,8 @@ export const signatureCard = (
   printSignaturesAsHeader: boolean,
 ) => {
   return (
-    <div class={REFERENCE_MEMBER_CARD}>
-      <header id={opts.id} tabIndex={-1} class={REFERENCE_MEMBER_CARD_HEADER}>
+    <div id={opts.id} tabIndex={-1} class={REFERENCE_MEMBER_CARD}>
+      <header class={REFERENCE_MEMBER_CARD_HEADER}>
         {printSignaturesAsHeader ? (
           <code>
             <HighlightTypeScript
