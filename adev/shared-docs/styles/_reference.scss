@@ -112,6 +112,10 @@
         margin-block-end: 0;
       }
 
+      a {
+        pointer-events: initial;
+      }
+
       .docs-reference-card-header {
         display: flex;
         align-items: center;
@@ -304,12 +308,6 @@
           margin-block: 1rem;
         }
 
-        .docs-param-keyword {
-          color: var(--primary-contrast);
-          font-family: var(--code-font);
-          margin-inline-end: 0.5rem;
-        }
-
         .docs-param-name {
           color: var(--vivid-pink);
           font-family: var(--code-font);
@@ -325,6 +323,12 @@
             margin-block-start: 0;
           }
         }
+      }
+
+      .docs-param-keyword {
+        color: var(--primary-contrast);
+        font-family: var(--code-font);
+        margin-inline-end: 0.5rem;
       }
 
       .docs-return-type {
