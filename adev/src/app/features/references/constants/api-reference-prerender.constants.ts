@@ -6,6 +6,5 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-export const API_REFERENCE_MEMBER_CARD_CLASS_NAME = 'docs-reference-member-card';
 export const API_SECTION_CLASS_NAME = 'docs-reference-api-section';
 export const MEMBER_ID_ATTRIBUTE = 'member-id';
