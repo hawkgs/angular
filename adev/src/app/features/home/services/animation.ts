@@ -11,14 +11,16 @@ export type AnimationConfig = {
   timestep: number;
 };
 
+// Note(Georgi): It will be better to parse all string value to the internal model
+// initially, instead of doing that during every frame update.
+type Styles = {[key: string]: string};
+
 export type AnimationRule = {
   selector: string;
   from: number;
   to: number;
-  styles: {[key: string]: string};
+  styles: Styles;
 };
-
-type Styles = {[key: string]: string};
 
 export class Animation {
   private readonly renderer = inject(Renderer2);
@@ -32,7 +34,7 @@ export class Animation {
   private initialStyles = new Map<string, Styles>(); // selector; Styles
 
   constructor(layers: AnimationLayerDirective[], config?: Partial<AnimationConfig>) {
-    this.config = {...DEFAULT_CONFIG, ...(config ?? {})};
+    this.config = {...DEFAULT_CONFIG, ...(config || {})};
     this.allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
@@ -55,18 +57,6 @@ export class Animation {
     // tbd
   }
 
-  reset() {
-    this.currentTime = 0;
-
-    for (const [selector, styles] of Array.from(this.activeStyles)) {
-      for (const [style] of Object.entries(styles)) {
-        const element = this.allObjects.get(selector);
-        this.renderer.removeStyle(element, style);
-      }
-      this.activeStyles.delete(selector);
-    }
-  }
-
   forward(timestep?: number) {
     if (!this.rules.length) {
       console.warn("Animation: Can't go forward without provided rules");
@@ -87,31 +77,66 @@ export class Animation {
     // tbd
   }
 
-  private updateFrame(time: number) {
-    const delta = time - this.currentTime;
-    const activeRules = this.rules.filter((r) => r.from <= time && time <= r.to);
-    const completedRules = this.rules.filter((r) => time > r.to);
+  reset() {
+    this.currentTime = 0;
 
-    for (const r of activeRules) {
-      const element = this.allObjects.get(r.selector)!;
+    for (const [selector, styles] of Array.from(this.activeStyles)) {
+      for (const [style] of Object.entries(styles)) {
+        const element = this.allObjects.get(selector);
+        this.renderer.removeStyle(element, style);
+      }
+      this.activeStyles.delete(selector);
     }
+  }
+
+  private updateFrame(time: number) {
+    const completedRules = this.rules.filter((r) => time > r.to);
+    const activeRules = this.rules.filter((r) => r.from <= time && time <= r.to);
+
+    const stylesState = new Map<string, Styles>(); // All styles state relative to `time`
+
+    // Extract the completed rules directly
+    for (const rule of completedRules) {
+      let objectStyles = stylesState.get(rule.selector) || {};
+      objectStyles = {...objectStyles, ...rule.styles};
+      stylesState.set(rule.selector, objectStyles);
+    }
+
+    // Active rules
+    for (const rule of activeRules) {
+      const delta = time - this.currentTime;
+      const activeStyles = this.activeStyles.get(rule.selector)!;
+      const styles = stylesState.get(rule.selector) || {};
+
+      for (const [prop, value] of Object.entries(rule.styles)) {
+        // Note(Georgi): This is the algorithm for simple numeric values; WIP
+        //
+        // const newValue = activeStyles[prop] - value;
+        // const deltaPerTimeunit = newValue / delta;
+        // const valueDelta = deltaPerTimeunit * this.config.timestep;
+        //
+        // styles[prop] = activeStyles[prop] + valueDelta;
+      }
+
+      stylesState.set(rule.selector, styles);
+    }
+
+    // Apply rule styles
+    for (const [selector, styles] of Array.from(stylesState)) {
+      for (const [prop, value] of Object.entries(styles)) {
+        this.setStyle(selector, prop, value);
+      }
+    }
+
+    this.currentTime = time;
   }
 
   private setStyle(selector: string, property: string, value: string) {
     const element = this.allObjects.get(selector);
     this.renderer.setStyle(element, property, value);
 
-    const activeStyles = this.activeStyles.get(selector) ?? {};
+    const activeStyles = this.activeStyles.get(selector) || {};
     activeStyles[property] = value;
-    this.activeStyles.set(selector, activeStyles);
-  }
-
-  private removeStyle(selector: string, property: string) {
-    const element = this.allObjects.get(selector);
-    this.renderer.removeStyle(element, property);
-
-    const activeStyles = this.activeStyles.get(selector)!;
-    delete activeStyles[property];
     this.activeStyles.set(selector, activeStyles);
   }
 
@@ -165,6 +190,8 @@ export class Animation {
       for (const prop of Array.from(group)) {
         styles[prop] = computed.getPropertyValue(prop);
       }
+
+      this.initialStyles.set(selector, styles);
     }
   }
 }
