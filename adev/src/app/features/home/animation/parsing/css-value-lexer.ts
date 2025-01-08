@@ -6,12 +6,21 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-type CharType = 'letter' | 'digit' | 'point' | 'hash' | 'percent' | 'space' | 'bracket' | 'unknown';
+type CharType =
+  | 'letter'
+  | 'digit'
+  | 'point'
+  | 'comma'
+  | 'hash'
+  | 'percent'
+  | 'space'
+  | 'bracket'
+  | 'unknown';
 type BufferType = 'text' | 'number' | null;
 
 // Symbols/`CharType`-s that mark the end of a token
 // but should not be included as such.
-const END_SYMBOLS: CharType[] = ['space', 'bracket'];
+const END_SYMBOLS: CharType[] = ['space', 'bracket', 'comma'];
 
 /**
  * Extract tokens from a CSS property value string.
@@ -62,6 +71,9 @@ export function cssValueLexer(value: string): (string | number)[] {
 function getCharType(char: string): CharType {
   if (char === '.') {
     return 'point';
+  }
+  if (char === ',') {
+    return 'comma';
   }
   if (char === '%') {
     return 'percent';

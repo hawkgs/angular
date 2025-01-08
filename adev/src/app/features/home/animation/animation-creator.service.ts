@@ -14,10 +14,11 @@ import {AnimationConfig} from './types';
 @Injectable()
 export class AnimationCreatorService {
   /**
+   * Create an `Animation` object
    *
-   * @param layers
-   * @param config
-   * @returns
+   * @param layers Animation layers
+   * @param config Animation config
+   * @returns `Animation`
    */
   createAnimation(layers: AnimationLayerDirective[], config?: AnimationConfig): Animation {
     return new Animation(layers, config);

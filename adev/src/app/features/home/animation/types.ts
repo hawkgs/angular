@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
+import {CssPropertyValue} from './parsing';
+
 export type AnimationConfig = {
   timestep: number;
 };
@@ -14,14 +16,24 @@ export type AnimationConfig = {
 // initially, instead of doing that during every frame update.
 export type Styles = {[key: string]: string};
 
-/** Animation definition */
-export type AnimationRule = {
+export type ParsedStyles = {[key: string]: CssPropertyValue};
+
+interface AnimationRuleBase {
   /** Selector in the form of `LAYER_ID >> OBJECT_SELECTOR`. The object selector is optional */
   selector: string;
   /** Start time */
   from: number;
   /** End time */
   to: number;
+}
+
+/** Animation definition */
+export interface AnimationRule extends AnimationRuleBase {
   /** Styles that should applied throughout the provided timespan. */
   styles: Styles;
-};
+}
+
+export interface ParsedAnimationRule extends AnimationRuleBase {
+  /** Styles that should applied throughout the provided timespan. */
+  styles: ParsedStyles;
+}
