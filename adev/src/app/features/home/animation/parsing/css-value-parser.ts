@@ -98,7 +98,7 @@ const parserHandlers = [
  * Parse a string to a `CssPropertyValue`.
  *
  * @param value CSS property value
- * @returns Parser CSS property value
+ * @returns Parsed CSS property value
  */
 export function cssValueParser(value: string): CssPropertyValue {
   const tokens = cssValueLexer(value);
