@@ -1,25 +1,21 @@
+/*!
+ * @license
+ * Copyright Google LLC All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.dev/license
+ */
+
 import {inject, Renderer2} from '@angular/core';
 import {WINDOW} from '@angular/docs';
-import {AnimationLayerDirective} from '../animation-layer.directive';
+import {AnimationLayerDirective} from './animation-layer.directive';
+import {AnimationConfig, AnimationRule, Styles} from './types';
 
+// The string seperator between a layed ID and an object selector.
 const SEL_SEPARATOR = '>>';
+
 const DEFAULT_CONFIG: AnimationConfig = {
   timestep: 0.1,
-};
-
-export type AnimationConfig = {
-  timestep: number;
-};
-
-// Note(Georgi): It will be better to parse all string value to the internal model
-// initially, instead of doing that during every frame update.
-type Styles = {[key: string]: string};
-
-export type AnimationRule = {
-  selector: string;
-  from: number;
-  to: number;
-  styles: Styles;
 };
 
 export class Animation {
@@ -109,7 +105,7 @@ export class Animation {
       const styles = stylesState.get(rule.selector) || {};
 
       for (const [prop, value] of Object.entries(rule.styles)) {
-        // Note(Georgi): This is the algorithm for simple numeric values; WIP
+        // Todo(Georgi): This is the algorithm for simple numeric values; WIP
         //
         // const newValue = activeStyles[prop] - value;
         // const deltaPerTimeunit = newValue / delta;
@@ -140,6 +136,9 @@ export class Animation {
     this.activeStyles.set(selector, activeStyles);
   }
 
+  /**
+   * Extracts all objects (layer elements and layer child elements) by their provided selectors.
+   */
   private validateAndExtractObjectsFromLayers() {
     for (const rule of this.rules) {
       let [layerId, objectSelector] = rule.selector.split(SEL_SEPARATOR);
@@ -164,6 +163,9 @@ export class Animation {
     }
   }
 
+  /**
+   * Creates a snapshot of the initial/computed styles of all objects
+   */
   private createInitialStylesSnapshot() {
     // Contains a set will all applied rule styles for each object
     const styleGroups = new Map<string, Set<string>>(); // selector; style properties
