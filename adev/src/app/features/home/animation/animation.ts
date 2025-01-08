@@ -9,7 +9,8 @@
 import {inject, Renderer2} from '@angular/core';
 import {WINDOW} from '@angular/docs';
 import {AnimationLayerDirective} from './animation-layer.directive';
-import {AnimationConfig, AnimationRule, Styles} from './types';
+import {AnimationConfig, AnimationRule, ParsedAnimationRule, ParsedStyles} from './types';
+import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
 
 // The string seperator between a layed ID and an object selector.
 const SEL_SEPARATOR = '>>';
@@ -18,24 +19,38 @@ const DEFAULT_CONFIG: AnimationConfig = {
   timestep: 0.1,
 };
 
+// Animation player
 export class Animation {
   private readonly renderer = inject(Renderer2);
   private readonly window = inject(WINDOW);
 
   private config: AnimationConfig;
-  private rules: AnimationRule[] = [];
+  private rules: ParsedAnimationRule[] = [];
   private currentTime: number = 0;
   private allObjects = new Map<string, HTMLElement>(); // selector; HTML element
-  private activeStyles = new Map<string, Styles>(); // selector; Styles
-  private initialStyles = new Map<string, Styles>(); // selector; Styles
+  private activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
+  private initialStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
 
   constructor(layers: AnimationLayerDirective[], config?: Partial<AnimationConfig>) {
+    // Merge the config with the default one, if incomplete.
     this.config = {...DEFAULT_CONFIG, ...(config || {})};
+
+    // Set layer elements in the objects map.
     this.allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
   setRules(rules: AnimationRule[]) {
-    this.rules = rules.sort((a, b) => a.to - b.to);
+    // Parse the rules
+    this.rules = rules
+      .sort((a, b) => a.to - b.to)
+      .map((rule) => {
+        const styles: ParsedStyles = {};
+        for (const [prop, val] of Object.entries(rule.styles)) {
+          styles[prop] = cssValueParser(val);
+        }
+        return {...rule, styles};
+      });
+
     this.validateAndExtractObjectsFromLayers();
     this.createInitialStylesSnapshot();
   }
@@ -89,7 +104,7 @@ export class Animation {
     const completedRules = this.rules.filter((r) => time > r.to);
     const activeRules = this.rules.filter((r) => r.from <= time && time <= r.to);
 
-    const stylesState = new Map<string, Styles>(); // All styles state relative to `time`
+    const stylesState = new Map<string, ParsedStyles>(); // All styles state relative to `time`
 
     // Extract the completed rules directly
     for (const rule of completedRules) {
@@ -127,9 +142,9 @@ export class Animation {
     this.currentTime = time;
   }
 
-  private setStyle(selector: string, property: string, value: string) {
+  private setStyle(selector: string, property: string, value: CssPropertyValue) {
     const element = this.allObjects.get(selector);
-    this.renderer.setStyle(element, property, value);
+    this.renderer.setStyle(element, property, stringifyParsedValue(value));
 
     const activeStyles = this.activeStyles.get(selector) || {};
     activeStyles[property] = value;
@@ -150,7 +165,7 @@ export class Animation {
         throw new Error(`Animation: Missing layer ID: ${layerId}`);
       }
 
-      if (objectSelector) {
+      if (objectSelector && !this.allObjects.has(rule.selector)) {
         const object = layer.querySelector(objectSelector);
         if (!object) {
           throw new Error(`Animation: Missing layer object ${object}`);
@@ -186,11 +201,12 @@ export class Animation {
     // Save initial styles for each object
     for (const [selector, element] of Array.from(this.allObjects)) {
       const computed = this.window.getComputedStyle(element);
-      const styles: Styles = {};
+      const styles: ParsedStyles = {};
 
       const group = styleGroups.get(selector)!;
       for (const prop of Array.from(group)) {
-        styles[prop] = computed.getPropertyValue(prop);
+        const valueStr = computed.getPropertyValue(prop);
+        styles[prop] = cssValueParser(valueStr);
       }
 
       this.initialStyles.set(selector, styles);
