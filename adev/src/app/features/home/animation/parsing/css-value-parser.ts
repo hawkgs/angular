@@ -33,17 +33,7 @@ interface ParserHandler {
 // Handlers
 //
 
-const singleUnitlessNumericValueHandler: ParserHandler = (tokens) => {
-  if (tokens.length === 1 && typeof tokens[0] === 'number') {
-    return {
-      type: 'numeric',
-      values: [[tokens[0], '']],
-    };
-  }
-  return null;
-};
-
-const staticColorValueHandler: ParserHandler = (tokens) => {
+const staticAndColorValuesHandler: ParserHandler = (tokens) => {
   if (tokens.length === 1 && typeof tokens[0] === 'string') {
     const token = tokens[0];
     return {
@@ -55,32 +45,37 @@ const staticColorValueHandler: ParserHandler = (tokens) => {
 };
 
 const numericValueHandler: ParserHandler = (tokens) => {
-  if (tokens.length > 1 && typeof tokens[0] === 'number') {
+  if (typeof tokens[0] === 'number') {
     const value: NumericValue = {
       type: 'numeric',
       values: [],
     };
-    let currPair = [];
-    let isValid = true;
+    let buffer = [];
 
     for (const token of tokens) {
-      currPair.push(token);
+      buffer.push(token);
 
-      if (currPair.length === 2) {
-        if (typeof currPair[0] === 'number' && typeof currPair[1] === 'string') {
-          value.values.push(currPair as [number, string]);
-          currPair = [];
-        } else {
-          isValid = false;
-          break;
-        }
+      if (buffer.length === 2 && typeof buffer[0] === 'number' && typeof buffer[1] === 'string') {
+        value.values.push(buffer as [number, string]);
+        buffer = [];
       }
     }
 
-    if (isValid) {
-      return value;
+    // If the values do not match number-unit format
+    if (buffer.length) {
+      const numbersOnly = !buffer.find((v) => typeof v === 'string');
+      // Invalid
+      if (!numbersOnly) {
+        return null;
+      }
+
+      const pairs = buffer.map((v) => [v, ''] as [number, string]);
+      value.values = [...value.values, ...pairs];
     }
+
+    return value;
   }
+
   return null;
 };
 
@@ -155,12 +150,7 @@ const transformValueHandler: ParserHandler = (tokens) => {
 };
 
 // Include all handlers that should be part of the parsing here.
-const parserHandlers = [
-  singleUnitlessNumericValueHandler,
-  staticColorValueHandler,
-  numericValueHandler,
-  transformValueHandler,
-];
+const parserHandlers = [staticAndColorValuesHandler, numericValueHandler, transformValueHandler];
 
 //
 // Parser function
