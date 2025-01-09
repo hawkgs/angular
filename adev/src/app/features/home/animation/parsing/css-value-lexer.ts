@@ -16,7 +16,8 @@ type CharType =
   | 'space'
   | 'bracket'
   | 'unknown';
-type BufferType = 'text' | 'number' | null;
+
+type BufferType = 'text' | 'color' | 'number' | null;
 
 // Symbols/`CharType`-s that mark the end of a token
 // but should not be included as such.
@@ -37,10 +38,10 @@ export function cssValueLexer(value: string): (string | number)[] {
 
   for (const char of value) {
     const charType = getCharType(char);
-    const newBufferType = getBufferType(charType);
+    const newBufferType = getBufferType(charType, bufferType);
 
     // Check if token end has been reached
-    if (END_SYMBOLS.includes(charType)) {
+    if (END_SYMBOLS.includes(charType) && buffer) {
       addToken();
       buffer = '';
       bufferType = null;
@@ -100,8 +101,13 @@ function getCharType(char: string): CharType {
 }
 
 /** Get the lexer buffer type of a `CharType`. */
-function getBufferType(type: CharType): BufferType {
-  const textSymbols: CharType[] = ['letter', 'percent', 'hash'];
+function getBufferType(type: CharType, currentBuffer: BufferType): BufferType {
+  const colorSymbols: CharType[] = ['hash'];
+  if (colorSymbols.includes(type) || currentBuffer === 'color') {
+    return 'color';
+  }
+
+  const textSymbols: CharType[] = ['letter', 'percent'];
   if (textSymbols.includes(type)) {
     return 'text';
   }
