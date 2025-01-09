@@ -10,11 +10,11 @@ export function stringifyParsedValue(value: CssPropertyValue): string {
   switch (value.type) {
     case 'numeric':
       return value.values.map(([num, unit]) => num + unit).join(' ');
-    case 'tranform':
+    case 'transform':
       return Array.from(value.values)
         .map(
-          ([fnName, numVal]) =>
-            `${fnName}(${numVal.values.map(([num, unit]) => num + unit).join(', ')})`,
+          ([fnName, numData]) =>
+            `${fnName}(${numData.map(([num, unit]) => num + unit).join(', ')})`,
         )
         .join(' ');
     case 'color':

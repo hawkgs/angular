@@ -22,8 +22,8 @@ export type ColorValue = {
 };
 
 export type TransformValue = {
-  type: 'tranform';
-  values: Map<string, NumericValue>; // function name, NumericValue
+  type: 'transform';
+  values: Map<string, [number, string][]>; // function name, parameters in the form of a numeric data
 };
 
 /** A parsed CSS property value. */
