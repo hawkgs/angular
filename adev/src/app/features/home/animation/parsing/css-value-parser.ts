@@ -9,6 +9,22 @@
 import {cssValueLexer} from './css-value-lexer';
 import {CssPropertyValue, NumericValue, TransformValue} from './types';
 
+// Transform functions that can be parsed
+const SUPPORTED_FUNCS = [
+  'translate',
+  'rotate',
+  'scale',
+  'skew',
+  'translateX',
+  'translateY',
+  'translateZ',
+  'scaleX',
+  'scaleY',
+  'scaleZ',
+  'skewX',
+  'skewY',
+];
+
 interface ParserHandler {
   (tokens: (string | number)[]): CssPropertyValue | null;
 }
@@ -50,16 +66,14 @@ const numericValueHandler: ParserHandler = (tokens) => {
     for (const token of tokens) {
       currPair.push(token);
 
-      if (
-        currPair.length === 2 &&
-        typeof currPair[0] === 'number' &&
-        typeof currPair[1] === 'string'
-      ) {
-        value.values.push(currPair as [number, string]);
-        currPair = [];
-      } else {
-        isValid = false;
-        break;
+      if (currPair.length === 2) {
+        if (typeof currPair[0] === 'number' && typeof currPair[1] === 'string') {
+          value.values.push(currPair as [number, string]);
+          currPair = [];
+        } else {
+          isValid = false;
+          break;
+        }
       }
     }
 
@@ -73,11 +87,69 @@ const numericValueHandler: ParserHandler = (tokens) => {
 const transformValueHandler: ParserHandler = (tokens) => {
   if (tokens.length > 1 && typeof tokens[0] === 'string') {
     const value: TransformValue = {
-      type: 'tranform',
+      type: 'transform',
       values: new Map(),
     };
+    let functionName = '';
+    let paramPairs: [number, string][] = [];
+    let paramBuffer: unknown[] = [];
+    let isValid = true;
 
-    // TBD
+    const isBufferNumOnly = () => !paramBuffer.find((v) => typeof v === 'string');
+
+    for (const token of tokens) {
+      // If function name is found
+      if (typeof token === 'string' && SUPPORTED_FUNCS.includes(token)) {
+        // If there is already an extracted function, add it to the values map
+        if (paramPairs.length || paramBuffer.length) {
+          // If the param buffer is full, this means that it doesn't
+          // match the usual [number, string][] pattern (i.e. it should be numbers-only)
+          if (paramBuffer.length) {
+            if (!isBufferNumOnly()) {
+              isValid = false;
+              break;
+            }
+
+            const pairs = paramBuffer.map((v) => [v, ''] as [number, string]);
+            paramPairs = paramPairs.concat(pairs);
+          }
+
+          value.values.set(functionName, paramPairs);
+          paramPairs = [];
+          paramBuffer = [];
+        }
+
+        functionName = token;
+      } else if (functionName) {
+        // Handle standard param pairs – number + unit
+        paramBuffer.push(token);
+
+        if (
+          paramBuffer.length === 2 &&
+          typeof paramBuffer[0] === 'number' &&
+          typeof paramBuffer[1] === 'string'
+        ) {
+          paramPairs.push(paramBuffer as [number, string]);
+          paramBuffer = [];
+        }
+      }
+    }
+
+    // Check for remaining functions after the loop has completed
+    if (functionName && (paramPairs.length || paramBuffer.length)) {
+      if (paramBuffer.length && isBufferNumOnly()) {
+        const pairs = paramBuffer.map((v) => [v, ''] as [number, string]);
+        paramPairs = paramPairs.concat(pairs);
+      }
+
+      if (paramPairs.length) {
+        value.values.set(functionName, paramPairs);
+      }
+    }
+
+    if (isValid && value.values.size) {
+      return value;
+    }
   }
   return null;
 };
