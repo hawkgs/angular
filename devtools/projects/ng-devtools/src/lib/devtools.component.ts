@@ -13,12 +13,14 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {Events, MessageBus} from 'protocol';
 import {interval} from 'rxjs';
 
-import {FrameManager} from './frame_manager';
-import {ThemeService} from './theme-service';
+import {FrameManager} from './application-services/frame_manager';
+import {ThemeService} from './application-services/theme-service';
 import {MatTooltip, MatTooltipModule} from '@angular/material/tooltip';
 import {DevToolsTabsComponent} from './devtools-tabs/devtools-tabs.component';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {Frame} from './application-environment';
+import {BrowserService} from './application-services/browser-service';
+import {provideWindow} from './application-providers/window-provider';
 
 const DETECT_ANGULAR_ATTEMPTS = 10;
 
@@ -53,6 +55,7 @@ const LAST_SUPPORTED_VERSION = 9;
     ]),
   ],
   imports: [DevToolsTabsComponent, MatTooltip, MatProgressSpinnerModule, MatTooltipModule],
+  providers: [provideWindow(), BrowserService],
 })
 export class DevToolsComponent implements OnInit, OnDestroy {
   readonly AngularStatus = AngularStatus;
@@ -78,6 +81,7 @@ export class DevToolsComponent implements OnInit, OnDestroy {
   private readonly _chromeStyleName = 'chrome_styles.css';
   private readonly _messageBus = inject<MessageBus<Events>>(MessageBus);
   private readonly _themeService = inject(ThemeService);
+  private readonly _browserService = inject(BrowserService);
   private readonly _platform = inject(Platform);
   private readonly _document = inject(DOCUMENT);
   private readonly _frameManager = inject(FrameManager);
@@ -95,6 +99,7 @@ export class DevToolsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._themeService.initializeThemeWatcher();
+    this._browserService.setBrowserUiClass();
 
     this._messageBus.once('ngAvailability', ({version, devMode, ivy, hydration}) => {
       this.angularStatus.set(version ? AngularStatus.EXISTS : AngularStatus.DOES_NOT_EXIST);
