@@ -15,8 +15,6 @@ ng_module(
     srcs = glob(
         include = ["*.ts"],
         exclude = [
-            "theme-service.ts",
-            "frame_manager.ts",
             "*_spec.ts",
         ],
     ),
@@ -25,14 +23,12 @@ ng_module(
         ":devtools_component_styles",
     ],
     deps = [
-        "//devtools/projects/ng-devtools/src/lib/application-providers",
-        "//devtools/projects/ng-devtools/src/lib/application-services:browser",
+        "//devtools/projects/ng-devtools/src/lib/application-services:browser_styles",
         "//devtools/projects/ng-devtools/src/lib/application-services:frame_manager",
         "//devtools/projects/ng-devtools/src/lib/application-services:theme",
         "//devtools/projects/ng-devtools/src/lib/devtools-tabs",
         "//devtools/projects/protocol",
         "//packages/animations",
-        "//packages/common",
         "//packages/core",
         "//packages/forms",
         "//packages/platform-browser-dynamic",

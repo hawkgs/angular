@@ -9,7 +9,7 @@ $_light-theme-class: 'light-theme';
       @content;
     }
   } @else {
-    /* Keep browser class in sync with BrowserService. */
+    /* Keep browser class name in sync with BrowserService. */
     $browser-class: $browser + '-ui';
     :host-context(body.#{$theme}.#{$browser-class}) {
       @content;

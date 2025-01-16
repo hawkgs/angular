@@ -11,7 +11,7 @@ import {DOCUMENT} from '@angular/common';
 
 export type Theme = 'dark-theme' | 'light-theme';
 
-// Keep class names in sync with _theme.scss
+// Keep class names in sync with _theme.scss and _global.scss
 const DARK_THEME_CLASS = 'dark-theme';
 const LIGHT_THEME_CLASS = 'light-theme';
 

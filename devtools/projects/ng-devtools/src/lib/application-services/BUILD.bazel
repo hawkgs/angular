@@ -5,12 +5,12 @@ load("//devtools/tools:typescript.bzl", "ts_test_library")
 package(default_visibility = ["//visibility:public"])
 
 ng_module(
-    name = "browser",
-    srcs = ["browser-service.ts"],
+    name = "browser_styles",
+    srcs = ["browser-styles-service.ts"],
     deps = [
-        "//devtools/projects/ng-devtools/src/lib/application-providers",
         "//packages/common",
         "//packages/core",
+        "@npm//@angular/cdk",
     ],
 )
 
