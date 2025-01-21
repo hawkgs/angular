@@ -1,3 +1,11 @@
+/*!
+ * @license
+ * Copyright Google LLC All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.dev/license
+ */
+
 import {CssPropertyValue} from './types';
 
 /**
@@ -21,4 +29,14 @@ export function stringifyParsedValue(value: CssPropertyValue): string {
     case 'static':
       return value.value;
   }
+}
+
+/**
+ * Creates a deep copy of a parsed CSS property value.
+ *
+ * @param value Value to be copied
+ * @returns Copied value
+ */
+export function copyParsedValue<T = CssPropertyValue>(value: T): T {
+  return structuredClone(value);
 }
