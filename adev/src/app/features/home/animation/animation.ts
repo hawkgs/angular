@@ -11,6 +11,7 @@ import {WINDOW} from '@angular/docs';
 import {AnimationLayerDirective} from './animation-layer.directive';
 import {AnimationConfig, AnimationRule, ParsedAnimationRule, ParsedStyles} from './types';
 import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
+import {calculateNextCssValue} from './calculations';
 
 // The string seperator between a layed ID and an object selector.
 const SEL_SEPARATOR = '>>';
@@ -115,18 +116,29 @@ export class Animation {
 
     // Active rules
     for (const rule of activeRules) {
-      const delta = time - this.currentTime;
+      const deltaTime = time - this.currentTime;
+      // Todo(Georgi): Implement backward version of the algo (pretty much the same).
+      //
+      // if (deltaTime < 0) {
+      //    timespan = this.currentTime - rule.to
+      // } else
+      //    timespan = rule.from - this.currentTime
+      // }
+      //
+      // Respectively, instead of using the final styles, use the initial styles.
+
+      const timespan = rule.from - this.currentTime;
+      const changeRate = Math.abs(deltaTime / timespan);
+
       const activeStyles = this.activeStyles.get(rule.selector)!;
       const styles = stylesState.get(rule.selector) || {};
 
       for (const [prop, value] of Object.entries(rule.styles)) {
-        // Todo(Georgi): This is the algorithm for simple numeric values; WIP
-        //
-        // const newValue = activeStyles[prop] - value;
-        // const deltaPerTimeunit = newValue / delta;
-        // const valueDelta = deltaPerTimeunit * this.config.timestep;
-        //
-        // styles[prop] = activeStyles[prop] + valueDelta;
+        const target = value;
+        const curr = activeStyles[prop];
+        const next = calculateNextCssValue(target, curr, changeRate);
+
+        styles[prop] = next;
       }
 
       stylesState.set(rule.selector, styles);
