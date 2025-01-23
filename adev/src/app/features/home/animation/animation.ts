@@ -44,17 +44,17 @@ const getEndStyles = (r: AnimationRule<ParsedStyles>): ParsedStyles =>
  * CSS animation player.
  */
 export class Animation {
-  private renderer: Renderer2;
+  private _renderer: Renderer2;
 
   /** Parsed rules. Time is in milliseconds. */
-  private rules: AnimationRule<ParsedStyles>[] = [];
-  private config: AnimationConfig;
-  private currentTime: number = 0;
+  private _rules: AnimationRule<ParsedStyles>[] = [];
+  private _config: AnimationConfig;
+  private _currentTime: number = 0;
   private _duration: number = 0;
-  private allObjects = new Map<string, HTMLElement>(); // selector; HTML element
-  private activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
-  private animationFrameId: number | null = null;
-  private completed: boolean = false;
+  private _allObjects = new Map<string, HTMLElement>(); // selector; HTML element
+  private _activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
+  private _animationFrameId: number | null = null;
+  private _completed: boolean = false;
   private _isPlaying = signal<boolean>(false);
 
   isPlaying = this._isPlaying.asReadonly();
@@ -65,13 +65,13 @@ export class Animation {
     injector: Injector,
     config?: Partial<AnimationConfig>,
   ) {
-    this.renderer = injector.get(RendererFactory2).createRenderer(null, null);
+    this._renderer = injector.get(RendererFactory2).createRenderer(null, null);
 
     // Merge the config with the default one, if incomplete.
-    this.config = {...DEFAULT_CONFIG, ...(config || {})};
+    this._config = {...DEFAULT_CONFIG, ...(config || {})};
 
     // Set layer elements in the objects map.
-    this.allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
+    this._allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
   /** Animation duration. */
@@ -80,11 +80,11 @@ export class Animation {
   }
 
   define(definition: AnimationDefinition) {
-    this.extractObjectsAndValidateStyles(definition);
+    this._extractObjectsAndValidateStyles(definition);
 
     // Parse the rules.
     // IMPORTANT: Parsed rules use milliseconds instead of seconds.
-    this.rules = definition
+    this._rules = definition
       .sort((a, b) => getStartTime(a) - getStartTime(b))
       .map((rule) => {
         if (rule.timespan) {
@@ -116,37 +116,37 @@ export class Animation {
 
     // Calculate the duration of the animation.
     // IMPORTANT: Use parsed rules with milliseconds.
-    this._duration = Math.max(...this.rules.map((r) => getEndTime(r)));
+    this._duration = Math.max(...this._rules.map((r) => getEndTime(r)));
 
     return this;
   }
 
   /** Play the animation. */
   play() {
-    if (this.animationFrameId !== null) {
+    if (this._animationFrameId !== null) {
       return;
     }
-    if (!this.rules.length) {
+    if (!this._rules.length) {
       console.warn("Animation: Can't play without a definition");
       return;
     }
     // If the animation is completed, reset it on play.
-    if (this.completed) {
+    if (this._completed) {
       this.reset();
-      this.completed = false;
+      this._completed = false;
     }
 
     this._isPlaying.set(true);
 
     // Start the animation.
-    this.animate(Date.now(), 0);
+    this._animate(Date.now(), 0);
   }
 
   /** Pause the animation. */
   pause() {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
+    if (this._animationFrameId !== null) {
+      cancelAnimationFrame(this._animationFrameId);
+      this._animationFrameId = null;
       this._isPlaying.set(false);
     }
   }
@@ -160,18 +160,18 @@ export class Animation {
   forward(timestep?: number) {
     this.pause();
 
-    if (!this.rules.length) {
+    if (!this._rules.length) {
       console.warn("Animation: Can't go forward without a definition");
       return;
     }
-    timestep = timestep ?? this.config.timestep;
+    timestep = timestep ?? this._config.timestep;
 
-    const time = this.currentTime + timestep;
+    const time = this._currentTime + timestep;
 
     if (time <= this._duration) {
-      this.updateFrame(time);
+      this._updateFrame(time);
     } else {
-      this.completed = true;
+      this._completed = true;
     }
   }
 
@@ -184,36 +184,36 @@ export class Animation {
   back(timestep?: number) {
     this.pause();
 
-    if (!this.rules.length) {
+    if (!this._rules.length) {
       console.warn("Animation: Can't go back without a definition");
       return;
     }
-    timestep = timestep ?? this.config.timestep;
+    timestep = timestep ?? this._config.timestep;
 
-    const time = this.currentTime - timestep;
+    const time = this._currentTime - timestep;
 
     if (time >= 0) {
-      this.updateFrame(time);
+      this._updateFrame(time);
 
       // Uncomplete the animation, if it was completed.
-      this.completed = false;
+      this._completed = false;
     }
   }
 
   /** Reset the animation. */
   reset() {
     this.pause();
-    this.currentTime = 0;
+    this._currentTime = 0;
 
-    for (const [selector, styles] of Array.from(this.activeStyles)) {
+    for (const [selector, styles] of Array.from(this._activeStyles)) {
       for (const [style] of Object.entries(styles)) {
-        const element = this.allObjects.get(selector);
-        this.renderer.removeStyle(element, style);
+        const element = this._allObjects.get(selector);
+        this._renderer.removeStyle(element, style);
       }
-      this.activeStyles.delete(selector);
+      this._activeStyles.delete(selector);
     }
 
-    this.emitFrameUpdateEvent(0);
+    this._emitFrameUpdateEvent(0);
   }
 
   /** Alias for `reset`. */
@@ -226,9 +226,9 @@ export class Animation {
    *
    * @param time Time at which the animation should be rendered.
    */
-  private updateFrame(time: number) {
-    const completedRules = this.rules.filter((r) => time > getEndTime(r));
-    const inProgressDynamicRules = this.rules.filter((r) => {
+  private _updateFrame(time: number) {
+    const completedRules = this._rules.filter((r) => time > getEndTime(r));
+    const inProgressDynamicRules = this._rules.filter((r) => {
       const start = getStartTime(r);
       const end = getEndTime(r);
       // We exclude the static animation rules by `start < end` since `start == end`.
@@ -247,23 +247,23 @@ export class Animation {
 
     // ... and then calculate the change of the dynamic rules in progress.
     for (const rule of inProgressDynamicRules) {
-      const deltaTime = time - this.currentTime;
+      const deltaTime = time - this._currentTime;
       let timespan: number;
       let targetStyles: ParsedStyles;
 
       // Determine the change direction. Negative Dt means going back in time.
       if (deltaTime > 0) {
-        timespan = getEndTime(rule) - this.currentTime;
+        timespan = getEndTime(rule) - this._currentTime;
         targetStyles = rule.to;
       } else {
-        timespan = this.currentTime - getStartTime(rule);
+        timespan = this._currentTime - getStartTime(rule);
         targetStyles = rule.from;
       }
 
       const changeRate = Math.abs(deltaTime / timespan);
 
       // Make sure that any active styles should overwrite the start styles.
-      const activeStyles: ParsedStyles = {...rule.from, ...this.activeStyles.get(rule.selector)};
+      const activeStyles: ParsedStyles = {...rule.from, ...this._activeStyles.get(rule.selector)};
       const styles = stylesState.get(rule.selector) || {};
 
       for (const [prop, value] of Object.entries(targetStyles)) {
@@ -278,11 +278,11 @@ export class Animation {
     }
 
     // Get rid of any active styles that are not part from the current styles state
-    for (const [selector, styles] of Array.from(this.activeStyles)) {
+    for (const [selector, styles] of Array.from(this._activeStyles)) {
       const newStyles = stylesState.get(selector);
       for (const prop of Object.keys(styles)) {
         if (!newStyles || !newStyles[prop]) {
-          this.removeStyle(selector, prop);
+          this._removeStyle(selector, prop);
         }
       }
     }
@@ -290,67 +290,67 @@ export class Animation {
     // Apply the rule styles.
     for (const [selector, styles] of Array.from(stylesState)) {
       for (const [prop, value] of Object.entries(styles)) {
-        this.setStyle(selector, prop, value);
+        this._setStyle(selector, prop, value);
       }
     }
 
-    this.currentTime = time;
-    this.emitFrameUpdateEvent(time);
+    this._currentTime = time;
+    this._emitFrameUpdateEvent(time);
   }
 
   /** Set active style. */
-  private setStyle(selector: string, property: string, value: CssPropertyValue) {
-    const element = this.allObjects.get(selector);
-    this.renderer.setStyle(element, property, stringifyParsedValue(value));
+  private _setStyle(selector: string, property: string, value: CssPropertyValue) {
+    const element = this._allObjects.get(selector);
+    this._renderer.setStyle(element, property, stringifyParsedValue(value));
 
-    const activeStyles = this.activeStyles.get(selector) || {};
+    const activeStyles = this._activeStyles.get(selector) || {};
     activeStyles[property] = value;
-    this.activeStyles.set(selector, activeStyles);
+    this._activeStyles.set(selector, activeStyles);
   }
 
   /** Remove active style. */
-  private removeStyle(selector: string, property: string) {
-    const element = this.allObjects.get(selector);
-    this.renderer.removeStyle(element, property);
+  private _removeStyle(selector: string, property: string) {
+    const element = this._allObjects.get(selector);
+    this._renderer.removeStyle(element, property);
 
-    const activeStyles = this.activeStyles.get(selector) || {};
+    const activeStyles = this._activeStyles.get(selector) || {};
     delete activeStyles[property];
   }
 
   /** Animate function. */
-  private animate(then: number, elapsed: number) {
-    this.animationFrameId = requestAnimationFrame(() => this.animate(then, elapsed));
+  private _animate(then: number, elapsed: number) {
+    this._animationFrameId = requestAnimationFrame(() => this._animate(then, elapsed));
 
     const now = Date.now();
     elapsed = now - then;
 
-    if (elapsed >= this.config.timestep) {
+    if (elapsed >= this._config.timestep) {
       // Subtract the overflowed time from Now to maintain steady fps.
-      then = now - (elapsed % this.config.timestep);
+      then = now - (elapsed % this._config.timestep);
 
-      const time = this.currentTime + elapsed;
+      const time = this._currentTime + elapsed;
 
       if (time <= this._duration) {
-        this.updateFrame(time);
+        this._updateFrame(time);
       } else {
         // Pause the animation and mark it as completed
         // when we go over the duration.
         this.pause();
-        this.completed = true;
+        this._completed = true;
       }
     }
   }
 
   /** Extract the objects from the selectors and validate their styles.  */
-  private extractObjectsAndValidateStyles(definition: AnimationDefinition) {
+  private _extractObjectsAndValidateStyles(definition: AnimationDefinition) {
     for (const rule of definition) {
-      this.validateStyles(rule);
-      this.extractObjects(rule);
+      this._validateStyles(rule);
+      this._extractObjects(rule);
     }
   }
 
   /** Check whether the start and end styles match. */
-  private validateStyles(rule: AnimationRule<Styles>) {
+  private _validateStyles(rule: AnimationRule<Styles>) {
     if (!rule.timespan) {
       return;
     }
@@ -373,31 +373,32 @@ export class Animation {
   /**
    * Extracts all objects (layer elements and layer child elements) by their provided selectors.
    */
-  private extractObjects(rule: AnimationRule<Styles>) {
+  private _extractObjects(rule: AnimationRule<Styles>) {
     let [layerId, objectSelector] = rule.selector.split(SEL_SEPARATOR);
     layerId = layerId.trim();
     objectSelector = (objectSelector ?? '').trim();
 
-    const layer = this.allObjects.get(layerId);
+    const layer = this._allObjects.get(layerId);
     if (!layer) {
       throw new Error(`Animation: Missing layer ID: ${layerId}`);
     }
 
-    if (objectSelector && !this.allObjects.has(rule.selector)) {
+    if (objectSelector && !this._allObjects.has(rule.selector)) {
       const object = layer.querySelector(objectSelector);
       if (!object) {
         throw new Error(`Animation: Missing layer object: ${objectSelector}`);
       }
 
-      if (!this.allObjects.has(rule.selector)) {
-        this.allObjects.set(rule.selector, object as HTMLElement);
+      if (!this._allObjects.has(rule.selector)) {
+        this._allObjects.set(rule.selector, object as HTMLElement);
       }
     }
   }
 
-  private emitFrameUpdateEvent(time: number) {
-    if (this.config.emitFrameUpdateEvents) {
-      this.frameUpdate.emit({time, completed: this.completed});
+  /** Emit a frameUpdate event, if the option is enabled in the config. */
+  private _emitFrameUpdateEvent(time: number) {
+    if (this._config.emitFrameUpdateEvents) {
+      this.frameUpdate.emit({time, completed: this._completed});
     }
   }
 }
