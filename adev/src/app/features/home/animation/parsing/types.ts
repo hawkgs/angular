@@ -18,7 +18,8 @@ export type StaticValue = {
 
 export type ColorValue = {
   type: 'color';
-  value: string;
+  value: ['rgb', number, number, number] | ['rgba', number, number, number, number];
+  // red, green, blue, alpha?
 };
 
 export type TransformValue = {

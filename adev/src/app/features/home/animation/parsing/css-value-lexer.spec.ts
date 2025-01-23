@@ -15,10 +15,22 @@ describe('css-value-lexer', () => {
     expect(tokens).toEqual(['block']);
   });
 
-  it('should extract the tokens for a color value', () => {
+  it('should extract the tokens for a hex color value', () => {
     const tokens = cssValueLexer('#ff0000');
 
     expect(tokens).toEqual(['#ff0000']);
+  });
+
+  it('should extract the tokens for an RGB color value', () => {
+    const tokens = cssValueLexer('rgb(255, 255, 0)');
+
+    expect(tokens).toEqual(['rgb', 255, 255, 0]);
+  });
+
+  it('should extract the tokens for an RGBA color value', () => {
+    const tokens = cssValueLexer('rgba(255, 255, 0, 0.5)');
+
+    expect(tokens).toEqual(['rgba', 255, 255, 0, 0.5]);
   });
 
   it('should extract the tokens for a single numeric integer value', () => {
