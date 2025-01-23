@@ -13,7 +13,7 @@ import {AnimationConfig} from './types';
 
 @Injectable()
 export class AnimationCreatorService {
-  private readonly injector = inject(Injector);
+  private readonly _injector = inject(Injector);
 
   /**
    * Create an `Animation` object
@@ -26,6 +26,6 @@ export class AnimationCreatorService {
     layers: readonly AnimationLayerDirective[],
     config?: Partial<AnimationConfig>,
   ): Animation {
-    return new Animation(layers, this.injector, config);
+    return new Animation(layers, this._injector, config);
   }
 }
