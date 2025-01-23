@@ -22,7 +22,10 @@ export class AnimationCreatorService {
    * @param config Animation config
    * @returns `Animation`
    */
-  createAnimation(layers: readonly AnimationLayerDirective[], config?: AnimationConfig): Animation {
+  createAnimation(
+    layers: readonly AnimationLayerDirective[],
+    config?: Partial<AnimationConfig>,
+  ): Animation {
     return new Animation(layers, this.injector, config);
   }
 }
