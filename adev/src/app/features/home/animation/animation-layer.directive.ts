@@ -8,11 +8,14 @@
 
 import {Directive, ElementRef, inject, input} from '@angular/core';
 
+/**
+ * Use on elements that are deemed to be animation layers.
+ */
 @Directive({
   selector: '[adevAnimationLayer]',
 })
 export class AnimationLayerDirective {
   readonly elementRef = inject(ElementRef);
 
-  id = input.required<string>();
+  id = input.required<string>({alias: 'animId'});
 }
