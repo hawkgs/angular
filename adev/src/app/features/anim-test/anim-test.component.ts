@@ -28,8 +28,10 @@ export class AnimTestComponent implements AfterViewInit {
     const animation = this._animCreator
       .createAnimation(this.animationLayers(), {
         timestep: 10,
+        emitFrameUpdateEvents: true,
       })
       .define(ANIMATION_DEFINITION);
+
     this.animation.set(animation);
   }
 }

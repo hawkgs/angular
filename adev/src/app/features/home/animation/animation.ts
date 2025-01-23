@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Injector, Renderer2, RendererFactory2, signal} from '@angular/core';
+import {EventEmitter, Injector, Renderer2, RendererFactory2, signal} from '@angular/core';
 import {AnimationLayerDirective} from './animation-layer.directive';
 import {
   AnimationConfig,
@@ -28,6 +28,7 @@ const MS = 1000;
 // Default config.
 const DEFAULT_CONFIG: AnimationConfig = {
   timestep: 100,
+  emitFrameUpdateEvents: false,
 };
 
 const getStartTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
@@ -57,6 +58,7 @@ export class Animation {
   private _isPlaying = signal<boolean>(false);
 
   isPlaying = this._isPlaying.asReadonly();
+  frameUpdate = new EventEmitter<{time: number; completed: boolean}>();
 
   constructor(
     layers: readonly AnimationLayerDirective[],
@@ -210,6 +212,8 @@ export class Animation {
       }
       this.activeStyles.delete(selector);
     }
+
+    this.emitFrameUpdateEvent(0);
   }
 
   /** Alias for `reset`. */
@@ -291,6 +295,7 @@ export class Animation {
     }
 
     this.currentTime = time;
+    this.emitFrameUpdateEvent(time);
   }
 
   /** Set active style. */
@@ -387,6 +392,12 @@ export class Animation {
       if (!this.allObjects.has(rule.selector)) {
         this.allObjects.set(rule.selector, object as HTMLElement);
       }
+    }
+  }
+
+  private emitFrameUpdateEvent(time: number) {
+    if (this.config.emitFrameUpdateEvents) {
+      this.frameUpdate.emit({time, completed: this.completed});
     }
   }
 }
