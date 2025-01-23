@@ -9,11 +9,13 @@
 import {CssPropertyValue} from './parsing';
 
 export type AnimationConfig = {
+  /**
+   * In milliseconds. How much the time increments or decrements when you go forward or back in time.
+   * In the case of auto play, the timestep virtually acts as FPS (frames per second).
+   */
   timestep: number;
 };
 
-// Todo(Georgi): It will be better to parse all string value to the internal model
-// initially, instead of doing that during every frame update.
 export type Styles = {[key: string]: string};
 
 export type ParsedStyles = {[key: string]: CssPropertyValue};
@@ -27,15 +29,20 @@ interface AnimationRuleBase {
 export interface DynamicAnimationRule<T extends Styles | ParsedStyles> extends AnimationRuleBase {
   at?: never;
 
+  /** In seconds. Marks the time frame between which the styles are applied (`[START, END]`). */
   timespan: [number, number];
+  /** Start styles.  */
   from: T;
+  /** End styles. */
   to: T;
 }
 
 export interface StaticAnimationRule<T extends Styles | ParsedStyles> extends AnimationRuleBase {
   timespan?: never;
 
+  /** In seconds. Time at which the styles are applied. */
   at: number;
+  /** Styles to be applied. */
   styles: T;
 }
 
