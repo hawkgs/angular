@@ -110,6 +110,23 @@ describe('calculateNextCssValue', () => {
     });
   });
 
+  it('should handle numeric zero values without units', () => {
+    const current: NumericValue = {
+      type: 'numeric',
+      values: [[100, '%']],
+    };
+    const target: NumericValue = {
+      type: 'numeric',
+      values: [[0, '']],
+    };
+    const next = calculateNextCssValue(current, target, 0.25);
+
+    expect(next).toEqual({
+      type: 'numeric',
+      values: [[75, '%']],
+    });
+  });
+
   it('should return the current transform value, if the change rate is 0', () => {
     const next = calculateNextCssValue(currentTransform, targetTransform, 0);
 
@@ -137,6 +154,23 @@ describe('calculateNextCssValue', () => {
         ],
         ['scale', [[0.875, '']]],
       ]),
+    });
+  });
+
+  it('should handle transform zero values without units', () => {
+    const current: TransformValue = {
+      type: 'transform',
+      values: new Map([['translateX', [[120, 'px']]]]),
+    };
+    const target: TransformValue = {
+      type: 'transform',
+      values: new Map([['translateX', [[0, '']]]]),
+    };
+    const next = calculateNextCssValue(current, target, 0.25);
+
+    expect(next).toEqual({
+      type: 'transform',
+      values: new Map([['translateX', [[90, 'px']]]]),
     });
   });
 
