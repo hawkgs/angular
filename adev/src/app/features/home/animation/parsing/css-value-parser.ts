@@ -7,7 +7,7 @@
  */
 
 import {cssValueLexer} from './css-value-lexer';
-import {CssPropertyValue, NumericValue, TransformValue} from './types';
+import {ColorValue, CssPropertyValue, NumericValue, TransformValue} from './types';
 
 // Transform functions that can be parsed
 const SUPPORTED_FUNCS = [
@@ -33,13 +33,47 @@ interface ParserHandler {
 // Handlers
 //
 
-const staticAndColorValuesHandler: ParserHandler = (tokens) => {
-  if (tokens.length === 1 && typeof tokens[0] === 'string') {
-    const token = tokens[0];
-    return {
-      type: token[0] === '#' ? 'color' : 'static',
-      value: token,
-    };
+const colorsValuesHandler: ParserHandler = (tokens) => {
+  const token = tokens[0];
+  if (typeof token === 'string') {
+    if (token.startsWith('#')) {
+      const channels = [];
+
+      // Handle standard syntax: #ffffff
+      if (token.length === 7) {
+        let channelBuffer = '';
+        for (let i = 1; i < token.length; i++) {
+          channelBuffer += token[i];
+          if (channelBuffer.length === 2) {
+            const dec = parseInt(channelBuffer, 16);
+            channels.push(dec);
+            channelBuffer = '';
+          }
+        }
+      } else if (token.length === 4) {
+        // Handle shorthand color syntax: #fff
+        for (let i = 1; i < token.length; i++) {
+          const channel = token[i];
+          const hex = channel + channel;
+          const dec = parseInt(hex, 16);
+          channels.push(dec);
+        }
+      }
+
+      if (channels.length === 3) {
+        return {
+          type: 'color',
+          value: ['rgb', ...channels],
+        } as ColorValue;
+      }
+    }
+    // RGB and RGBA
+    if ((token === 'rgb' && tokens.length === 4) || (token === 'rgba' && tokens.length === 5)) {
+      return {
+        type: 'color',
+        value: tokens,
+      } as ColorValue;
+    }
   }
   return null;
 };
@@ -150,7 +184,7 @@ const transformValueHandler: ParserHandler = (tokens) => {
 };
 
 // Include all handlers that should be part of the parsing here.
-const parserHandlers = [staticAndColorValuesHandler, numericValueHandler, transformValueHandler];
+const parserHandlers = [colorsValuesHandler, numericValueHandler, transformValueHandler];
 
 //
 // Parser function

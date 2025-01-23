@@ -18,12 +18,48 @@ describe('css-value-parser', () => {
     });
   });
 
-  it('should parse a color value', () => {
-    const value = cssValueParser('#ff0000');
+  it('should parse a hex color value', () => {
+    const value = cssValueParser('#ff7d00');
 
     expect(value).toEqual({
       type: 'color',
-      value: '#ff0000',
+      value: ['rgb', 255, 125, 0],
+    });
+  });
+
+  it('should parse a short hex color value', () => {
+    const value = cssValueParser('#f0f');
+
+    expect(value).toEqual({
+      type: 'color',
+      value: ['rgb', 255, 0, 255],
+    });
+  });
+
+  it('should parse a hex color value with upper case letters', () => {
+    const value = cssValueParser('#AABBFF');
+
+    expect(value).toEqual({
+      type: 'color',
+      value: ['rgb', 170, 187, 255],
+    });
+  });
+
+  it('should parse an RGB color value', () => {
+    const value = cssValueParser('rgb(255, 255, 0)');
+
+    expect(value).toEqual({
+      type: 'color',
+      value: ['rgb', 255, 255, 0],
+    });
+  });
+
+  it('should parse an RGBA color value', () => {
+    const value = cssValueParser('rgba(255, 255, 0, 0.75)');
+
+    expect(value).toEqual({
+      type: 'color',
+      value: ['rgba', 255, 255, 0, 0.75],
     });
   });
 
@@ -174,7 +210,7 @@ describe('css-value-parser', () => {
 
     expect(value).toEqual({
       type: 'static',
-      value: 'translate',
+      value: 'translate()',
     });
   });
 

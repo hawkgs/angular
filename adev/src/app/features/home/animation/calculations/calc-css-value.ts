@@ -100,34 +100,18 @@ function calculateNextColorValue(
   targetValue: ColorValue,
   changeRate: number,
 ): ColorValue {
-  if (targetValue.value.length !== 7) {
-    return targetValue;
-  }
-
-  let currHexChannel = '';
-  let targetHexChannel = '';
-  let nextHexColor = '#';
+  const nextColor: (string | number)[] = [currValue.value[0]];
 
   for (let i = 1; i < targetValue.value.length; i++) {
-    currHexChannel += currValue.value[i];
-    targetHexChannel += targetValue.value[i];
-
-    if (targetHexChannel.length === 2) {
-      const currRgbChannel = parseInt(currHexChannel, 16);
-      const targetRgbChannel = parseInt(targetHexChannel, 16);
-      const delta = calculateValueDelta(currRgbChannel, targetRgbChannel, changeRate);
-      const nextRgbChannel = Math.round(currRgbChannel + delta);
-
-      nextHexColor += nextRgbChannel.toString(16).padStart(2, '0');
-
-      currHexChannel = '';
-      targetHexChannel = '';
-    }
+    const currChannel = currValue.value[i] as number;
+    const targetChannel = targetValue.value[i] as number;
+    const delta = calculateValueDelta(currChannel, targetChannel, changeRate);
+    nextColor.push(Math.round(currChannel + delta));
   }
 
   return {
     type: 'color',
-    value: nextHexColor,
+    value: nextColor as typeof currValue.value,
   };
 }
 
