@@ -54,7 +54,11 @@ function calculateNextNumericValue(
     const curr = currValue.values[i];
     const target = targetValue.values[i];
     const numDelta = calculateValueDelta(curr[0], target[0], changeRate);
-    nextValue.values.push([curr[0] + numDelta, target[1]]);
+    // We should check both curr and target for the unit
+    // since we might have zero-based value without a unit
+    // (e.g. 0 <-> 640px)
+    const unit = target[1] || curr[1];
+    nextValue.values.push([curr[0] + numDelta, unit]);
   }
 
   return nextValue;
@@ -78,7 +82,11 @@ function calculateNextTransformValue(
       const target = numData[i];
       const curr = currNumData[i];
       const numDelta = calculateValueDelta(curr[0], target[0], changeRate);
-      newNumData.push([curr[0] + numDelta, target[1]]);
+      // We should check both curr and target for the unit
+      // since we might have zero-based value without a unit
+      // (e.g. rotate(0) <-> rotate(180deg))
+      const unit = target[1] || curr[1];
+      newNumData.push([curr[0] + numDelta, unit]);
     }
 
     nextValue.values.set(func, newNumData);
