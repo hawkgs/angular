@@ -21,19 +21,26 @@ export type ParsedStyles = {[key: string]: CssPropertyValue};
 interface AnimationRuleBase {
   /** Selector in the form of `LAYER_ID >> OBJECT_SELECTOR`. The object selector is optional */
   selector: string;
-  /** Start time */
-  from: number;
-  /** End time */
-  to: number;
 }
 
 /** Animation definition */
-export interface AnimationRule extends AnimationRuleBase {
-  /** Styles that should applied throughout the provided timespan. */
-  styles: Styles;
+export interface DynamicAnimationRule<T extends Styles | ParsedStyles> extends AnimationRuleBase {
+  at?: never;
+
+  timespan: [number, number];
+  from: T;
+  to: T;
 }
 
-export interface ParsedAnimationRule extends AnimationRuleBase {
-  /** Styles that should applied throughout the provided timespan. */
-  styles: ParsedStyles;
+export interface StaticAnimationRule<T extends Styles | ParsedStyles> extends AnimationRuleBase {
+  timespan?: never;
+
+  at: number;
+  styles: T;
 }
+
+export type AnimationRule<T extends Styles | ParsedStyles> =
+  | DynamicAnimationRule<T>
+  | StaticAnimationRule<T>;
+
+export type AnimationDefinition = AnimationRule<Styles>[];

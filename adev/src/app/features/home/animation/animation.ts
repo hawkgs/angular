@@ -7,9 +7,15 @@
  */
 
 import {inject, Renderer2} from '@angular/core';
-import {WINDOW} from '@angular/docs';
 import {AnimationLayerDirective} from './animation-layer.directive';
-import {AnimationConfig, AnimationRule, ParsedAnimationRule, ParsedStyles} from './types';
+import {
+  AnimationConfig,
+  AnimationDefinition,
+  AnimationRule,
+  DynamicAnimationRule,
+  ParsedStyles,
+  Styles,
+} from './types';
 import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
 import {calculateNextCssValue} from './calculations';
 
@@ -17,20 +23,30 @@ import {calculateNextCssValue} from './calculations';
 const SEL_SEPARATOR = '>>';
 
 const DEFAULT_CONFIG: AnimationConfig = {
+  /** How much the time increments or decrements when you go forward or backward. In the
+   *  case of an auto play, the timestep virtually acts as FPS (frames per second). */
   timestep: 0.1,
 };
+
+const getStartTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
+  r.timespan ? r.timespan[0] : r.at;
+
+const getEndTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
+  r.timespan ? r.timespan[1] : r.at;
+
+const getEndStyles = (r: AnimationRule<ParsedStyles>): ParsedStyles =>
+  r.timespan ? r.to : r.styles;
 
 // Animation player
 export class Animation {
   private readonly renderer = inject(Renderer2);
-  private readonly window = inject(WINDOW);
 
   private config: AnimationConfig;
-  private rules: ParsedAnimationRule[] = [];
+  private rules: AnimationRule<ParsedStyles>[] = [];
   private currentTime: number = 0;
   private allObjects = new Map<string, HTMLElement>(); // selector; HTML element
   private activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
-  private initialStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
+  private animationFrameId: number = 0;
 
   constructor(layers: AnimationLayerDirective[], config?: Partial<AnimationConfig>) {
     // Merge the config with the default one, if incomplete.
@@ -40,56 +56,75 @@ export class Animation {
     this.allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
-  setRules(rules: AnimationRule[]) {
-    // Parse the rules
-    this.rules = rules
-      .sort((a, b) => a.to - b.to)
-      .map((rule) => {
-        const styles: ParsedStyles = {};
-        for (const [prop, val] of Object.entries(rule.styles)) {
-          styles[prop] = cssValueParser(val);
-        }
-        return {...rule, styles};
-      });
+  define(definition: AnimationDefinition) {
+    this.validateAndExtractObjectsFromLayers(definition);
 
-    this.validateAndExtractObjectsFromLayers();
-    this.createInitialStylesSnapshot();
+    // Parse the rules
+    this.rules = definition
+      .sort((a, b) => getStartTime(a) - getStartTime(b))
+      .map((rule) => {
+        if (rule.timespan) {
+          const from: ParsedStyles = {};
+          const to: ParsedStyles = {};
+          for (const [prop, val] of Object.entries(rule.from)) {
+            from[prop] = cssValueParser(val);
+          }
+          for (const [prop, val] of Object.entries(rule.to)) {
+            to[prop] = cssValueParser(val);
+          }
+          return {...rule, from, to};
+        } else {
+          const styles: ParsedStyles = {};
+          for (const [prop, val] of Object.entries(rule.styles)) {
+            styles[prop] = cssValueParser(val);
+          }
+          return {...rule, styles};
+        }
+      });
   }
 
   play() {
     if (!this.rules.length) {
-      console.warn("Animation: Can't play without provided rules");
+      console.warn("Animation: Can't play without a definition");
       return;
     }
 
-    // tbd
+    this.animate(Date.now(), 0);
   }
 
   pause() {
-    // tbd
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
   }
 
   forward(timestep?: number) {
     if (!this.rules.length) {
-      console.warn("Animation: Can't go forward without provided rules");
+      console.warn("Animation: Can't go forward without a definition");
       return;
     }
     timestep = timestep ?? this.config.timestep;
 
-    // tbd
+    const time = this.currentTime + timestep;
+    this.updateFrame(time);
   }
 
   back(timestep?: number) {
     if (!this.rules.length) {
-      console.warn("Animation: Can't go back without provided rules");
+      console.warn("Animation: Can't go back without a definition");
       return;
     }
     timestep = timestep ?? this.config.timestep;
 
-    // tbd
+    const time = this.currentTime - timestep;
+
+    if (time >= 0) {
+      this.updateFrame(time);
+    }
   }
 
   reset() {
+    this.pause();
     this.currentTime = 0;
 
     for (const [selector, styles] of Array.from(this.activeStyles)) {
@@ -102,38 +137,43 @@ export class Animation {
   }
 
   private updateFrame(time: number) {
-    const completedRules = this.rules.filter((r) => time > r.to);
-    const activeRules = this.rules.filter((r) => r.from <= time && time <= r.to);
+    const completedRules = this.rules.filter((r) => time > getEndTime(r));
+    const inProgressDynamicRules = this.rules.filter((r) => {
+      const start = getStartTime(r);
+      const end = getEndTime(r);
+      // We exclude the static animation rules by `start < end` since `start == end`.
+      return start < end && start <= time && time <= end;
+    }) as DynamicAnimationRule<ParsedStyles>[];
 
     const stylesState = new Map<string, ParsedStyles>(); // All styles state relative to `time`
 
     // Extract the completed rules directly
     for (const rule of completedRules) {
       let objectStyles = stylesState.get(rule.selector) || {};
-      objectStyles = {...objectStyles, ...rule.styles};
+      objectStyles = {...objectStyles, ...getEndStyles(rule)};
       stylesState.set(rule.selector, objectStyles);
     }
 
     // Active rules
-    for (const rule of activeRules) {
+    for (const rule of inProgressDynamicRules) {
       const deltaTime = time - this.currentTime;
-      // Todo(Georgi): Implement backward version of the algo (pretty much the same).
-      //
-      // if (deltaTime < 0) {
-      //    timespan = this.currentTime - rule.to
-      // } else
-      //    timespan = rule.from - this.currentTime
-      // }
-      //
-      // Respectively, instead of using the final styles, use the initial styles.
+      let timespan: number;
+      let targetStyles: ParsedStyles;
 
-      const timespan = rule.from - this.currentTime;
+      if (deltaTime > 0) {
+        timespan = getEndTime(rule) - this.currentTime;
+        targetStyles = rule.to;
+      } else {
+        timespan = this.currentTime - getStartTime(rule);
+        targetStyles = rule.from;
+      }
+
       const changeRate = Math.abs(deltaTime / timespan);
 
       const activeStyles = this.activeStyles.get(rule.selector)!;
       const styles = stylesState.get(rule.selector) || {};
 
-      for (const [prop, value] of Object.entries(rule.styles)) {
+      for (const [prop, value] of Object.entries(targetStyles)) {
         const target = value;
         const curr = activeStyles[prop];
         const next = calculateNextCssValue(target, curr, changeRate);
@@ -163,65 +203,68 @@ export class Animation {
     this.activeStyles.set(selector, activeStyles);
   }
 
-  /**
-   * Extracts all objects (layer elements and layer child elements) by their provided selectors.
-   */
-  private validateAndExtractObjectsFromLayers() {
-    for (const rule of this.rules) {
-      let [layerId, objectSelector] = rule.selector.split(SEL_SEPARATOR);
-      layerId = layerId.trim();
-      objectSelector = (objectSelector ?? '').trim();
+  private animate(then: number, elapsed: number) {
+    this.animationFrameId = requestAnimationFrame(() => this.animate(then, elapsed));
 
-      const layer = this.allObjects.get(layerId);
-      if (!layer) {
-        throw new Error(`Animation: Missing layer ID: ${layerId}`);
-      }
+    const now = Date.now();
+    elapsed = now - then;
 
-      if (objectSelector && !this.allObjects.has(rule.selector)) {
-        const object = layer.querySelector(objectSelector);
-        if (!object) {
-          throw new Error(`Animation: Missing layer object ${object}`);
-        }
+    if (elapsed >= this.config.timestep) {
+      then = now - (elapsed % this.config.timestep);
 
-        if (!this.allObjects.has(rule.selector)) {
-          this.allObjects.set(rule.selector, object as HTMLElement);
-        }
+      this.updateFrame(this.currentTime + elapsed);
+    }
+  }
+
+  private validateAndExtractObjectsFromLayers(definition: AnimationDefinition) {
+    for (const rule of definition) {
+      this.validateStyles(rule);
+      this.validateAndExtractObjects(rule);
+    }
+  }
+
+  private validateStyles(rule: AnimationRule<Styles>) {
+    if (!rule.timespan) {
+      return;
+    }
+
+    const fromStyles = Object.entries(rule.from);
+    const toStyles = Object.entries(rule.to);
+
+    if (fromStyles.length !== toStyles.length) {
+      throw new Error(
+        `Animation: There is a mismatch between the number of "from" and "to" styles for selector ${rule.selector}`,
+      );
+    }
+    for (const [prop] of toStyles) {
+      if (!rule.from[prop]) {
+        throw new Error(`Animation: "from" style ${prop} is missing for selector ${rule.selector}`);
       }
     }
   }
 
   /**
-   * Creates a snapshot of the initial/computed styles of all objects
+   * Extracts all objects (layer elements and layer child elements) by their provided selectors.
    */
-  private createInitialStylesSnapshot() {
-    // Contains a set will all applied rule styles for each object
-    const styleGroups = new Map<string, Set<string>>(); // selector; style properties
+  private validateAndExtractObjects(rule: AnimationRule<Styles>) {
+    let [layerId, objectSelector] = rule.selector.split(SEL_SEPARATOR);
+    layerId = layerId.trim();
+    objectSelector = (objectSelector ?? '').trim();
 
-    // Create the groups
-    for (const rule of this.rules) {
-      let group = styleGroups.get(rule.selector);
-      if (!group) {
-        group = new Set();
-      }
-
-      for (const [prop] of Object.entries(rule.styles)) {
-        group.add(prop);
-      }
-      styleGroups.set(rule.selector, group);
+    const layer = this.allObjects.get(layerId);
+    if (!layer) {
+      throw new Error(`Animation: Missing layer ID: ${layerId}`);
     }
 
-    // Save initial styles for each object
-    for (const [selector, element] of Array.from(this.allObjects)) {
-      const computed = this.window.getComputedStyle(element);
-      const styles: ParsedStyles = {};
-
-      const group = styleGroups.get(selector)!;
-      for (const prop of Array.from(group)) {
-        const valueStr = computed.getPropertyValue(prop);
-        styles[prop] = cssValueParser(valueStr);
+    if (objectSelector && !this.allObjects.has(rule.selector)) {
+      const object = layer.querySelector(objectSelector);
+      if (!object) {
+        throw new Error(`Animation: Missing layer object ${object}`);
       }
 
-      this.initialStyles.set(selector, styles);
+      if (!this.allObjects.has(rule.selector)) {
+        this.allObjects.set(rule.selector, object as HTMLElement);
+      }
     }
   }
 }
