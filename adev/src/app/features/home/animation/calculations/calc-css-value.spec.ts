@@ -59,12 +59,12 @@ const targetTransform: TransformValue = {
 
 const currentColor: ColorValue = {
   type: 'color',
-  value: '#000000',
+  value: ['rgb', 0, 0, 0],
 };
 
 const targetColor: ColorValue = {
   type: 'color',
-  value: '#ffffff',
+  value: ['rgb', 255, 255, 255],
 };
 
 //
@@ -191,7 +191,7 @@ describe('calculateNextCssValue', () => {
 
     expect(next).toEqual({
       type: 'color',
-      value: '#bfbfbf',
+      value: ['rgb', 191, 191, 191],
     });
   });
 });

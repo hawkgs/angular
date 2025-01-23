@@ -26,6 +26,12 @@ export function stringifyParsedValue(value: CssPropertyValue): string {
         )
         .join(' ');
     case 'color':
+      const v = value.value;
+      let color = v[0] + '(';
+      for (let i = 1; i < v.length; i++) {
+        color += v[i] + (i < v.length - 1 ? ', ' : '');
+      }
+      return color + ')';
     case 'static':
       return value.value;
   }

@@ -19,13 +19,22 @@ describe('CSS Value Parser Utils', () => {
       expect(output).toEqual('block');
     });
 
-    it('should stringify a color value', () => {
+    it('should stringify an RGB color value', () => {
       const output = stringifyParsedValue({
         type: 'color',
-        value: '#ff0000',
+        value: ['rgb', 255, 255, 0],
       });
 
-      expect(output).toEqual('#ff0000');
+      expect(output).toEqual('rgb(255, 255, 0)');
+    });
+
+    it('should stringify an RGBA color value', () => {
+      const output = stringifyParsedValue({
+        type: 'color',
+        value: ['rgba', 255, 125, 0, 0.75],
+      });
+
+      expect(output).toEqual('rgba(255, 125, 0, 0.75)');
     });
 
     it('should stringify a single numeric value', () => {
