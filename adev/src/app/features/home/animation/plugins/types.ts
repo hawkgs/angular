@@ -6,9 +6,13 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Signal} from '@angular/core';
 import {Animation} from '../animation';
 
+/**
+ * Animation plugin interface.
+ * Plugins can be added to an animation via `Animation.addPlugin()`.
+ */
 export interface AnimationPlugin {
-  animation: Animation | Signal<Animation>;
+  /** Contains the plugin initialization login */
+  init(animation: Animation): void;
 }

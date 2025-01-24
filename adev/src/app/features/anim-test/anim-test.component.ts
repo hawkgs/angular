@@ -3,16 +3,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
-  signal,
   viewChildren,
+  ViewContainerRef,
 } from '@angular/core';
-import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../home/animation';
-import {AnimationPlayerComponent} from '../home/animation/plugins/animation-player.component';
+import {AnimationCreatorService, AnimationLayerDirective} from '../home/animation';
 import {ANIMATION_DEFINITION} from './animation-definition';
+import {AnimationPlayer} from '../home/animation/plugins/animation-player';
 
 @Component({
   selector: 'adev-anim-test',
-  imports: [AnimationLayerDirective, AnimationPlayerComponent],
+  imports: [AnimationLayerDirective],
   templateUrl: './anim-test.component.html',
   styleUrl: './anim-test.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,17 +20,16 @@ import {ANIMATION_DEFINITION} from './animation-definition';
 })
 export class AnimTestComponent implements AfterViewInit {
   private readonly _animCreator = inject(AnimationCreatorService);
+  private readonly _vcr = inject(ViewContainerRef);
 
   animationLayers = viewChildren(AnimationLayerDirective);
-  animation = signal<Animation | null>(null);
 
-  ngAfterViewInit(): void {
-    const animation = this._animCreator
+  ngAfterViewInit() {
+    this._animCreator
       .createAnimation(this.animationLayers(), {
         timestep: 10,
       })
-      .define(ANIMATION_DEFINITION);
-
-    this.animation.set(animation);
+      .define(ANIMATION_DEFINITION)
+      .addPlugin(new AnimationPlayer(this._vcr));
   }
 }

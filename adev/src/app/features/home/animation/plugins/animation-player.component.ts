@@ -6,40 +6,37 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, input} from '@angular/core';
-import {AnimationPlugin} from './plugin';
+import {Component, computed, input, signal} from '@angular/core';
 import {Animation} from '../animation';
 
 // In milliseconds. Used for going forward or back through the animation.
 const TIMESTEP = 100;
 
 /**
- * USED FOR ANIMATION DEVELOPMENT.
- * REMOVE IMPORTS TO THIS FILE BEFORE SHIPPING THE ANIMATION.
- *
- * Animation player.
+ * Animation player component.
  */
 @Component({
   selector: 'adev-animation-player',
   template: `
-    <div class="deck">
-      <div class="progress-bar" (click)="seek($event)" title="Seek">
-        <div class="progress" [style.width]="progressPerc()"></div>
+    @if (animation(); as anim) {
+      <div class="deck">
+        <div class="progress-bar" (click)="seek($event)" title="Seek">
+          <div class="progress" [style.width]="progressPerc()"></div>
+        </div>
+        <div class="controls">
+          <button (click)="anim.back(TIMESTEP)" title="Go back">⏪</button>
+          <button
+            (click)="playPause()"
+            [attr.title]="!anim.isPlaying() ? 'Play' : 'Pause'"
+            [style.background-color]="anim.isPlaying() ? '#666' : null"
+          >
+            {{ !anim.isPlaying() ? '▶️' : '⏸️' }}
+          </button>
+          <button (click)="anim.stop()" title="Stop">⏹️</button>
+          <button (click)="anim.forward(TIMESTEP)" title="Go forward">⏩</button>
+        </div>
       </div>
-      <div class="controls">
-        @let anim = animation();
-        <button (click)="anim.back(TIMESTEP)" title="Go back">⏪</button>
-        <button
-          (click)="playPause()"
-          [attr.title]="!anim.isPlaying() ? 'Play' : 'Pause'"
-          [style.background-color]="anim.isPlaying() ? '#666' : null"
-        >
-          {{ !anim.isPlaying() ? '▶️' : '⏸️' }}
-        </button>
-        <button (click)="anim.stop()" title="Stop">⏹️</button>
-        <button (click)="anim.forward(TIMESTEP)" title="Go forward">⏩</button>
-      </div>
-    </div>
+    }
   `,
   styles: `
     .deck {
@@ -88,14 +85,14 @@ const TIMESTEP = 100;
     }
   `,
 })
-export class AnimationPlayerComponent implements AnimationPlugin {
-  animation = input.required<Animation>();
+export class AnimationPlayerComponent {
+  animation = signal<Animation | null>(null);
   TIMESTEP = TIMESTEP;
 
-  progressPerc = computed(() => this.animation().progress() * 100 + '%');
+  progressPerc = computed(() => this.animation()!.progress() * 100 + '%');
 
   playPause() {
-    const anim = this.animation();
+    const anim = this.animation()!;
 
     if (!anim.isPlaying()) {
       anim.play();
@@ -107,6 +104,6 @@ export class AnimationPlayerComponent implements AnimationPlugin {
   seek(e: MouseEvent) {
     const target = e.target as HTMLElement;
     const progress = e.offsetX / target.clientWidth;
-    this.animation().seek(progress);
+    this.animation()!.seek(progress);
   }
 }

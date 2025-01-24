@@ -4,6 +4,7 @@ import {AnimationLayerDirective} from './animation-layer.directive';
 import {AnimationCreatorService} from './animation-creator.service';
 import {Animation} from './animation';
 import {AnimationDefinition} from './types';
+import {AnimationPlugin} from './plugins/types';
 
 // Test component
 @Component({
@@ -189,6 +190,17 @@ describe('Animation', () => {
     ]);
 
     expect(animation.duration).toEqual(3000);
+  });
+
+  it('should add an initialize a plugin', () => {
+    const mockPlugin: AnimationPlugin = {
+      init: () => {},
+    };
+    const initSpy = spyOn(mockPlugin, 'init');
+
+    animation.addPlugin(mockPlugin);
+
+    expect(initSpy).toHaveBeenCalled();
   });
 
   it('should move the animation forward in time', () => {
