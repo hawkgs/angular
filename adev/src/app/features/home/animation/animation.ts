@@ -18,6 +18,7 @@ import {
 } from './types';
 import {CssPropertyValue, cssValueParser, stringifyParsedValue, TransformValue} from './parsing';
 import {calculateNextCssValue} from './calculations';
+import {AnimationPlugin} from './plugins/types';
 
 // The string seperator between a layed ID and an object selector.
 const SEL_SEPARATOR = '>>';
@@ -82,6 +83,12 @@ export class Animation {
     return this._duration;
   }
 
+  /**
+   * Define the animation.
+   *
+   * @param definition Definition (i.e. `AnimationRule` array)
+   * @returns The animation
+   */
   define(definition: AnimationDefinition) {
     this._extractObjectsAndValidateStyles(definition);
 
@@ -155,7 +162,7 @@ export class Animation {
   }
 
   /**
-   * Fast-forward or go back at a specific time
+   * Fast-forward or go back at a specific time.
    *
    * @param progress Time (in percent) at which the player should render the animation
    * @returns
@@ -242,6 +249,19 @@ export class Animation {
   /** Alias for `reset`. */
   stop() {
     this.reset();
+  }
+
+  /**
+   * Add and initialize `AnimationPlugin` to the animation.
+   *
+   * @param plugin Plugin to be added
+   * @returns The animation
+   */
+  addPlugin(plugin: AnimationPlugin) {
+    // Currently, there isn't a dispose functionality
+    // since it's not needed.
+    plugin.init(this);
+    return this;
   }
 
   /**
