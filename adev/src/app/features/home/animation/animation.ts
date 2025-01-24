@@ -152,6 +152,27 @@ export class Animation {
   }
 
   /**
+   * Fast-forward or go back at a specific time
+   *
+   * @param progress Time (in percent) at which the player should render the animation
+   * @returns
+   */
+  seek(progress: number) {
+    this.pause();
+
+    if (!this._rules.length) {
+      console.warn("Animation: Can't  without a definition");
+      return;
+    }
+
+    progress = Math.max(0, Math.min(progress, 1));
+    const time = Math.round(progress * this._duration);
+
+    this._updateFrame(time);
+    this._completed = progress === 1;
+  }
+
+  /**
    * Go forward in time.
    *
    * @param timestep Custom timestep different from the config one

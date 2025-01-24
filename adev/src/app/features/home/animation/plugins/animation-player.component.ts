@@ -23,7 +23,7 @@ const TIMESTEP = 100;
   selector: 'adev-animation-player',
   template: `
     <div class="deck">
-      <div class="progress-bar">
+      <div class="progress-bar" (click)="seek($event)" title="Seek">
         <div class="progress" [style.width]="progressPerc()"></div>
       </div>
       <div class="controls">
@@ -69,6 +69,7 @@ const TIMESTEP = 100;
       left: 0;
       height: inherit;
       background-color: #ba2391;
+      pointer-events: none;
     }
     .controls {
       display: flex;
@@ -116,5 +117,11 @@ export class AnimationPlayerComponent implements AnimationPlugin, OnInit, OnDest
     } else {
       anim.pause();
     }
+  }
+
+  seek(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    const progress = e.offsetX / target.clientWidth;
+    this.animation().seek(progress);
   }
 }
