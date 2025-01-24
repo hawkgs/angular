@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, input, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, computed, input} from '@angular/core';
 import {AnimationPlugin} from './plugin';
 import {Animation} from '../animation';
-import {Subscription} from 'rxjs';
 
+// In milliseconds. Used for going forward or back through the animation.
 const TIMESTEP = 100;
 
 /**
@@ -88,26 +88,11 @@ const TIMESTEP = 100;
     }
   `,
 })
-export class AnimationPlayerComponent implements AnimationPlugin, OnInit, OnDestroy {
+export class AnimationPlayerComponent implements AnimationPlugin {
   animation = input.required<Animation>();
   TIMESTEP = TIMESTEP;
 
-  progressPerc = computed(() => this._progress() * 100 + '%');
-  private _progress = signal<number>(0);
-  private _emittedSubs?: Subscription;
-
-  ngOnInit() {
-    const anim = this.animation();
-    this._emittedSubs = anim.frameUpdate.subscribe(({time}) => {
-      this._progress.set(time / anim.duration);
-    });
-  }
-
-  ngOnDestroy() {
-    if (this._emittedSubs) {
-      this._emittedSubs.unsubscribe();
-    }
-  }
+  progressPerc = computed(() => this.animation().progress() * 100 + '%');
 
   playPause() {
     const anim = this.animation();

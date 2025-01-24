@@ -16,13 +16,6 @@ export type AnimationConfig = {
    * Default: `100`
    */
   timestep: number;
-
-  /**
-   * Emit frame update events (`frameUpdate`). Use for animation development purposes only.
-   *
-   * Default: `false`
-   */
-  emitFrameUpdateEvents: boolean;
 };
 
 export type Styles = {[key: string]: string};
