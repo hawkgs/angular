@@ -30,7 +30,7 @@ class AnimationHost implements AfterViewInit {
 }
 
 // Animation definition
-const definition: AnimationDefinition = [
+const DEFINITION: AnimationDefinition = [
   {
     selector: 'layer-1 >> .circle',
     timespan: [0, 4],
@@ -192,7 +192,7 @@ describe('Animation', () => {
   });
 
   it('should move the animation forward in time', () => {
-    animation.define(definition);
+    animation.define(DEFINITION);
     animation.forward(2000);
 
     const circle = layerObjects.get('.circle');
@@ -207,7 +207,7 @@ describe('Animation', () => {
   });
 
   it('should move the animation back in time', () => {
-    animation.define(definition);
+    animation.define(DEFINITION);
     animation.forward(5000);
     animation.back(2000);
 
@@ -223,7 +223,7 @@ describe('Animation', () => {
   });
 
   it('should seek', () => {
-    animation.define(definition);
+    animation.define(DEFINITION);
     animation.seek(4 / 5); // 4th second; 0.8
 
     const circle = layerObjects.get('.circle');
@@ -238,7 +238,7 @@ describe('Animation', () => {
   });
 
   it('should reset the animation', () => {
-    animation.define(definition);
+    animation.define(DEFINITION);
     animation.seek(1);
     animation.reset();
 
@@ -273,5 +273,12 @@ describe('Animation', () => {
     const layer1 = layerObjects.get('layer-1');
 
     expect(layer1?.style.padding).toEqual('16px');
+  });
+
+  it('should track animation progress', () => {
+    animation.define(DEFINITION);
+    animation.seek(0.5);
+
+    expect(animation.progress()).toEqual(0.5);
   });
 });

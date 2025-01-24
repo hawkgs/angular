@@ -28,7 +28,6 @@ const MS = 1000;
 // Default config.
 const DEFAULT_CONFIG: AnimationConfig = {
   timestep: 100,
-  emitFrameUpdateEvents: false,
 };
 
 const getStartTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
@@ -56,9 +55,13 @@ export class Animation {
   private _animationFrameId: number | null = null;
   private _completed: boolean = false;
   private _isPlaying = signal<boolean>(false);
+  private _progress = signal<number>(0);
 
+  /** Returns whether the animation is playing or not */
   isPlaying = this._isPlaying.asReadonly();
-  frameUpdate = new EventEmitter<{time: number; completed: boolean}>();
+
+  /** Returns the animation progress (`[0,1]`) */
+  progress = this._progress.asReadonly();
 
   constructor(
     layers: readonly AnimationLayerDirective[],
@@ -225,6 +228,7 @@ export class Animation {
   reset() {
     this.pause();
     this._currentTime = 0;
+    this._progress.set(0);
 
     for (const [selector, styles] of Array.from(this._activeStyles)) {
       for (const [style] of Object.entries(styles)) {
@@ -233,8 +237,6 @@ export class Animation {
       }
       this._activeStyles.delete(selector);
     }
-
-    this._emitFrameUpdateEvent(0);
   }
 
   /** Alias for `reset`. */
@@ -331,7 +333,7 @@ export class Animation {
     }
 
     this._currentTime = time;
-    this._emitFrameUpdateEvent(time);
+    this._progress.set(time / this.duration);
   }
 
   /** Set active style. */
@@ -430,13 +432,6 @@ export class Animation {
       if (!this._allObjects.has(rule.selector)) {
         this._allObjects.set(rule.selector, object as HTMLElement);
       }
-    }
-  }
-
-  /** Emit a frameUpdate event, if the option is enabled in the config. */
-  private _emitFrameUpdateEvent(time: number) {
-    if (this._config.emitFrameUpdateEvents) {
-      this.frameUpdate.emit({time, completed: this._completed});
     }
   }
 }
