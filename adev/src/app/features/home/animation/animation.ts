@@ -74,7 +74,7 @@ export class Animation {
     this._allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
-  /** Animation duration. */
+  /** Animation duration. In milliseconds */
   get duration() {
     return this._duration;
   }
@@ -266,22 +266,37 @@ export class Animation {
       stylesState.set(rule.selector, objectStyles);
     }
 
+    const deltaTime = time - this._currentTime;
+
     // ... and then calculate the change of the dynamic rules in progress.
     for (const rule of inProgressDynamicRules) {
-      const deltaTime = time - this._currentTime;
       let timespan: number;
       let targetStyles: ParsedStyles;
+      let relativeDeltaT: number;
 
-      // Determine the change direction. Negative Dt means going back in time.
+      // Determine the change direction. Negative Dt means going back in time; postive – forward.
+      //
+      // It's important to calculate the relative time since the global current time might go out of
+      // rule boundaries which will scew the final change rate calculations.
+      //
+      // For example:
+      // If the currentTime = 0; time = 2; for a rule active between [1, 5];
+      // the Dt = 2, but only one second has passed from the rule's timespan,
+      // i.e. we have to use a relative time which in this case is equal to timespan[0].
+      // relativeDt = 1 (not 2); timespan = 4 (not 5); changeRate = 0.25 (not 0.4)
       if (deltaTime > 0) {
-        timespan = getEndTime(rule) - this._currentTime;
+        const relativeTime = Math.max(this._currentTime, rule.timespan[0]);
+        relativeDeltaT = time - relativeTime;
+        timespan = getEndTime(rule) - relativeTime;
         targetStyles = rule.to;
       } else {
-        timespan = this._currentTime - getStartTime(rule);
+        const relativeTime = Math.min(this._currentTime, rule.timespan[1]);
+        relativeDeltaT = time - relativeTime;
+        timespan = relativeTime - getStartTime(rule);
         targetStyles = rule.from;
       }
 
-      const changeRate = Math.abs(deltaTime / timespan);
+      const changeRate = Math.abs(relativeDeltaT / timespan);
 
       // Make sure that any active styles should overwrite the start styles.
       const activeStyles: ParsedStyles = {...rule.from, ...this._activeStyles.get(rule.selector)};
@@ -381,12 +396,14 @@ export class Animation {
 
     if (fromStyles.length !== toStyles.length) {
       throw new Error(
-        `Animation: There is a mismatch between the number of "from" and "to" styles for selector ${rule.selector}`,
+        `Animation: There is a mismatch between the number of "from" and "to" styles for selector '${rule.selector}'`,
       );
     }
     for (const prop of toStyles) {
       if (!rule.from[prop]) {
-        throw new Error(`Animation: "from" style ${prop} is missing for selector ${rule.selector}`);
+        throw new Error(
+          `Animation: "from" style '${prop}' is missing for selector '${rule.selector}'`,
+        );
       }
     }
   }
@@ -407,7 +424,7 @@ export class Animation {
     if (objectSelector && !this._allObjects.has(rule.selector)) {
       const object = layer.querySelector(objectSelector);
       if (!object) {
-        throw new Error(`Animation: Missing layer object: ${objectSelector}`);
+        throw new Error(`Animation: Missing layer object: ${rule.selector}`);
       }
 
       if (!this._allObjects.has(rule.selector)) {
