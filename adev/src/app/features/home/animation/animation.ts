@@ -57,6 +57,7 @@ export class Animation {
   private _completed: boolean = false;
   private _isPlaying = signal<boolean>(false);
   private _progress = signal<number>(0);
+  private _plugins: AnimationPlugin[] = [];
 
   /** Returns whether the animation is playing or not */
   isPlaying = this._isPlaying.asReadonly();
@@ -81,6 +82,11 @@ export class Animation {
   /** Animation duration. In milliseconds */
   get duration() {
     return this._duration;
+  }
+
+  /** Animation timestep (config). In milliseconds */
+  get timestep() {
+    return this._config.timestep;
   }
 
   /**
@@ -258,10 +264,24 @@ export class Animation {
    * @returns The animation
    */
   addPlugin(plugin: AnimationPlugin) {
-    // Currently, there isn't a dispose functionality
-    // since it's not needed.
     plugin.init(this);
+    this._plugins.push(plugin);
+
     return this;
+  }
+
+  /**
+   * Cleans all of the resources that might cause memory leaks (e.g. plugins).
+   * Resets the animation and cleans the definition.
+   */
+  dispose() {
+    for (const plugin of this._plugins) {
+      plugin.destroy();
+    }
+    this.reset();
+    this._rules = [];
+    this._duration = 0;
+    this._plugins = [];
   }
 
   /**
