@@ -7,6 +7,8 @@ import {AnimationDefinition} from './types';
 import {AnimationPlugin} from './plugins/types';
 
 // Test component
+const TEST_TIMESTEP = 500;
+
 @Component({
   selector: 'adev-animation-host',
   imports: [AnimationLayerDirective],
@@ -26,7 +28,9 @@ class AnimationHost implements AfterViewInit {
   animation!: Animation;
 
   ngAfterViewInit() {
-    this.animation = this._animationCreator.createAnimation(this.layers());
+    this.animation = this._animationCreator.createAnimation(this.layers(), {
+      timestep: TEST_TIMESTEP,
+    });
   }
 }
 
@@ -103,6 +107,10 @@ describe('Animation', () => {
       ]);
 
     expect(defineFn).toThrowError('Animation: Missing layer ID: layer-3');
+  });
+
+  it('should return the config timestep', () => {
+    expect(animation.timestep).toEqual(TEST_TIMESTEP);
   });
 
   it(`should throw an error if a layer object doesn't exist`, () => {
@@ -195,12 +203,29 @@ describe('Animation', () => {
   it('should add an initialize a plugin', () => {
     const mockPlugin: AnimationPlugin = {
       init: () => {},
+      destroy: () => {},
     };
     const initSpy = spyOn(mockPlugin, 'init');
 
     animation.addPlugin(mockPlugin);
 
     expect(initSpy).toHaveBeenCalled();
+  });
+
+  it('should dispose the animation', () => {
+    const mockPlugin: AnimationPlugin = {
+      init: () => {},
+      destroy: () => {},
+    };
+    const destroySpy = spyOn(mockPlugin, 'destroy');
+
+    animation.addPlugin(mockPlugin);
+    animation.dispose();
+
+    expect(destroySpy).toHaveBeenCalled();
+    expect(animation.duration).toEqual(0);
+    expect(animation.progress()).toEqual(0);
+    expect(animation.isPlaying()).toEqual(false);
   });
 
   it('should move the animation forward in time', () => {
@@ -253,6 +278,8 @@ describe('Animation', () => {
     animation.define(DEFINITION);
     animation.seek(1);
     animation.reset();
+
+    expect(animation.progress()).toEqual(0);
 
     const circle = layerObjects.get('.circle');
 

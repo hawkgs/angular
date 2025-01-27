@@ -49,6 +49,7 @@ const TIMESTEP = 100;
       background: rgba(0,0,0, 0.7);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 999999;
     }
     .progress-bar {
       position: relative;
