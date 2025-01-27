@@ -1,4 +1,4 @@
-import {ViewContainerRef} from '@angular/core';
+import {ComponentRef, ViewContainerRef} from '@angular/core';
 import {Animation} from '../animation';
 import {AnimationPlugin} from './types';
 import {AnimationPlayerComponent} from './animation-player.component';
@@ -10,10 +10,16 @@ import {AnimationPlayerComponent} from './animation-player.component';
  * Animation player.
  */
 export class AnimationPlayer implements AnimationPlugin {
+  private _cmpRef?: ComponentRef<AnimationPlayerComponent>;
+
   constructor(private _hostVcr: ViewContainerRef) {}
 
   init(animation: Animation) {
-    const cmpRef = this._hostVcr.createComponent(AnimationPlayerComponent);
-    cmpRef.instance.animation.set(animation);
+    this._cmpRef = this._hostVcr.createComponent(AnimationPlayerComponent);
+    this._cmpRef.instance.animation.set(animation);
+  }
+
+  destroy() {
+    this._cmpRef?.destroy();
   }
 }

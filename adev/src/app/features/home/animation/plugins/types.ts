@@ -13,6 +13,9 @@ import {Animation} from '../animation';
  * Plugins can be added to an animation via `Animation.addPlugin()`.
  */
 export interface AnimationPlugin {
-  /** Contains the plugin initialization login */
+  /** Contains the plugin initialization login. */
   init(animation: Animation): void;
+
+  /** Will be called on Animation disposal. */
+  destroy(): void;
 }
