@@ -3,15 +3,17 @@ import {Animation} from '../animation';
 import {AnimationPlugin} from './types';
 import {AnimationPlayerComponent} from './animation-player.component';
 
-/**
- * USED FOR ANIMATION DEVELOPMENT.
- * REMOVE IMPORTS TO THIS FILE BEFORE SHIPPING THE ANIMATION.
- *
- * Animation player.
- */
 export class AnimationPlayer implements AnimationPlugin {
   private _cmpRef?: ComponentRef<AnimationPlayerComponent>;
 
+  /**
+   * USED FOR ANIMATION DEVELOPMENT.
+   * Remove imports to this file before shipping the animation.
+   *
+   * Animation player.
+   *
+   * @param _hostVcr VCR of the animation host component.
+   */
   constructor(private _hostVcr: ViewContainerRef) {}
 
   init(animation: Animation) {
