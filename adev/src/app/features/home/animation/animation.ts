@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {EventEmitter, Injector, Renderer2, RendererFactory2, signal} from '@angular/core';
+import {Injector, Renderer2, RendererFactory2, signal} from '@angular/core';
 import {AnimationLayerDirective} from './animation-layer.directive';
 import {
   AnimationConfig,
@@ -16,7 +16,7 @@ import {
   ParsedStyles,
   Styles,
 } from './types';
-import {CssPropertyValue, cssValueParser, stringifyParsedValue, TransformValue} from './parsing';
+import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
 import {calculateNextCssValue} from './calculations';
 import {AnimationPlugin} from './plugins/types';
 

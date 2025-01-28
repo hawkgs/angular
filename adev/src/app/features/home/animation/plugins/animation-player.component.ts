@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, input, signal} from '@angular/core';
+import {Component, computed, signal} from '@angular/core';
 import {Animation} from '../animation';
 
 // In milliseconds. Used for going forward or back through the animation.
