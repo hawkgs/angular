@@ -39,10 +39,16 @@ describe('css-value-lexer', () => {
     expect(tokens).toEqual([42, 'px']);
   });
 
-  it('should extract the tokens for a single numberic decimal value', () => {
+  it('should extract the tokens for a single numeric decimal value', () => {
     const tokens = cssValueLexer('66.6%');
 
     expect(tokens).toEqual([66.6, '%']);
+  });
+
+  it('should extract the tokens for a single numeric negative value', () => {
+    const tokens = cssValueLexer('-50%');
+
+    expect(tokens).toEqual([-50, '%']);
   });
 
   it('should extract the tokens for a single unitless numberic value', () => {
@@ -51,10 +57,22 @@ describe('css-value-lexer', () => {
     expect(tokens).toEqual([1337]);
   });
 
+  it('should extract the tokens for a single unitless numeric negative value', () => {
+    const tokens = cssValueLexer('-33.3');
+
+    expect(tokens).toEqual([-33.3]);
+  });
+
   it('should extract the tokens for a list of numeric values', () => {
     const tokens = cssValueLexer('42px 13.37rem 0%');
 
     expect(tokens).toEqual([42, 'px', 13.37, 'rem', 0, '%']);
+  });
+
+  it('should extract the tokens a numeric value with negative numbers', () => {
+    const tokens = cssValueLexer('42px -13.37px 0rem -25%');
+
+    expect(tokens).toEqual([42, 'px', -13.37, 'px', 0, 'rem', -25, '%']);
   });
 
   it('should extract the tokens for a simple transform value', () => {
@@ -73,5 +91,11 @@ describe('css-value-lexer', () => {
     const tokens = cssValueLexer('translate(42%, 0px) scale(1.5) rotate(180deg)');
 
     expect(tokens).toEqual(['translate', 42, '%', 0, 'px', 'scale', 1.5, 'rotate', 180, 'deg']);
+  });
+
+  it('should extract the tokens for a transform value with negative numbers', () => {
+    const tokens = cssValueLexer('translate(42%, -13.37px) scale(-2)');
+
+    expect(tokens).toEqual(['translate', 42, '%', -13.37, 'px', 'scale', -2]);
   });
 });

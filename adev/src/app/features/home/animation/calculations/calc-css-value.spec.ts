@@ -110,6 +110,34 @@ describe('calculateNextCssValue', () => {
     });
   });
 
+  it('should calculate a numeric value with negative number', () => {
+    const next = calculateNextCssValue(
+      {
+        type: 'numeric',
+        values: [
+          [-50, 'px'],
+          [0, '%'],
+        ],
+      },
+      {
+        type: 'numeric',
+        values: [
+          [50, 'px'],
+          [-75, '%'],
+        ],
+      },
+      0.5,
+    );
+
+    expect(next).toEqual({
+      type: 'numeric',
+      values: [
+        [0, 'px'],
+        [-37.5, '%'],
+      ],
+    });
+  });
+
   it('should handle numeric zero values without units', () => {
     const current: NumericValue = {
       type: 'numeric',
@@ -153,6 +181,47 @@ describe('calculateNextCssValue', () => {
           ],
         ],
         ['scale', [[0.875, '']]],
+      ]),
+    });
+  });
+
+  it('should calculate a transform value with negative numbers', () => {
+    const current: TransformValue = {
+      type: 'transform',
+      values: new Map([
+        [
+          'translateX',
+          [
+            [-120, 'px'],
+            [0, '%'],
+          ],
+        ],
+      ]),
+    };
+    const target: TransformValue = {
+      type: 'transform',
+      values: new Map([
+        [
+          'translateX',
+          [
+            [0, 'px'],
+            [-50, '%'],
+          ],
+        ],
+      ]),
+    };
+    const next = calculateNextCssValue(current, target, 0.25);
+
+    expect(next).toEqual({
+      type: 'transform',
+      values: new Map([
+        [
+          'translateX',
+          [
+            [-90, 'px'],
+            [-12.5, '%'],
+          ],
+        ],
       ]),
     });
   });

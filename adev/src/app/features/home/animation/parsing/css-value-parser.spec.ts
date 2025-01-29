@@ -81,6 +81,15 @@ describe('css-value-parser', () => {
     });
   });
 
+  it('should parse a single negative numberic value', () => {
+    const value = cssValueParser('-50%');
+
+    expect(value).toEqual({
+      type: 'numeric',
+      values: [[-50, '%']],
+    });
+  });
+
   it('should parse a single unitless numberic value', () => {
     const value = cssValueParser('1337');
 
@@ -112,6 +121,34 @@ describe('css-value-parser', () => {
         [42, ''],
         [13.37, ''],
         [0, ''],
+      ],
+    });
+  });
+
+  it('should parse a list of negative and positive numeric values', () => {
+    const value = cssValueParser('42% -13.37px 0rem -100vw');
+
+    expect(value).toEqual({
+      type: 'numeric',
+      values: [
+        [42, '%'],
+        [-13.37, 'px'],
+        [0, 'rem'],
+        [-100, 'vw'],
+      ],
+    });
+  });
+
+  it('should parse a list of negative and positive unitless numeric values', () => {
+    const value = cssValueParser('42 -13.37 0 -100');
+
+    expect(value).toEqual({
+      type: 'numeric',
+      values: [
+        [42, ''],
+        [-13.37, ''],
+        [0, ''],
+        [-100, ''],
       ],
     });
   });
@@ -182,6 +219,25 @@ describe('css-value-parser', () => {
           ],
         ],
         ['scale', [[1.5, '']]],
+        ['rotate', [[180, 'deg']]],
+      ]),
+    });
+  });
+
+  it('should parse a transform value with multiple functions with multiple parameters and negative values', () => {
+    const value = cssValueParser('translate(42%, -1px) scale(-1.5) rotate(180deg)');
+
+    expect(value).toEqual({
+      type: 'transform',
+      values: new Map([
+        [
+          'translate',
+          [
+            [42, '%'],
+            [-1, 'px'],
+          ],
+        ],
+        ['scale', [[-1.5, '']]],
         ['rotate', [[180, 'deg']]],
       ]),
     });

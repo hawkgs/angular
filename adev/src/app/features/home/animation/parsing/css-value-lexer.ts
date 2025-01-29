@@ -11,6 +11,7 @@ type CharType =
   | 'digit'
   | 'point'
   | 'comma'
+  | 'hyphen'
   | 'hash'
   | 'percent'
   | 'space'
@@ -73,6 +74,9 @@ function getCharType(char: string): CharType {
   if (char === '.') {
     return 'point';
   }
+  if (char === '-') {
+    return 'hyphen';
+  }
   if (char === ',') {
     return 'comma';
   }
@@ -112,7 +116,7 @@ function getBufferType(type: CharType, currentBuffer: BufferType): BufferType {
     return 'text';
   }
 
-  const numberSymbols: CharType[] = ['digit', 'point'];
+  const numberSymbols: CharType[] = ['digit', 'point', 'hyphen'];
   if (numberSymbols.includes(type)) {
     return 'number';
   }
