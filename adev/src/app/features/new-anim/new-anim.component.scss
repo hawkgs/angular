@@ -1,0 +1,86 @@
+$transition: transform 200ms ease;
+
+:host {
+  display: block;
+  position: relative;
+
+  .animation {
+    border: 1px solid gold;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 115px;
+
+    .x-axis,
+    .y-axis {
+      position: absolute;
+      background-color: rgb(0, 255, 13, 0.33);
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .x-axis {
+      width: 100%;
+      height: 1px;
+      top: 50%;
+    }
+    .y-axis {
+      width: 1px;
+      height: 100%;
+      left: 50%;
+      top: 0;
+    }
+
+    .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .logo-layer {
+      .svg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        fill-rule: evenodd;
+        clip-rule: evenodd;
+        stroke-linejoin: round;
+        stroke-miterlimit: 2;
+
+        .wrapper {
+          transform: scale(0.6);
+          transform-origin: 50% 50%;
+
+          .logo {
+            transition: transform 200ms linear;
+
+            .shield {
+              &,
+              .shield-middle {
+                transform-origin: 177px 200px;
+                transition: transform 200ms linear;
+              }
+
+              .shield-bottom-a-arc {
+                transform-origin: 0 302px;
+                transition: transform 200ms linear;
+              }
+
+              .shield-bottom-extension {
+                transform-origin: 177px 340px;
+                transition: transform 200ms linear;
+                transform: scale(0);
+              }
+            }
+
+            .letter {
+              transition: opacity 200ms linear;
+            }
+          }
+        }
+      }
+    }
+  }
+}

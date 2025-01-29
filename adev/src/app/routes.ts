@@ -13,6 +13,7 @@ import {DefaultPage, PagePrefix} from './core/enums/pages';
 import {SUB_NAVIGATION_DATA} from './sub-navigation-data';
 import {mapApiManifestToRoutes} from './features/references/helpers/manifest.helper';
 import {AnimTestComponent} from './features/anim-test/anim-test.component';
+import {NewAnimComponent} from './features/new-anim/new-anim.component';
 
 // Docs navigation data contains routes which navigates to /tutorials pages, in
 // that case we should load Tutorial component
@@ -250,6 +251,10 @@ export const routes: Route[] = [
       {
         path: 'anim-test',
         component: AnimTestComponent,
+      },
+      {
+        path: 'new-anim',
+        component: NewAnimComponent,
       },
       {
         path: PagePrefix.PLAYGROUND,
