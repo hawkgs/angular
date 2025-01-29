@@ -18,6 +18,7 @@ import {
 } from './types';
 import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
 import {calculateNextCssValue} from './calculations';
+import {stylesUnion} from './utils';
 import {AnimationPlugin} from './plugins/types';
 
 // The string seperator between a layed ID and an object selector.
@@ -340,8 +341,7 @@ export class Animation {
 
       const changeRate = Math.abs(relativeDeltaT / timespan);
 
-      // Make sure that any active styles should overwrite the start styles.
-      const activeStyles: ParsedStyles = {...rule.from, ...this._activeStyles.get(rule.selector)};
+      const activeStyles = stylesUnion(rule.from, this._activeStyles.get(rule.selector) || {});
       const styles = stylesState.get(rule.selector) || {};
 
       for (const [prop, value] of Object.entries(targetStyles)) {

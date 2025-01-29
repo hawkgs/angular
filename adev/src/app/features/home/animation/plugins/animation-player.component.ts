@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, signal} from '@angular/core';
 import {Animation} from '../animation';
 
 // In milliseconds. Used for going forward or back through the animation.
@@ -17,6 +17,7 @@ const TIMESTEP = 100;
  */
 @Component({
   selector: 'adev-animation-player',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (animation(); as anim) {
       <div class="deck">

@@ -75,7 +75,7 @@ function calculateNextTransformValue(
   };
 
   for (const [func, numData] of Array.from(targetValue.values)) {
-    const currNumData = currValue.values.get(func)!; // !!!
+    const currNumData = currValue.values.get(func)!;
     const newNumData: [number, string][] = [];
 
     for (let i = 0; i < numData.length; i++) {
