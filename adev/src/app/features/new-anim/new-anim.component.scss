@@ -7,14 +7,16 @@
  */
 $transition: 200ms linear;
 
-/* In pixels. Keep in sync with the component class */
+/* In pixels. Keep in sync with constants.ts */
 $meteorWidth: 120;
 $meteorHeight: 170;
-$meteorGap: 85;
+$meteorGap: 160;
 
-// Pythagorean theorem + some trigonometry
-$meteorTailLength: round(sqrt($meteorWidth * $meteorWidth + $meteorHeight * $meteorHeight));
-$meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
+/* Pythagorean theorem + some trigonometry */
+$meteorTailLength: round(
+  sqrt($meteorWidth * $meteorWidth + $meteorHeight * $meteorHeight)
+); /* In pixels */
+$meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
 
 :host {
   display: block;
@@ -70,6 +72,12 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
         width: clamp(375px, 50%, 600px);
         margin: 0 auto;
       }
+
+      h2,
+      p {
+        background-color: var(--page-background);
+        box-shadow: 0 0 20px 20px var(--page-background);
+      }
     }
 
     .logo-layer {
@@ -119,7 +127,8 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
       }
     }
 
-    .works-at-any-scale-layer {
+    .works-at-any-scale-layer,
+    .loved-by-millions-layer {
       user-select: none;
       pointer-events: none;
       display: flex;
@@ -127,16 +136,19 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
       align-items: center;
       justify-content: center;
       text-align: center;
-      transform: scale(0);
       opacity: 0;
       z-index: 1;
       transition:
         transform $transition,
         opacity $transition;
+    }
 
-      p {
-        width: 22vw;
-      }
+    .works-at-any-scale-layer {
+      transform: scale(0);
+    }
+
+    .loved-by-millions-layer {
+      transform: scale(0.75);
     }
 
     .meteor-field-layer {
@@ -144,16 +156,14 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
 
       .field {
         position: absolute;
-        width: 110%;
-        height: 110%;
-        top: -5%;
-        left: -5%;
         flex-wrap: wrap;
         align-content: flex-start;
         gap: $meteorGap + px;
         opacity: 0;
         display: none;
         transform: scale(1.42);
+        top: 0;
+        left: 0;
         transform-origin: 50% 50%;
         transition:
           opacity $transition,
@@ -163,6 +173,14 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
           position: relative;
           width: $meteorWidth + px;
           height: $meteorHeight + px;
+          transition:
+            opacity $transition,
+            transform $transition;
+
+          &.mt-18 {
+            opacity: 0;
+            transform: translate(150%, 150%) scale(0.3);
+          }
 
           &::after {
             content: '';
@@ -171,7 +189,7 @@ $meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
             height: $meteorTailLength + px;
             border-radius: 2px;
             transform-origin: top center;
-            transform: rotate(-$meteorTilt);
+            transform: rotate($meteorTiltAngle);
             top: 0;
             left: 0;
           }

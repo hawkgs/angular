@@ -13,11 +13,15 @@ import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../ho
 import {AnimationPlayer} from '../home/animation/plugins/animation-player';
 import {AnimationScrollHandler} from '../home/animation/plugins/animation-scroll-handler';
 import {generateHomeAnimationDefinition} from './definition';
+import {METEOR_GAP, METEOR_HEIGHT, METEOR_WIDTH} from './constants';
 
-// In pixels. Keep in sync with the SCSS file.
-const METEOR_WIDTH = 120;
-const METEOR_HEIGHT = 170;
-const METEOR_GAP = 85;
+type MeteorFieldData = {
+  width: number;
+  height: number;
+  count: number;
+  marginLeft: number;
+  marginTop: number;
+};
 
 @Component({
   selector: 'adev-new-anim',
@@ -33,17 +37,22 @@ export class NewAnimComponent implements AfterViewInit {
   private readonly _vcr = inject(ViewContainerRef);
   private readonly _injector = inject(Injector);
   private _animation?: Animation;
-  private _meteorsCount = this._calcMeteorsCount();
 
   animationLayers = viewChildren(AnimationLayerDirective);
-  meteors = new Array(this._meteorsCount).fill(null);
+  meteorFieldData: MeteorFieldData;
+  meteors: null[];
+
+  constructor() {
+    this.meteorFieldData = this._calculateMeteorFieldData();
+    this.meteors = new Array(this.meteorFieldData.count).fill(null);
+  }
 
   ngAfterViewInit() {
     this._animation = this._animCreator
       .createAnimation(this.animationLayers(), {
         timestep: 10,
       })
-      .define(generateHomeAnimationDefinition(this._win.innerWidth / this._win.innerHeight))
+      .define(generateHomeAnimationDefinition(this.meteors.length))
       .addPlugin(new AnimationPlayer(this._vcr))
       .addPlugin(new AnimationScrollHandler(this._vcr, this._injector));
   }
@@ -52,21 +61,28 @@ export class NewAnimComponent implements AfterViewInit {
     this._animation?.dispose();
   }
 
-  private _calcMeteorsCount() {
-    const winW = this._win.innerWidth;
-    const winH = this._win.innerHeight;
+  private _calculateMeteorFieldData(): MeteorFieldData {
     const mW = METEOR_WIDTH + METEOR_GAP;
     const mH = METEOR_HEIGHT + METEOR_GAP;
     let rows = 1;
     let cols = 1;
 
-    while (rows * mW < winW) {
-      rows++;
-    }
-    while (cols * mH < winH) {
+    while (cols * mW - METEOR_GAP <= this._win.innerWidth) {
       cols++;
     }
+    while (rows * mH - METEOR_GAP <= this._win.innerHeight) {
+      rows++;
+    }
 
-    return (rows + 1) * cols;
+    const width = cols * mW - METEOR_GAP;
+    const height = rows * mH - METEOR_GAP;
+
+    return {
+      count: rows * cols,
+      width,
+      height,
+      marginLeft: -(width - this._win.innerWidth) / 2,
+      marginTop: -(height - this._win.innerHeight) / 2,
+    };
   }
 }

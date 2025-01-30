@@ -85,10 +85,25 @@
 
   <!-- Meteor field -->
   <div adevAnimationLayer layerId="meteor-field" class="meteor-field-layer layer">
-    <div class="field">
+    <div
+      class="field"
+      [style.width]="meteorFieldData.width + 'px'"
+      [style.height]="meteorFieldData.height + 'px'"
+      [style.marginLeft]="meteorFieldData.marginLeft + 'px'"
+      [style.marginTop]="meteorFieldData.marginTop + 'px'"
+    >
       @for (m of meteors; track $index) {
         <div [class]="['meteor', 'type-1', 'mt-' + ($index + 1)]"></div>
       }
     </div>
+  </div>
+
+  <!-- Loved by millions -->
+  <div adevAnimationLayer layerId="loved-by-millions" class="loved-by-millions-layer layer">
+    <h2>Loved by millions</h2>
+    <p>
+      Join the millions of developers all over the world building with Angular in a thriving and
+      friendly community.
+    </p>
   </div>
 </div>

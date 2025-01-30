@@ -20,17 +20,36 @@ const WORKS_AT_ANY_SCALE_LAYER = 'works-at-any-scale';
 
 const METEOR_FIELD_LAYER = 'meteor-field';
 const METEOR_FIELD = `${METEOR_FIELD_LAYER} >> .field`;
+const METEORS = `${METEOR_FIELD_LAYER} >> .meteor`;
 
+const LOVED_BY_MILLIONS_LAYER = 'loved-by-millions';
+
+/** Duration: 1 second */
 function hideLetter(selector: string, startTime: number): AnimationRule<Styles> {
-  const endTime = startTime + 1; // 1 sec duration
   return {
-    selector: selector,
-    timespan: [startTime, endTime],
+    selector,
+    timespan: [startTime, startTime + 1],
     from: {
       opacity: '1',
     },
     to: {
       opacity: '0',
+    },
+  };
+}
+
+/** Duration: 1 second */
+function showMeteor(selector: string, startTime: number): AnimationRule<Styles> {
+  return {
+    selector,
+    timespan: [startTime, startTime + 1],
+    from: {
+      opacity: '0',
+      transform: 'translate(150%, 150%) scale(0.3)',
+    },
+    to: {
+      opacity: '1',
+      transform: 'translate(0, 0) scale(1)',
     },
   };
 }
@@ -116,7 +135,7 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
     },
     {
       selector: WORKS_AT_ANY_SCALE_LAYER,
-      timespan: [14, 15.5],
+      timespan: [12.5, 14],
       from: {
         transform: 'scale(1)',
         opacity: '1',
@@ -157,7 +176,36 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
         transform: 'scale(1)',
       },
     },
+    showMeteor('meteor-field >> .mt-18', 15),
   ];
 
-  return [...logoLayerAnim, ...waasLayerAnim, ...meteorFieldLayerAnim];
+  // "Loved by millions" layer animation
+  const lbmLayer: AnimationDefinition = [
+    {
+      selector: LOVED_BY_MILLIONS_LAYER,
+      timespan: [14.5, 16.5],
+      from: {
+        transform: 'scale(0.75)',
+        opacity: '0',
+      },
+      to: {
+        transform: 'scale(1)',
+        opacity: '1',
+      },
+    },
+    {
+      selector: LOVED_BY_MILLIONS_LAYER,
+      timespan: [19.5, 21],
+      from: {
+        transform: 'scale(1)',
+        opacity: '1',
+      },
+      to: {
+        transform: 'scale(1.5)',
+        opacity: '0',
+      },
+    },
+  ];
+
+  return [...logoLayerAnim, ...waasLayerAnim, ...meteorFieldLayerAnim, ...lbmLayer];
 }
