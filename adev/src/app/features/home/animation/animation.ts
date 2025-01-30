@@ -52,7 +52,7 @@ export class Animation {
   private _config: AnimationConfig;
   private _currentTime: number = 0;
   private _duration: number = 0;
-  private _allObjects = new Map<string, HTMLElement>(); // selector; HTML element
+  private _allObjects = new Map<string, Element | NodeListOf<Element>>(); // selector; element(s)
   private _activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
   private _animationFrameId: number | null = null;
   private _completed: boolean = false;
@@ -378,8 +378,17 @@ export class Animation {
 
   /** Set active style. */
   private _setStyle(selector: string, property: string, value: CssPropertyValue) {
-    const element = this._allObjects.get(selector);
-    this._renderer.setStyle(element, property, stringifyParsedValue(value));
+    const elements = this._allObjects.get(selector)!;
+
+    const valueString = stringifyParsedValue(value);
+
+    if (elements instanceof Element) {
+      this._renderer.setStyle(elements, property, valueString);
+    } else {
+      for (let i = 0; i < elements.length; i++) {
+        this._renderer.setStyle(elements[i], property, valueString);
+      }
+    }
 
     const activeStyles = this._activeStyles.get(selector) || {};
     activeStyles[property] = value;
@@ -388,8 +397,15 @@ export class Animation {
 
   /** Remove active style. */
   private _removeStyle(selector: string, property: string) {
-    const element = this._allObjects.get(selector);
-    this._renderer.removeStyle(element, property);
+    const elements = this._allObjects.get(selector)!;
+
+    if (elements instanceof Element) {
+      this._renderer.removeStyle(elements, property);
+    } else {
+      for (let i = 0; i < elements.length; i++) {
+        this._renderer.removeStyle(elements[i], property);
+      }
+    }
 
     const activeStyles = this._activeStyles.get(selector) || {};
     delete activeStyles[property];
@@ -469,19 +485,19 @@ export class Animation {
     layerId = layerId.trim();
     objectSelector = (objectSelector ?? '').trim();
 
-    const layer = this._allObjects.get(layerId);
+    const layer = this._allObjects.get(layerId) as Element;
     if (!layer) {
       throw new Error(`Animation: Missing layer ID: ${layerId}`);
     }
 
     if (objectSelector && !this._allObjects.has(rule.selector)) {
-      const object = layer.querySelector(objectSelector);
-      if (!object) {
-        throw new Error(`Animation: Missing layer object: ${rule.selector}`);
+      const objects = layer.querySelectorAll(objectSelector);
+      if (!objects.length) {
+        throw new Error(`Animation: Missing layer object(s): ${rule.selector}`);
       }
 
       if (!this._allObjects.has(rule.selector)) {
-        this._allObjects.set(rule.selector, object as HTMLElement);
+        this._allObjects.set(rule.selector, objects.length === 1 ? objects[0] : objects);
       }
     }
   }

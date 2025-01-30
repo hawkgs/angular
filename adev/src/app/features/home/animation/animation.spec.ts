@@ -20,6 +20,10 @@ const TEST_TIMESTEP = 500;
     <div adevAnimationLayer layerId="layer-2">
       <div class="square"></div>
     </div>
+    <div adevAnimationLayer layerId="layer-3">
+      <div class="triangle"></div>
+      <div class="triangle"></div>
+    </div>
   `,
 })
 class AnimationHost implements AfterViewInit {
@@ -94,19 +98,20 @@ describe('Animation', () => {
     expect(layerObjects.get('.circle')).toBeInstanceOf(HTMLElement);
     expect(layerObjects.get('layer-2')).toBeInstanceOf(HTMLElement);
     expect(layerObjects.get('.square')).toBeInstanceOf(HTMLElement);
+    expect(layerObjects.get('layer-3')).toBeInstanceOf(HTMLElement);
   });
 
   it(`should throw an error if a layer doesn't exist`, () => {
     const defineFn = () =>
       animation.define([
         {
-          selector: 'layer-3',
+          selector: 'layer-4',
           at: 1,
           styles: {},
         },
       ]);
 
-    expect(defineFn).toThrowError('Animation: Missing layer ID: layer-3');
+    expect(defineFn).toThrowError('Animation: Missing layer ID: layer-4');
   });
 
   it('should return the config timestep', () => {
@@ -123,7 +128,7 @@ describe('Animation', () => {
         },
       ]);
 
-    expect(defineFn).toThrowError('Animation: Missing layer object: layer-1 >> .triangle');
+    expect(defineFn).toThrowError('Animation: Missing layer object(s): layer-1 >> .triangle');
   });
 
   it('should throw an error if the animation duration is negative', () => {
@@ -352,6 +357,29 @@ describe('Animation', () => {
     const layer1 = layerObjects.get('layer-1');
 
     expect(layer1?.style.padding).toEqual('16px');
+  });
+
+  it('should animate all objects that are matching a selector', () => {
+    animation.define([
+      {
+        selector: 'layer-3 >> .triangle',
+        timespan: [0, 1],
+        from: {
+          'transform': 'rotate(0)',
+        },
+        to: {
+          'transform': 'rotate(360deg)',
+        },
+      },
+    ]);
+    animation.seek(0.5);
+
+    const layer3 = layerObjects.get('layer-3')!;
+    const triangles = layer3.querySelectorAll('.triangle');
+
+    for (let i = 0; i < triangles.length; i++) {
+      expect((triangles[i] as HTMLElement).style.transform).toEqual('rotate(180deg)');
+    }
   });
 
   it('should track animation progress', () => {
