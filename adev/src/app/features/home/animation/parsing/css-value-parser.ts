@@ -33,7 +33,7 @@ interface ParserHandler {
 // Handlers
 //
 
-const colorsValuesHandler: ParserHandler = (tokens) => {
+const colorValuesHandler: ParserHandler = (tokens) => {
   const token = tokens[0];
   if (typeof token === 'string') {
     if (token.startsWith('#')) {
@@ -184,7 +184,7 @@ const transformValueHandler: ParserHandler = (tokens) => {
 };
 
 // Include all handlers that should be part of the parsing here.
-const parserHandlers = [colorsValuesHandler, numericValueHandler, transformValueHandler];
+const parserHandlers = [colorValuesHandler, numericValueHandler, transformValueHandler];
 
 //
 // Parser function

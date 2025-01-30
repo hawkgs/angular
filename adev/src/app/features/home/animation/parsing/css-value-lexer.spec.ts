@@ -69,7 +69,7 @@ describe('css-value-lexer', () => {
     expect(tokens).toEqual([42, 'px', 13.37, 'rem', 0, '%']);
   });
 
-  it('should extract the tokens a numeric value with negative numbers', () => {
+  it('should extract the tokens for a numeric value with negative numbers', () => {
     const tokens = cssValueLexer('42px -13.37px 0rem -25%');
 
     expect(tokens).toEqual([42, 'px', -13.37, 'px', 0, 'rem', -25, '%']);
