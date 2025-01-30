@@ -126,6 +126,46 @@ describe('Animation', () => {
     expect(defineFn).toThrowError('Animation: Missing layer object: layer-1 >> .triangle');
   });
 
+  it('should throw an error if the animation duration is negative', () => {
+    const defineFn = () =>
+      animation.define([
+        {
+          selector: 'layer-1 >> .circle',
+          timespan: [5, 4],
+          from: {
+            'background': '#000',
+          },
+          to: {
+            'background': '#fff',
+          },
+        },
+      ]);
+
+    expect(defineFn).toThrowError(
+      `Animation: Incorrect timespan for selector 'layer-1 >> .circle'. Start time is greater than end time`,
+    );
+  });
+
+  it('should throw an error if the animation duration is zero', () => {
+    const defineFn = () =>
+      animation.define([
+        {
+          selector: 'layer-1 >> .circle',
+          timespan: [5, 5],
+          from: {
+            'background': '#000',
+          },
+          to: {
+            'background': '#fff',
+          },
+        },
+      ]);
+
+    expect(defineFn).toThrowError(
+      `Animation: Duration for selector 'layer-1 >> .circle' is zero. Use 'at' time selector instead`,
+    );
+  });
+
   it('should throw an error if there is a mismatch between the number of "from" and "to" styles', () => {
     const defineFn = () =>
       animation.define([

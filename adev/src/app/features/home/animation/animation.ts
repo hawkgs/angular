@@ -97,7 +97,7 @@ export class Animation {
    * @returns The animation
    */
   define(definition: AnimationDefinition) {
-    this._extractObjectsAndValidateStyles(definition);
+    this._extractObjectsAndValidateRules(definition);
 
     // Parse the rules.
     // IMPORTANT: Parsed rules use milliseconds instead of seconds.
@@ -419,18 +419,29 @@ export class Animation {
     }
   }
 
-  /** Extract the objects from the selectors and validate their styles.  */
-  private _extractObjectsAndValidateStyles(definition: AnimationDefinition) {
+  /** Extract the objects from the selectors and validate their rules.  */
+  private _extractObjectsAndValidateRules(definition: AnimationDefinition) {
     for (const rule of definition) {
-      this._validateStyles(rule);
+      this._validateRules(rule);
       this._extractObjects(rule);
     }
   }
 
-  /** Check whether the start and end styles match. */
-  private _validateStyles(rule: AnimationRule<Styles>) {
+  /** Check whether the start and end styles match and the timespan is correct. */
+  private _validateRules(rule: AnimationRule<Styles>) {
     if (!rule.timespan) {
       return;
+    }
+
+    const duration = rule.timespan[1] - rule.timespan[0];
+    if (duration < 0) {
+      throw new Error(
+        `Animation: Incorrect timespan for selector '${rule.selector}'. Start time is greater than end time`,
+      );
+    } else if (duration === 0) {
+      throw new Error(
+        `Animation: Duration for selector '${rule.selector}' is zero. Use 'at' time selector instead`,
+      );
     }
 
     const fromStyles = Object.keys(rule.from);
