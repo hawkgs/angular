@@ -52,7 +52,7 @@ export class Animation {
   private _config: AnimationConfig;
   private _currentTime: number = 0;
   private _duration: number = 0;
-  private _allObjects = new Map<string, Element | NodeListOf<Element>>(); // selector; element(s)
+  private _allObjects = new Map<string, Element | Element[]>(); // selector; element(s)
   private _activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
   private _animationFrameId: number | null = null;
   private _completed: boolean = false;
@@ -385,8 +385,8 @@ export class Animation {
     if (elements instanceof Element) {
       this._renderer.setStyle(elements, property, valueString);
     } else {
-      for (let i = 0; i < elements.length; i++) {
-        this._renderer.setStyle(elements[i], property, valueString);
+      for (const e of elements) {
+        this._renderer.setStyle(e, property, valueString);
       }
     }
 
@@ -402,8 +402,8 @@ export class Animation {
     if (elements instanceof Element) {
       this._renderer.removeStyle(elements, property);
     } else {
-      for (let i = 0; i < elements.length; i++) {
-        this._renderer.removeStyle(elements[i], property);
+      for (const e of elements) {
+        this._renderer.removeStyle(e, property);
       }
     }
 
@@ -491,13 +491,16 @@ export class Animation {
     }
 
     if (objectSelector && !this._allObjects.has(rule.selector)) {
-      const objects = layer.querySelectorAll(objectSelector);
+      const objects = layer.getElementsByClassName(objectSelector.replaceAll('.', ' ').trim());
       if (!objects.length) {
         throw new Error(`Animation: Missing layer object(s): ${rule.selector}`);
       }
 
       if (!this._allObjects.has(rule.selector)) {
-        this._allObjects.set(rule.selector, objects.length === 1 ? objects[0] : objects);
+        this._allObjects.set(
+          rule.selector,
+          objects.length === 1 ? objects[0] : Array.from(objects),
+        );
       }
     }
   }

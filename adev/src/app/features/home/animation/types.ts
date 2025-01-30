@@ -23,7 +23,10 @@ export type Styles = {[key: string]: string};
 export type ParsedStyles = {[key: string]: CssPropertyValue};
 
 interface AnimationRuleBase {
-  /** Selector in the form of `LAYER_ID >> OBJECT_SELECTOR`. The object selector is optional */
+  /**
+   * Selector in the form of `LAYER_ID >> OBJECT_SELECTOR`.
+   * The object selector should be a class (prefixed with dot: `.my-class`) and is optional.
+   */
   selector: string;
 }
 
