@@ -1,4 +1,20 @@
-$transition: transform 200ms ease;
+/*
+ * Global transition.
+ * Scrolling via mouse scroll wheel will result in a non-continuous scrollY
+ * which in turn results in "gaps" in the animation calculations. Therefore,
+ * in order to keep things smooth, we are systematically adding CSS transitions
+ * to the CSS properties that else look jagged when scrolling.
+ */
+$transition: 200ms linear;
+
+/* In pixels. Keep in sync with the component class */
+$meteorWidth: 120;
+$meteorHeight: 170;
+$meteorGap: 85;
+
+// Pythagorean theorem + some trigonometry
+$meteorTailLength: round(sqrt($meteorWidth * $meteorWidth + $meteorHeight * $meteorHeight));
+$meteorTilt: asin($meteorWidth / $meteorTailLength); // In degrees
 
 :host {
   display: block;
@@ -22,12 +38,12 @@ $transition: transform 200ms ease;
     .x-axis {
       width: 100%;
       height: 1px;
-      top: 50%;
+      top: calc(50% - 0.5px);
     }
     .y-axis {
       width: 1px;
       height: 100%;
-      left: 50%;
+      left: calc(50% - 0.5px);
       top: 0;
     }
 
@@ -37,9 +53,29 @@ $transition: transform 200ms ease;
       left: 0;
       right: 0;
       bottom: 0;
+
+      h2 {
+        font-size: 4vw;
+        font-weight: 600;
+        white-space: nowrap;
+        margin-top: 0;
+        margin-bottom: 0.5em;
+      }
+
+      p {
+        font-weight: 400;
+        color: var(--quaternary-contrast);
+        font-size: clamp(1rem, 1vw, 2rem);
+        line-height: 1.5;
+        width: clamp(375px, 50%, 600px);
+        margin: 0 auto;
+      }
     }
 
     .logo-layer {
+      user-select: none;
+      pointer-events: none;
+
       .svg {
         position: absolute;
         width: 100%;
@@ -48,36 +84,104 @@ $transition: transform 200ms ease;
         clip-rule: evenodd;
         stroke-linejoin: round;
         stroke-miterlimit: 2;
+      }
 
-        .wrapper {
-          transform: scale(0.6);
-          transform-origin: 50% 50%;
+      .wrapper {
+        transform: scale(0.6);
+        transform-origin: 50% 50%;
 
-          .logo {
-            transition: transform 200ms linear;
+        .logo {
+          transition: transform $transition;
 
-            .shield {
-              &,
-              .shield-middle {
-                transform-origin: 177px 200px;
-                transition: transform 200ms linear;
-              }
-
-              .shield-bottom-a-arc {
-                transform-origin: 0 302px;
-                transition: transform 200ms linear;
-              }
-
-              .shield-bottom-extension {
-                transform-origin: 177px 340px;
-                transition: transform 200ms linear;
-                transform: scale(0);
-              }
+          .shield {
+            &,
+            .shield-middle {
+              transform-origin: 177px 200px;
+              transition: transform $transition;
             }
 
-            .letter {
-              transition: opacity 200ms linear;
+            .shield-bottom-a-arc {
+              transform-origin: 0 302px;
+              transition: transform $transition;
             }
+
+            .shield-bottom-extension {
+              transform-origin: 177px 340px;
+              transition: transform $transition;
+              transform: scale(0);
+            }
+          }
+
+          .letter {
+            transition: opacity $transition;
+          }
+        }
+      }
+    }
+
+    .works-at-any-scale-layer {
+      user-select: none;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transform: scale(0);
+      opacity: 0;
+      z-index: 1;
+      transition:
+        transform $transition,
+        opacity $transition;
+
+      p {
+        width: 22vw;
+      }
+    }
+
+    .meteor-field-layer {
+      overflow: hidden;
+
+      .field {
+        position: absolute;
+        width: 110%;
+        height: 110%;
+        top: -5%;
+        left: -5%;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: $meteorGap + px;
+        opacity: 0;
+        display: none;
+        transform: scale(1.42);
+        transform-origin: 50% 50%;
+        transition:
+          opacity $transition,
+          transform $transition;
+
+        .meteor {
+          position: relative;
+          width: $meteorWidth + px;
+          height: $meteorHeight + px;
+
+          &::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: $meteorTailLength + px;
+            border-radius: 2px;
+            transform-origin: top center;
+            transform: rotate(-$meteorTilt);
+            top: 0;
+            left: 0;
+          }
+
+          &.type-1::after {
+            background: linear-gradient(
+              rgb(204, 47, 79) 0,
+              rgb(199, 64, 199) 75%,
+              transparent 100%
+            );
           }
         }
       }
