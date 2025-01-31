@@ -13,7 +13,7 @@ import {ColorValue, NumericValue, StaticValue, TransformValue} from '../parsing'
 // Test values
 //
 
-const currentNumeric: NumericValue = {
+const sourceNumeric: NumericValue = {
   type: 'numeric',
   values: [
     [100, 'px'],
@@ -29,7 +29,7 @@ const targetNumeric: NumericValue = {
   ],
 };
 
-const currentTransform: TransformValue = {
+const sourceTransform: TransformValue = {
   type: 'transform',
   values: new Map([
     [
@@ -57,7 +57,7 @@ const targetTransform: TransformValue = {
   ]),
 };
 
-const currentColor: ColorValue = {
+const sourceColor: ColorValue = {
   type: 'color',
   value: ['rgb', 0, 0, 0],
 };
@@ -73,7 +73,7 @@ const targetColor: ColorValue = {
 
 describe('calculateNextCssValue', () => {
   it('should return the target value, if static', () => {
-    const current: StaticValue = {
+    const source: StaticValue = {
       type: 'static',
       value: '1px solid red',
     };
@@ -81,25 +81,25 @@ describe('calculateNextCssValue', () => {
       type: 'static',
       value: '2px solid blue',
     };
-    const next = calculateNextCssValue(current, target, 0.5);
+    const next = calculateNextCssValue(source, target, 0.5);
 
     expect(next).toEqual(target);
   });
 
-  it('should return the current numeric value, if the change rate is 0', () => {
-    const next = calculateNextCssValue(currentNumeric, targetNumeric, 0);
+  it('should return the source numeric value, if the change rate is 0', () => {
+    const next = calculateNextCssValue(sourceNumeric, targetNumeric, 0);
 
-    expect(next).toEqual(currentNumeric);
+    expect(next).toEqual(sourceNumeric);
   });
 
   it('should return the target numeric value, if the change rate is 1', () => {
-    const next = calculateNextCssValue(currentNumeric, targetNumeric, 1);
+    const next = calculateNextCssValue(sourceNumeric, targetNumeric, 1);
 
     expect(next).toEqual(targetNumeric);
   });
 
   it('should calculate a numeric value', () => {
-    const next = calculateNextCssValue(currentNumeric, targetNumeric, 0.75);
+    const next = calculateNextCssValue(sourceNumeric, targetNumeric, 0.75);
 
     expect(next).toEqual({
       type: 'numeric',
@@ -139,7 +139,7 @@ describe('calculateNextCssValue', () => {
   });
 
   it('should handle numeric zero values without units', () => {
-    const current: NumericValue = {
+    const source: NumericValue = {
       type: 'numeric',
       values: [[100, '%']],
     };
@@ -147,7 +147,7 @@ describe('calculateNextCssValue', () => {
       type: 'numeric',
       values: [[0, '']],
     };
-    const next = calculateNextCssValue(current, target, 0.25);
+    const next = calculateNextCssValue(source, target, 0.25);
 
     expect(next).toEqual({
       type: 'numeric',
@@ -155,20 +155,20 @@ describe('calculateNextCssValue', () => {
     });
   });
 
-  it('should return the current transform value, if the change rate is 0', () => {
-    const next = calculateNextCssValue(currentTransform, targetTransform, 0);
+  it('should return the source transform value, if the change rate is 0', () => {
+    const next = calculateNextCssValue(sourceTransform, targetTransform, 0);
 
-    expect(next).toEqual(currentTransform);
+    expect(next).toEqual(sourceTransform);
   });
 
   it('should return the target transform value, if the change rate is 1', () => {
-    const next = calculateNextCssValue(currentTransform, targetTransform, 1);
+    const next = calculateNextCssValue(sourceTransform, targetTransform, 1);
 
     expect(next).toEqual(targetTransform);
   });
 
   it('should calculate a transform value', () => {
-    const next = calculateNextCssValue(currentTransform, targetTransform, 0.75);
+    const next = calculateNextCssValue(sourceTransform, targetTransform, 0.75);
 
     expect(next).toEqual({
       type: 'transform',
@@ -186,7 +186,7 @@ describe('calculateNextCssValue', () => {
   });
 
   it('should calculate a transform value with negative numbers', () => {
-    const current: TransformValue = {
+    const source: TransformValue = {
       type: 'transform',
       values: new Map([
         [
@@ -210,7 +210,7 @@ describe('calculateNextCssValue', () => {
         ],
       ]),
     };
-    const next = calculateNextCssValue(current, target, 0.25);
+    const next = calculateNextCssValue(source, target, 0.25);
 
     expect(next).toEqual({
       type: 'transform',
@@ -227,7 +227,7 @@ describe('calculateNextCssValue', () => {
   });
 
   it('should handle transform zero values without units', () => {
-    const current: TransformValue = {
+    const source: TransformValue = {
       type: 'transform',
       values: new Map([['translateX', [[120, 'px']]]]),
     };
@@ -235,7 +235,7 @@ describe('calculateNextCssValue', () => {
       type: 'transform',
       values: new Map([['translateX', [[0, '']]]]),
     };
-    const next = calculateNextCssValue(current, target, 0.25);
+    const next = calculateNextCssValue(source, target, 0.25);
 
     expect(next).toEqual({
       type: 'transform',
@@ -243,20 +243,20 @@ describe('calculateNextCssValue', () => {
     });
   });
 
-  it('should return the current color value, if the change rate is 0', () => {
-    const next = calculateNextCssValue(currentColor, targetColor, 0);
+  it('should return the source color value, if the change rate is 0', () => {
+    const next = calculateNextCssValue(sourceColor, targetColor, 0);
 
-    expect(next).toEqual(currentColor);
+    expect(next).toEqual(sourceColor);
   });
 
   it('should return the target color value, if the change rate is 1', () => {
-    const next = calculateNextCssValue(currentColor, targetColor, 1);
+    const next = calculateNextCssValue(sourceColor, targetColor, 1);
 
     expect(next).toEqual(targetColor);
   });
 
   it('should calculate a color value', () => {
-    const next = calculateNextCssValue(currentColor, targetColor, 0.75);
+    const next = calculateNextCssValue(sourceColor, targetColor, 0.75);
 
     expect(next).toEqual({
       type: 'color',
