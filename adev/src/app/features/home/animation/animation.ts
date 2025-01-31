@@ -314,7 +314,8 @@ export class Animation {
     // ... and then calculate the change of the dynamic rules in progress.
     for (const rule of inProgressDynamicRules) {
       let timespan: number;
-      let targetStyles: ParsedStyles;
+      let targetStyles: ParsedStyles; // Direction styles
+      let retreatStyles: ParsedStyles; // Opposite direction styles
       let relativeDeltaT: number;
 
       // Determine the change direction. Negative Dt means going back in time; postive – forward.
@@ -332,16 +333,18 @@ export class Animation {
         relativeDeltaT = time - relativeTime;
         timespan = getEndTime(rule) - relativeTime;
         targetStyles = rule.to;
+        retreatStyles = rule.from;
       } else {
         const relativeTime = Math.min(this._currentTime, rule.timespan[1]);
         relativeDeltaT = time - relativeTime;
         timespan = relativeTime - getStartTime(rule);
         targetStyles = rule.from;
+        retreatStyles = rule.to;
       }
 
       const changeRate = Math.abs(relativeDeltaT / timespan);
 
-      const activeStyles = stylesUnion(rule.from, this._activeStyles.get(rule.selector) || {});
+      const activeStyles = stylesUnion(retreatStyles, this._activeStyles.get(rule.selector) || {});
       const styles = stylesState.get(rule.selector) || {};
 
       for (const [prop, value] of Object.entries(targetStyles)) {
