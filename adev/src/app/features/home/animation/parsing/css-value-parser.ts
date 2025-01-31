@@ -104,7 +104,7 @@ const numericValueHandler: ParserHandler = (tokens) => {
       }
 
       const pairs = buffer.map((v) => [v, ''] as [number, string]);
-      value.values = [...value.values, ...pairs];
+      value.values = value.values.concat(pairs);
     }
 
     return value;

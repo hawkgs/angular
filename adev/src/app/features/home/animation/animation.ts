@@ -244,7 +244,7 @@ export class Animation {
     this._currentTime = 0;
     this._progress.set(0);
 
-    for (const [selector, styles] of Array.from(this._activeStyles)) {
+    for (const [selector, styles] of this._activeStyles) {
       for (const [style] of Object.entries(styles)) {
         const element = this._allObjects.get(selector);
         this._renderer.removeStyle(element, style);
@@ -356,7 +356,7 @@ export class Animation {
     }
 
     // Get rid of any active styles that are not part from the current styles state
-    for (const [selector, styles] of Array.from(this._activeStyles)) {
+    for (const [selector, styles] of this._activeStyles) {
       const newStyles = stylesState.get(selector);
       for (const prop of Object.keys(styles)) {
         if (!newStyles || !newStyles[prop]) {
@@ -366,7 +366,7 @@ export class Animation {
     }
 
     // Apply the rule styles.
-    for (const [selector, styles] of Array.from(stylesState)) {
+    for (const [selector, styles] of stylesState) {
       for (const [prop, value] of Object.entries(styles)) {
         this._setStyle(selector, prop, value);
       }
