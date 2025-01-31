@@ -259,10 +259,10 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
       selector: METEORS,
       timespan: [19.5, 21],
       from: {
-        transform: 'translate(0, 0)',
+        transform: 'translate(0, 0) scale(1)',
       },
       to: {
-        transform: 'translate(-200%, -200%)',
+        transform: 'translate(-200%, -200%) scale(0.3)',
       },
     },
     {
