@@ -245,9 +245,8 @@ export class Animation {
     this._progress.set(0);
 
     for (const [selector, styles] of this._activeStyles) {
-      for (const [style] of Object.entries(styles)) {
-        const element = this._allObjects.get(selector);
-        this._renderer.removeStyle(element, style);
+      for (const style of Object.keys(styles)) {
+        this._removeStyle(selector, style);
       }
       this._activeStyles.delete(selector);
     }
