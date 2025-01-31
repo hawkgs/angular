@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   inject,
   Injector,
   OnDestroy,
@@ -24,6 +25,7 @@ import {AnimationScrollHandler} from '../home/animation/plugins/animation-scroll
 export class AnimTestComponent implements AfterViewInit, OnDestroy {
   private readonly _animCreator = inject(AnimationCreatorService);
   private readonly _vcr = inject(ViewContainerRef);
+  private readonly _elementRef = inject(ElementRef);
   private readonly _injector = inject(Injector);
   private _animation?: Animation;
 
@@ -36,7 +38,7 @@ export class AnimTestComponent implements AfterViewInit, OnDestroy {
       })
       .define(ANIMATION_DEFINITION)
       .addPlugin(new AnimationPlayer(this._vcr))
-      .addPlugin(new AnimationScrollHandler(this._vcr, this._injector));
+      .addPlugin(new AnimationScrollHandler(this._elementRef, this._injector));
   }
 
   ngOnDestroy() {

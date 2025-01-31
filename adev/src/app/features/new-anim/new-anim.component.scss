@@ -1,22 +1,12 @@
 /*
  * Global transition.
- * Scrolling via mouse scroll wheel will result in a non-continuous scrollY
- * which in turn results in "gaps" in the animation calculations. Therefore,
- * in order to keep things smooth, we are systematically adding CSS transitions
- * to the CSS properties that else look jagged when scrolling.
+ *
+ * Scrolling via mouse scroll wheel will result in a non-continuous scrollY,
+ * unlike a touchpad, which in turn results in "gaps" in the animation calculations.
+ * Therefore, in order to keep things smooth, we are systematically adding CSS
+ * transitions to the CSS properties that else look jagged when scrolling.
  */
 $transition: 200ms linear;
-
-/* In pixels. Keep in sync with constants.ts */
-$meteorWidth: 120;
-$meteorHeight: 170;
-$meteorGap: 160;
-
-/* Pythagorean theorem + some trigonometry */
-$meteorTailLength: round(
-  sqrt($meteorWidth * $meteorWidth + $meteorHeight * $meteorHeight)
-); /* In pixels */
-$meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
 
 :host {
   display: block;
@@ -28,12 +18,12 @@ $meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
     top: 0;
     bottom: 0;
     right: 0;
-    left: 115px;
+    left: 0;
 
     .x-axis,
     .y-axis {
       position: absolute;
-      background-color: rgb(0, 255, 13, 0.33);
+      background-color: rgb(0, 255, 13, 0.2);
       z-index: 9999;
       pointer-events: none;
     }
@@ -128,7 +118,8 @@ $meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
     }
 
     .works-at-any-scale-layer,
-    .loved-by-millions-layer {
+    .loved-by-millions-layer,
+    .build-for-everyone-layer {
       user-select: none;
       pointer-events: none;
       display: flex;
@@ -147,8 +138,22 @@ $meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
       transform: scale(0);
     }
 
-    .loved-by-millions-layer {
+    .loved-by-millions-layer,
+    .build-for-everyone-layer {
       transform: scale(0.75);
+    }
+
+    .build-for-everyone-layer {
+      .title {
+        color: transparent;
+        display: inline-block;
+        background: linear-gradient(110deg, rgba(231, 14, 231) 0, rgb(255, 0, 93) 50%, #3a373f 0%);
+        background-size: 205% 100%;
+        background-clip: text;
+        background-size: 205% 100%;
+        background-position-x: 100%;
+        transition: background-position-x $transition;
+      }
     }
 
     .meteor-field-layer {
@@ -158,8 +163,7 @@ $meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
         position: absolute;
         flex-wrap: wrap;
         align-content: flex-start;
-        gap: $meteorGap + px;
-        opacity: 0;
+        gap: var(--anim-meteor-gap);
         display: none;
         transform: scale(1.42);
         top: 0;
@@ -171,25 +175,22 @@ $meteorTiltAngle: - asin($meteorWidth / $meteorTailLength); /* In degrees */
 
         .meteor {
           position: relative;
-          width: $meteorWidth + px;
-          height: $meteorHeight + px;
+          width: var(--anim-meteor-width);
+          height: var(--anim-meteor-height);
+          opacity: 0;
+          transform: translate(200%, 200%) scale(0.3);
           transition:
             opacity $transition,
             transform $transition;
-
-          &.mt-18 {
-            opacity: 0;
-            transform: translate(150%, 150%) scale(0.3);
-          }
 
           &::after {
             content: '';
             position: absolute;
             width: 4px;
-            height: $meteorTailLength + px;
+            height: var(--anim-meteor-tail-length);
             border-radius: 2px;
             transform-origin: top center;
-            transform: rotate($meteorTiltAngle);
+            transform: rotate(var(--anim-meteor-tilt-angle));
             top: 0;
             left: 0;
           }

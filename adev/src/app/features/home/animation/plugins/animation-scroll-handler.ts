@@ -1,4 +1,4 @@
-import {Injector, Renderer2, RendererFactory2, ViewContainerRef} from '@angular/core';
+import {ElementRef, Injector, Renderer2, RendererFactory2} from '@angular/core';
 import {WINDOW} from '@angular/docs';
 import {Animation} from '../animation';
 import {AnimationPlugin} from './types';
@@ -16,11 +16,11 @@ export class AnimationScrollHandler implements AnimationPlugin {
   /**
    * Enables page scroll control over the animation.
    *
-   * @param _hostVcr VCR of the animation host component.
+   * @param _hostElementRef `ElementRef` of the animation host component.
    * @param injector
    */
   constructor(
-    private _hostVcr: ViewContainerRef,
+    private _hostElementRef: ElementRef,
     injector: Injector,
   ) {
     this._win = injector.get(WINDOW);
@@ -66,7 +66,7 @@ export class AnimationScrollHandler implements AnimationPlugin {
     this._renderer.addClass(this._spacer, 'anim-scroll-spacer');
     this._updateSpacerHeight();
 
-    this._hostVcr.element.nativeElement.appendChild(this._spacer);
+    this._hostElementRef.nativeElement.appendChild(this._spacer);
   }
 
   /** Update stored spacer's height. */

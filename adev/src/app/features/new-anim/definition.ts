@@ -1,6 +1,21 @@
 import {AnimationDefinition, Styles} from '../home/animation';
 import {AnimationRule} from '../home/animation/types';
 
+/**
+ * CONSTANTS
+ */
+
+// Represents percentage of the total.
+// Avoid using large waves (the total shouldn't be too big as well).
+// Check meteorShower function for more details.
+export const FIRST_WAVE_METEORS = 0.05;
+export const SECOND_WAVE_METEORS = 0.15;
+export const THIRD_WAVE_METEORS = 0.25;
+
+/**
+ * SELECTORS
+ */
+
 // Layers and layer objects selectors
 const LOGO_LAYER_ID = 'logo';
 const LOGO = `${LOGO_LAYER_ID} >> .logo`;
@@ -16,13 +31,21 @@ const L_LETTER = `${LOGO_LAYER_ID} >> .l-letter`;
 const A_LETTER = `${LOGO_LAYER_ID} >> .a-letter`;
 const R_LETTER = `${LOGO_LAYER_ID} >> .r-letter`;
 
-const WORKS_AT_ANY_SCALE_LAYER = 'works-at-any-scale';
+const WORKS_AT_ANY_SCALE_LAYER_ID = 'works-at-any-scale';
 
-const METEOR_FIELD_LAYER = 'meteor-field';
-const METEOR_FIELD = `${METEOR_FIELD_LAYER} >> .field`;
-const METEORS = `${METEOR_FIELD_LAYER} >> .meteor`;
+const METEOR_FIELD_LAYER_ID = 'meteor-field';
+const METEOR_FIELD = `${METEOR_FIELD_LAYER_ID} >> .field`;
+const METEORS = `${METEOR_FIELD_LAYER_ID} >> .meteor`;
+const METEOR_ID = (id: number) => `${METEOR_FIELD_LAYER_ID} >> .mt-${id}`;
 
-const LOVED_BY_MILLIONS_LAYER = 'loved-by-millions';
+const LOVED_BY_MILLIONS_LAYER_ID = 'loved-by-millions';
+
+const BUILD_FOR_EVERYONE_LAYER_ID = 'build-for-everyone';
+const BUILD_FOR_EVERYONE_TITLE = `${BUILD_FOR_EVERYONE_LAYER_ID} >> .title`;
+
+/**
+ * ANIMATION/HELPER FUNCTIONS
+ */
 
 /** Duration: 1 second */
 function hideLetter(selector: string, startTime: number): AnimationRule<Styles> {
@@ -38,14 +61,15 @@ function hideLetter(selector: string, startTime: number): AnimationRule<Styles> 
   };
 }
 
-/** Duration: 1 second */
+/** Duration: 1 to 2 seconds */
 function showMeteor(selector: string, startTime: number): AnimationRule<Styles> {
+  const randomizedStartTime = startTime + Math.random(); // Up to +1 second
   return {
     selector,
-    timespan: [startTime, startTime + 1],
+    timespan: [randomizedStartTime, randomizedStartTime + 1],
     from: {
       opacity: '0',
-      transform: 'translate(150%, 150%) scale(0.3)',
+      transform: 'translate(200%, 200%) scale(0.3)',
     },
     to: {
       opacity: '1',
@@ -54,9 +78,40 @@ function showMeteor(selector: string, startTime: number): AnimationRule<Styles> 
   };
 }
 
+/** Duration: 1 to 2 seconds  */
+function meteorShower(
+  startTime: number,
+  size: number,
+  total: number,
+  inUse: Set<number>,
+): AnimationDefinition {
+  const animations: AnimationRule<Styles>[] = [];
+
+  while (animations.length < size) {
+    // We pick a random meteor ID.
+    // If `inUse` is nearly full relative to `total`,
+    // we might run into a excessive amount of iterations
+    // until we fill `animation`. This is why we should keep
+    // the wave sizes (and their total) relatively small.
+    const id = Math.round(Math.random() * (total - 1) + 1);
+
+    if (!inUse.has(id)) {
+      animations.push(showMeteor(METEOR_ID(id), startTime));
+      inUse.add(id);
+    }
+  }
+
+  return animations;
+}
+
+/**
+ * DEFINITION
+ */
+
 /** Generate the animation definition for the home page. */
-export function generateHomeAnimationDefinition(meteorsCount: number): AnimationDefinition {
+export function generateHomeAnimationDefinition(meteorCount: number): AnimationDefinition {
   // Logo layer animation
+  // ********************
   const logoLayerAnim: AnimationDefinition = [
     {
       selector: LOGO,
@@ -114,15 +169,26 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
         transform: 'scale(1) rotate(0deg)',
       },
       to: {
-        transform: 'scale(20) rotate(-270deg)',
+        transform: 'scale(20) rotate(360deg)',
+      },
+    },
+    {
+      selector: SHIELD,
+      timespan: [10, 12],
+      from: {
+        transform: 'scale(20) rotate(360deg)',
+      },
+      to: {
+        transform: 'scale(40) rotate(360deg)',
       },
     },
   ];
 
   // "Works at any scale" layer animation
+  // ************************************
   const waasLayerAnim: AnimationDefinition = [
     {
-      selector: WORKS_AT_ANY_SCALE_LAYER,
+      selector: WORKS_AT_ANY_SCALE_LAYER_ID,
       timespan: [5, 10],
       from: {
         transform: 'scale(0)',
@@ -134,7 +200,7 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
       },
     },
     {
-      selector: WORKS_AT_ANY_SCALE_LAYER,
+      selector: WORKS_AT_ANY_SCALE_LAYER_ID,
       timespan: [12.5, 14],
       from: {
         transform: 'scale(1)',
@@ -148,27 +214,36 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
   ];
 
   // Meteor field layer animation
+  // ****************************
+  const firstWaveSize = meteorCount * FIRST_WAVE_METEORS;
+  const secondWaveSize = meteorCount * SECOND_WAVE_METEORS;
+  const thirdWaveSize = meteorCount * THIRD_WAVE_METEORS;
+
+  const meteorsInUse = new Set<number>();
+  const firstWave = meteorShower(11, firstWaveSize, meteorCount, meteorsInUse);
+  const secondWave = meteorShower(12.5, secondWaveSize, meteorCount, meteorsInUse);
+  const thirdWave = meteorShower(13, thirdWaveSize, meteorCount, meteorsInUse);
+  const lastWaveStart = 14.5;
+
+  // For the last wave, just use the remaining meteors (don't use `meteorShower`).
+  const lastWave: AnimationRule<Styles>[] = [];
+  for (let id = 1; id <= meteorCount; id++) {
+    if (!meteorsInUse.has(id)) {
+      lastWave.push(showMeteor(METEOR_ID(id), lastWaveStart));
+    }
+  }
+
   const meteorFieldLayerAnim: AnimationDefinition = [
     {
       selector: METEOR_FIELD,
-      at: 13,
+      at: 10,
       styles: {
         display: 'flex',
       },
     },
     {
       selector: METEOR_FIELD,
-      timespan: [14, 15],
-      from: {
-        opacity: '0',
-      },
-      to: {
-        opacity: '1',
-      },
-    },
-    {
-      selector: METEOR_FIELD,
-      timespan: [13, 16],
+      timespan: [11.5, 14.5],
       from: {
         transform: 'scale(1.42)',
       },
@@ -176,13 +251,44 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
         transform: 'scale(1)',
       },
     },
-    showMeteor('meteor-field >> .mt-18', 15),
+    ...firstWave,
+    ...secondWave,
+    ...thirdWave,
+    ...lastWave,
+    {
+      selector: METEORS,
+      timespan: [19.5, 21],
+      from: {
+        transform: 'translate(0, 0)',
+      },
+      to: {
+        transform: 'translate(-200%, -200%)',
+      },
+    },
+    {
+      selector: METEOR_FIELD,
+      timespan: [19.5, 21],
+      from: {
+        opacity: '1',
+      },
+      to: {
+        opacity: '0',
+      },
+    },
+    {
+      selector: METEOR_FIELD,
+      at: 22,
+      styles: {
+        display: 'none',
+      },
+    },
   ];
 
   // "Loved by millions" layer animation
-  const lbmLayer: AnimationDefinition = [
+  // ***********************************
+  const lovedByMillionsAnim: AnimationDefinition = [
     {
-      selector: LOVED_BY_MILLIONS_LAYER,
+      selector: LOVED_BY_MILLIONS_LAYER_ID,
       timespan: [14.5, 16.5],
       from: {
         transform: 'scale(0.75)',
@@ -194,7 +300,7 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
       },
     },
     {
-      selector: LOVED_BY_MILLIONS_LAYER,
+      selector: LOVED_BY_MILLIONS_LAYER_ID,
       timespan: [19.5, 21],
       from: {
         transform: 'scale(1)',
@@ -207,5 +313,48 @@ export function generateHomeAnimationDefinition(meteorsCount: number): Animation
     },
   ];
 
-  return [...logoLayerAnim, ...waasLayerAnim, ...meteorFieldLayerAnim, ...lbmLayer];
+  // "Build for everyone" layer
+  // **************************
+  const buildForEveryoneAnim: AnimationDefinition = [
+    {
+      selector: BUILD_FOR_EVERYONE_LAYER_ID,
+      timespan: [22.5, 24.5],
+      from: {
+        transform: 'scale(0.75)',
+        opacity: '0',
+      },
+      to: {
+        transform: 'scale(1)',
+        opacity: '1',
+      },
+    },
+    {
+      selector: BUILD_FOR_EVERYONE_TITLE,
+      timespan: [22.5, 24.5],
+      from: {
+        'background-position-x': '100%',
+      },
+      to: {
+        'background-position-x': '0',
+      },
+    },
+    {
+      selector: BUILD_FOR_EVERYONE_LAYER_ID,
+      timespan: [27.5, 29],
+      from: {
+        opacity: '1',
+      },
+      to: {
+        opacity: '0',
+      },
+    },
+  ];
+
+  return [
+    ...logoLayerAnim,
+    ...waasLayerAnim,
+    ...meteorFieldLayerAnim,
+    ...lovedByMillionsAnim,
+    ...buildForEveryoneAnim,
+  ];
 }
