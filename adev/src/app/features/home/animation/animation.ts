@@ -97,6 +97,7 @@ export class Animation {
    * @returns The animation
    */
   define(definition: AnimationDefinition) {
+    this.reset();
     this._extractObjectsAndValidateRules(definition);
 
     // Parse the rules.
