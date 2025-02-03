@@ -13,10 +13,12 @@
       <p class="adev-banner-cta">Read about our newest release.</p>
     </a>
     <div class="learn-angular">
-      <button aria-label="Learn Angular" class="docs-primary-btn" text="Learn Angular">
-        Learn Angular
-      </button>
-      <div _ngcontent-ng-c1742079655="" class="adev-arrow"></div>
+      <a [routerLink]="ctaLink" class="adev-cta">
+        <button class="docs-primary-btn" [attr.text]="'Learn Angular'" aria-label="Learn Angular">
+          Learn Angular
+        </button>
+      </a>
+      <div class="adev-arrow"></div>
     </div>
   </div>
 

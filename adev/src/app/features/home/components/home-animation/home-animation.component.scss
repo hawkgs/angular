@@ -13,7 +13,6 @@ $transition: 200ms linear;
   position: relative;
 
   .animation {
-    border: 1px solid gold;
     position: fixed;
     top: 0;
     bottom: 0;
@@ -100,7 +99,6 @@ $transition: 200ms linear;
           margin: 0;
           background-image: var(--red-to-pink-to-purple-horizontal-gradient);
           background-clip: text;
-          -webkit-background-clip: text;
           color: transparent;
           width: fit-content;
           font-weight: 500;
@@ -138,9 +136,31 @@ $transition: 200ms linear;
       .learn-angular {
         position: absolute;
         left: 50%;
-        bottom: 40px;
+        bottom: 5%;
         transform: translateX(-50%);
         transition: opacity $transition;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 50px;
+
+        button {
+          font-size: 1rem;
+          padding: 1rem 1.75rem;
+
+          &::after {
+            font-size: 1rem;
+          }
+        }
+
+        .adev-arrow {
+          transform: rotate(45deg);
+          border: solid var(--primary-contrast);
+          border-width: 0 2px 2px 0;
+          display: inline-block;
+          padding: 7px;
+        }
       }
     }
 

@@ -8,12 +8,13 @@ import {
   viewChildren,
   ViewContainerRef,
 } from '@angular/core';
-import {WINDOW} from '@angular/docs';
+import {RouterLink} from '@angular/router';
+import {WINDOW, isIos} from '@angular/docs';
 
-import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../home/animation';
-import {AnimationPlayer} from '../home/animation/plugins/animation-player';
-import {AnimationScrollHandler} from '../home/animation/plugins/animation-scroll-handler';
-import {generateHomeAnimationDefinition} from './definition';
+import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../../animation';
+import {AnimationPlayer} from '../../animation/plugins/animation-player';
+import {AnimationScrollHandler} from '../../animation/plugins/animation-scroll-handler';
+import {generateHomeAnimationDefinition} from './animation-definition';
 
 export const METEOR_SIZE_RATIO = 1.42;
 export const METEOR_GAP_RATIO = 1.33; // Use 0.7 for WebGL-like field. Renders a lot of elements though.
@@ -43,14 +44,14 @@ type MeteorFieldData = {
 };
 
 @Component({
-  selector: 'adev-new-anim',
-  imports: [AnimationLayerDirective],
-  templateUrl: './new-anim.component.html',
-  styleUrl: './new-anim.component.scss',
+  selector: 'adev-home-animation',
+  imports: [AnimationLayerDirective, RouterLink],
+  templateUrl: './home-animation.component.html',
+  styleUrl: './home-animation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [AnimationCreatorService],
 })
-export class NewAnimComponent implements AfterViewInit {
+export class HomeAnimationComponent implements AfterViewInit {
   private readonly _win = inject(WINDOW);
   private readonly _animCreator = inject(AnimationCreatorService);
   private readonly _vcr = inject(ViewContainerRef);
@@ -58,7 +59,9 @@ export class NewAnimComponent implements AfterViewInit {
   private readonly _elementRef = inject(ElementRef);
   private _animation?: Animation;
 
-  animationLayers = viewChildren(AnimationLayerDirective);
+  readonly animationLayers = viewChildren(AnimationLayerDirective);
+  readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
+
   meteorFieldData: MeteorFieldData;
   meteors: null[];
 
@@ -76,7 +79,7 @@ export class NewAnimComponent implements AfterViewInit {
         timestep: 10,
       })
       .define(generateHomeAnimationDefinition(this.meteors.length))
-      .addPlugin(new AnimationPlayer(this._vcr, 'left'))
+      .addPlugin(new AnimationPlayer(this._vcr, 'right'))
       .addPlugin(new AnimationScrollHandler(this._elementRef, this._injector));
   }
 

@@ -1,5 +1,5 @@
-import {AnimationDefinition, Styles} from '../home/animation';
-import {AnimationRule} from '../home/animation/types';
+import {AnimationDefinition, Styles} from '../../animation';
+import {AnimationRule} from '../../animation/types';
 
 /**
  * CONSTANTS
@@ -129,7 +129,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: LEARN_ANGULAR_BTN,
-      timespan: [3.5, 5.5],
+      timespan: [3.5, 5],
       from: {
         opacity: '1',
       },
