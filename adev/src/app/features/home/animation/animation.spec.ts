@@ -42,7 +42,7 @@ class AnimationHost implements AfterViewInit {
 const DEFINITION: AnimationDefinition = [
   {
     selector: 'layer-1 >> .circle',
-    timespan: [0, 4],
+    timeframe: [0, 4],
     from: {
       'opacity': '0',
       'transform': 'translateX(0)',
@@ -54,7 +54,7 @@ const DEFINITION: AnimationDefinition = [
   },
   {
     selector: 'layer-2 >> .square',
-    timespan: [1, 5],
+    timeframe: [1, 5],
     from: {
       'font-size': '20px',
       'color': '#000',
@@ -136,7 +136,7 @@ describe('Animation', () => {
       animation.define([
         {
           selector: 'layer-1 >> .circle',
-          timespan: [5, 4],
+          timeframe: [5, 4],
           from: {
             'background': '#000',
           },
@@ -147,7 +147,7 @@ describe('Animation', () => {
       ]);
 
     expect(defineFn).toThrowError(
-      `Animation: Incorrect timespan for selector 'layer-1 >> .circle'. Start time is greater than end time`,
+      `Animation: Incorrect time frame for selector 'layer-1 >> .circle'. Start time is greater than end time`,
     );
   });
 
@@ -156,7 +156,7 @@ describe('Animation', () => {
       animation.define([
         {
           selector: 'layer-1 >> .circle',
-          timespan: [5, 5],
+          timeframe: [5, 5],
           from: {
             'background': '#000',
           },
@@ -176,7 +176,7 @@ describe('Animation', () => {
       animation.define([
         {
           selector: 'layer-1 >> .circle',
-          timespan: [0, 1],
+          timeframe: [0, 1],
           from: {
             'background': '#000',
             'opacity': '0.5',
@@ -197,7 +197,7 @@ describe('Animation', () => {
       animation.define([
         {
           selector: 'layer-1 >> .circle',
-          timespan: [0, 1],
+          timeframe: [0, 1],
           from: {
             'background': '#000',
             'opacity': '0.5',
@@ -218,13 +218,13 @@ describe('Animation', () => {
     animation.define([
       {
         selector: 'layer-2 >> .square',
-        timespan: [3, 7],
+        timeframe: [3, 7],
         from: {},
         to: {},
       },
       {
         selector: 'layer-1 >> .circle',
-        timespan: [0, 5],
+        timeframe: [0, 5],
         from: {},
         to: {},
       },
@@ -343,7 +343,7 @@ describe('Animation', () => {
     animation.define([
       {
         selector: 'layer-1',
-        timespan: [0, 1],
+        timeframe: [0, 1],
         from: {
           'padding': '0',
         },
@@ -363,7 +363,7 @@ describe('Animation', () => {
     animation.define([
       {
         selector: 'layer-3 >> .triangle',
-        timespan: [0, 1],
+        timeframe: [0, 1],
         from: {
           'transform': 'rotate(0)',
         },

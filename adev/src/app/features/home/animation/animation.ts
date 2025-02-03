@@ -32,13 +32,13 @@ const DEFAULT_CONFIG: AnimationConfig = {
 };
 
 const getStartTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
-  r.timespan ? r.timespan[0] : r.at;
+  r.timeframe ? r.timeframe[0] : r.at;
 
 const getEndTime = (r: AnimationRule<Styles | ParsedStyles>): number =>
-  r.timespan ? r.timespan[1] : r.at;
+  r.timeframe ? r.timeframe[1] : r.at;
 
 const getEndStyles = (r: AnimationRule<ParsedStyles>): ParsedStyles =>
-  r.timespan ? r.to : r.styles;
+  r.timeframe ? r.to : r.styles;
 
 /**
  * CSS animation player.
@@ -104,7 +104,7 @@ export class Animation {
     this._rules = definition
       .sort((a, b) => getStartTime(a) - getStartTime(b))
       .map((rule) => {
-        if (rule.timespan) {
+        if (rule.timeframe) {
           const from: ParsedStyles = {};
           const to: ParsedStyles = {};
 
@@ -115,9 +115,9 @@ export class Animation {
             to[prop] = cssValueParser(val);
           }
           // Convert to milliseconds.
-          const msTimespan = rule.timespan.map((t) => t * MS) as [number, number];
+          const msTimeframe = rule.timeframe.map((t) => t * MS) as [number, number];
 
-          return {...rule, from, to, timespan: msTimespan};
+          return {...rule, from, to, timeframe: msTimeframe};
         } else {
           const styles: ParsedStyles = {};
 
@@ -328,13 +328,13 @@ export class Animation {
       // i.e. we have to use a relative time which in this case is equal to timespan[0].
       // relativeDt = 1 (not 2); timespan = 4 (not 5); changeRate = 0.25 (not 0.4)
       if (deltaTime > 0) {
-        const relativeTime = rule.timespan[0];
+        const relativeTime = rule.timeframe[0];
         relativeDeltaT = time - relativeTime;
         timespan = getEndTime(rule) - relativeTime;
         targetStyles = rule.to;
         sourceStyles = rule.from;
       } else {
-        const relativeTime = rule.timespan[1];
+        const relativeTime = rule.timeframe[1];
         relativeDeltaT = time - relativeTime;
         timespan = relativeTime - getStartTime(rule);
         targetStyles = rule.from;
@@ -440,16 +440,16 @@ export class Animation {
     }
   }
 
-  /** Check whether the start and end styles match and the timespan is correct. */
+  /** Check whether the start and end styles match and the time frame is correct. */
   private _validateRules(rule: AnimationRule<Styles>) {
-    if (!rule.timespan) {
+    if (!rule.timeframe) {
       return;
     }
 
-    const duration = rule.timespan[1] - rule.timespan[0];
+    const duration = rule.timeframe[1] - rule.timeframe[0];
     if (duration < 0) {
       throw new Error(
-        `Animation: Incorrect timespan for selector '${rule.selector}'. Start time is greater than end time`,
+        `Animation: Incorrect time frame for selector '${rule.selector}'. Start time is greater than end time`,
       );
     } else if (duration === 0) {
       throw new Error(

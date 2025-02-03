@@ -35,7 +35,7 @@ export interface DynamicAnimationRule<T extends Styles | ParsedStyles> extends A
   at?: never;
 
   /** In seconds. Marks the time frame between which the styles are applied (`[START, END]`). */
-  timespan: [number, number];
+  timeframe: [number, number];
   /** Start styles.  */
   from: T;
   /** End styles. */
@@ -43,7 +43,7 @@ export interface DynamicAnimationRule<T extends Styles | ParsedStyles> extends A
 }
 
 export interface StaticAnimationRule<T extends Styles | ParsedStyles> extends AnimationRuleBase {
-  timespan?: never;
+  timeframe?: never;
 
   /** In seconds. Time at which the styles are applied. */
   at: number;
