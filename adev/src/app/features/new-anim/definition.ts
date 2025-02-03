@@ -17,6 +17,10 @@ export const THIRD_WAVE_METEORS = 0.25;
  */
 
 // Layers and layer objects selectors
+const BANNERS_LAYER_ID = 'banners';
+const ADEV_BANNER = `${BANNERS_LAYER_ID} >> .adev-banner`;
+const LEARN_ANGULAR_BTN = `${BANNERS_LAYER_ID} >> .learn-angular`;
+
 const LOGO_LAYER_ID = 'logo';
 const LOGO = `${LOGO_LAYER_ID} >> .logo`;
 const SHIELD = `${LOGO_LAYER_ID} >> .shield`;
@@ -110,6 +114,31 @@ function meteorShower(
 
 /** Generate the animation definition for the home page. */
 export function generateHomeAnimationDefinition(meteorCount: number): AnimationDefinition {
+  // Banners and buttons
+  // *******************
+  const bannersLayerAnim: AnimationDefinition = [
+    {
+      selector: ADEV_BANNER,
+      timespan: [3, 5.5],
+      from: {
+        transform: 'translateY(0)',
+      },
+      to: {
+        transform: 'translateY(-200px)',
+      },
+    },
+    {
+      selector: LEARN_ANGULAR_BTN,
+      timespan: [3.5, 5.5],
+      from: {
+        opacity: '1',
+      },
+      to: {
+        opacity: '0',
+      },
+    },
+  ];
+
   // Logo layer animation
   // ********************
   const logoLayerAnim: AnimationDefinition = [
@@ -351,6 +380,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   ];
 
   return [
+    ...bannersLayerAnim,
     ...logoLayerAnim,
     ...waasLayerAnim,
     ...meteorFieldLayerAnim,

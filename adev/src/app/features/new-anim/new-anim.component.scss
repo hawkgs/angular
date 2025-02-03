@@ -70,6 +70,80 @@ $transition: 200ms linear;
       }
     }
 
+    .banners-layer {
+      z-index: 10;
+
+      .adev-banner {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        border: 1px solid var(--senary-contrast);
+        background: var(--page-background);
+        position: absolute;
+        border-radius: 0.25rem;
+        padding: 10px;
+        max-width: 100%;
+        width: fit-content;
+        box-sizing: border-box;
+        transition:
+          background 0.3s ease,
+          border 0.3s ease,
+          transform $transition;
+        top: var(--layout-padding);
+        left: calc(var(--layout-padding) + var(--primary-nav-width));
+
+        h1,
+        p {
+          display: inline;
+          font-size: 0.875rem;
+          margin: 0;
+          background-image: var(--red-to-pink-to-purple-horizontal-gradient);
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+          width: fit-content;
+          font-weight: 500;
+          box-shadow: none;
+          position: relative;
+
+          &.adev-banner-cta {
+            color: var(--tertiary-contrast);
+
+            &::after {
+              content: '';
+              position: absolute;
+              width: 100%;
+              transform: scaleX(0);
+              height: 1px;
+              bottom: -2px;
+              left: 0;
+              background: var(--red-to-pink-to-purple-horizontal-gradient);
+              transform-origin: bottom right;
+              transition: transform 0.3s ease;
+            }
+          }
+        }
+
+        &:hover {
+          .adev-banner-cta {
+            &::after {
+              transform: scaleX(1);
+              transform-origin: bottom left;
+            }
+          }
+        }
+      }
+
+      .learn-angular {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        transition: opacity $transition;
+      }
+    }
+
     .logo-layer {
       user-select: none;
       pointer-events: none;
