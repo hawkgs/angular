@@ -1,7 +1,7 @@
 import {ComponentRef, ViewContainerRef} from '@angular/core';
 import {Animation} from '../animation';
 import {AnimationPlugin} from './types';
-import {AnimationPlayerComponent} from './animation-player.component';
+import {AnimationPlayerComponent, ComponentAlignment} from './animation-player.component';
 
 export class AnimationPlayer implements AnimationPlugin {
   private _cmpRef?: ComponentRef<AnimationPlayerComponent>;
@@ -13,12 +13,17 @@ export class AnimationPlayer implements AnimationPlugin {
    * Animation player.
    *
    * @param _hostVcr VCR of the animation host component.
+   * @param alignment Alignment of the player. Default: `center`
    */
-  constructor(private _hostVcr: ViewContainerRef) {}
+  constructor(
+    private _hostVcr: ViewContainerRef,
+    private _alignment?: ComponentAlignment,
+  ) {}
 
   init(animation: Animation) {
     this._cmpRef = this._hostVcr.createComponent(AnimationPlayerComponent);
     this._cmpRef.instance.animation.set(animation);
+    this._cmpRef.instance.alignment.set(this._alignment || 'center');
   }
 
   destroy() {

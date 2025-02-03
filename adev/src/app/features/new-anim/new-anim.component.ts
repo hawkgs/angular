@@ -76,7 +76,7 @@ export class NewAnimComponent implements AfterViewInit {
         timestep: 10,
       })
       .define(generateHomeAnimationDefinition(this.meteors.length))
-      .addPlugin(new AnimationPlayer(this._vcr))
+      .addPlugin(new AnimationPlayer(this._vcr, 'left'))
       .addPlugin(new AnimationScrollHandler(this._elementRef, this._injector));
   }
 

@@ -12,6 +12,8 @@ import {Animation} from '../animation';
 // In milliseconds. Used for going forward or back through the animation.
 const TIMESTEP = 100;
 
+export type ComponentAlignment = 'left' | 'center' | 'right';
+
 /**
  * Animation player component.
  */
@@ -20,7 +22,7 @@ const TIMESTEP = 100;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (animation(); as anim) {
-      <div class="deck">
+      <div class="deck" [class]="[alignment()]">
         <div class="progress-bar" (click)="seek($event)" title="Seek">
           <div class="progress" [style.width]="progressPerc()"></div>
         </div>
@@ -51,6 +53,15 @@ const TIMESTEP = 100;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       z-index: 999999;
+    }
+    .deck.left {
+      left: 130px;
+      transform: initial;
+    }
+    .deck.right {
+      right: 30px;
+      left: initial;
+      transform: initial;
     }
     .progress-bar {
       position: relative;
@@ -89,6 +100,7 @@ const TIMESTEP = 100;
 })
 export class AnimationPlayerComponent {
   animation = signal<Animation | null>(null);
+  alignment = signal<ComponentAlignment>('center');
   TIMESTEP = TIMESTEP;
 
   progressPerc = computed(() => this.animation()!.progress() * 100 + '%');
