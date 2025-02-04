@@ -97,7 +97,7 @@ export class Animation {
    */
   define(definition: AnimationDefinition) {
     this.reset();
-    this._extractObjectsAndValidateRules(definition);
+    this.extractObjectsAndValidateRules(definition);
 
     // Parse the rules.
     // IMPORTANT: Parsed rules use milliseconds instead of seconds.
@@ -156,7 +156,7 @@ export class Animation {
     this._isPlaying.set(true);
 
     // Start the animation.
-    this._animate(Date.now(), 0);
+    this.animate(Date.now(), 0);
   }
 
   /** Pause the animation. */
@@ -185,7 +185,7 @@ export class Animation {
     progress = Math.max(0, Math.min(progress, 1));
     const time = Math.round(progress * this._duration);
 
-    this._updateFrame(time);
+    this.updateFrame(time);
     this.completed = progress === 1;
   }
 
@@ -207,7 +207,7 @@ export class Animation {
     const time = this.currentTime + timestep;
 
     if (time <= this._duration) {
-      this._updateFrame(time);
+      this.updateFrame(time);
     } else {
       this.completed = true;
     }
@@ -231,7 +231,7 @@ export class Animation {
     const time = this.currentTime - timestep;
 
     if (time >= 0) {
-      this._updateFrame(time);
+      this.updateFrame(time);
 
       // Uncomplete the animation, if it was completed.
       this.completed = false;
@@ -246,7 +246,7 @@ export class Animation {
 
     for (const [selector, styles] of this.activeStyles) {
       for (const style of Object.keys(styles)) {
-        this._removeStyle(selector, style);
+        this.removeStyle(selector, style);
       }
       this.activeStyles.delete(selector);
     }
@@ -289,7 +289,7 @@ export class Animation {
    *
    * @param time Time at which the animation should be rendered.
    */
-  private _updateFrame(time: number) {
+  private updateFrame(time: number) {
     const completedRules = this.rules.filter((r) => time > getEndTime(r));
     const inProgressDynamicRules = this.rules.filter((r) => {
       const start = getStartTime(r);
@@ -357,7 +357,7 @@ export class Animation {
       const newStyles = stylesState.get(selector);
       for (const prop of Object.keys(styles)) {
         if (!newStyles || !newStyles[prop]) {
-          this._removeStyle(selector, prop);
+          this.removeStyle(selector, prop);
         }
       }
     }
@@ -365,7 +365,7 @@ export class Animation {
     // Apply the rule styles.
     for (const [selector, styles] of stylesState) {
       for (const [prop, value] of Object.entries(styles)) {
-        this._setStyle(selector, prop, value);
+        this.setStyle(selector, prop, value);
       }
     }
 
@@ -374,7 +374,7 @@ export class Animation {
   }
 
   /** Set active style. */
-  private _setStyle(selector: string, property: string, value: CssPropertyValue) {
+  private setStyle(selector: string, property: string, value: CssPropertyValue) {
     const elements = this.allObjects.get(selector)!;
 
     const valueString = stringifyParsedValue(value);
@@ -393,7 +393,7 @@ export class Animation {
   }
 
   /** Remove active style. */
-  private _removeStyle(selector: string, property: string) {
+  private removeStyle(selector: string, property: string) {
     const elements = this.allObjects.get(selector)!;
 
     if (elements instanceof Element) {
@@ -409,8 +409,8 @@ export class Animation {
   }
 
   /** Animate function. */
-  private _animate(then: number, elapsed: number) {
-    this.animationFrameId = requestAnimationFrame(() => this._animate(then, elapsed));
+  private animate(then: number, elapsed: number) {
+    this.animationFrameId = requestAnimationFrame(() => this.animate(then, elapsed));
 
     const now = Date.now();
     elapsed = now - then;
@@ -422,7 +422,7 @@ export class Animation {
       const time = this.currentTime + elapsed;
 
       if (time <= this._duration) {
-        this._updateFrame(time);
+        this.updateFrame(time);
       } else {
         // Pause the animation and mark it as completed
         // when we go over the duration.
@@ -433,15 +433,15 @@ export class Animation {
   }
 
   /** Extract the objects from the selectors and validate their rules.  */
-  private _extractObjectsAndValidateRules(definition: AnimationDefinition) {
+  private extractObjectsAndValidateRules(definition: AnimationDefinition) {
     for (const rule of definition) {
-      this._validateRules(rule);
-      this._extractObjects(rule);
+      this.validateRules(rule);
+      this.extractObjects(rule);
     }
   }
 
   /** Check whether the start and end styles match and the time frame is correct. */
-  private _validateRules(rule: AnimationRule<Styles>) {
+  private validateRules(rule: AnimationRule<Styles>) {
     if (!rule.timeframe) {
       return;
     }
@@ -477,7 +477,7 @@ export class Animation {
   /**
    * Extracts all objects (layer elements and layer child elements) by their provided selectors.
    */
-  private _extractObjects(rule: AnimationRule<Styles>) {
+  private extractObjects(rule: AnimationRule<Styles>) {
     let [layerId, objectSelector] = rule.selector.split(SEL_SEPARATOR);
     layerId = layerId.trim();
     objectSelector = (objectSelector ?? '').trim();

@@ -16,14 +16,14 @@ export class AnimationScrollHandler implements AnimationPlugin {
   /**
    * Enables page scroll control over the animation.
    *
-   * @param _hostElementRef `ElementRef` of the animation host component.
+   * @param hostElementRef `ElementRef` of the animation host component.
    * @param injector
-   * @param _addSpacer Enabled by default. Use when the position of the animation is `fixed`.
+   * @param addSpacer Enabled by default. Use when the position of the animation is `fixed`.
    */
   constructor(
-    private _hostElementRef: ElementRef,
+    private hostElementRef: ElementRef,
     injector: Injector,
-    private _addSpacer: boolean = true,
+    private addSpacer: boolean = true,
   ) {
     this.win = injector.get(WINDOW);
     this.renderer = injector.get(RendererFactory2).createRenderer(null, null);
@@ -43,7 +43,7 @@ export class AnimationScrollHandler implements AnimationPlugin {
       }),
     );
 
-    if (this._addSpacer) {
+    if (this.addSpacer) {
       this._createSpacer();
 
       this.unlisteners.push(
@@ -73,7 +73,7 @@ export class AnimationScrollHandler implements AnimationPlugin {
     this.renderer.addClass(this.spacer, 'anim-scroll-spacer');
     this._updateSpacerHeight();
 
-    this._hostElementRef.nativeElement.appendChild(this.spacer);
+    this.hostElementRef.nativeElement.appendChild(this.spacer);
   }
 
   /** Update stored spacer's height. */
