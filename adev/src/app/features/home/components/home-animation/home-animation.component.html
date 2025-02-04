@@ -26,24 +26,17 @@
   <div adevAnimationLayer layerId="logo" class="logo-layer layer">
     <svg class="svg" viewBox="0 0 1280 400" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient
-          id="gradient"
-          x1="0"
-          y1="0"
-          x2="1200"
-          y2="1000"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stop-color="#ff00c3" />
-          <stop offset="0.333" stop-color="#962ea5" />
-          <stop offset="0.666" stop-color="#3e266e" />
-          <stop offset="1" stop-color="#050b2b" />
+        <linearGradient id="gradient" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ed0100" />
+          <stop offset="0.25" stop-color="#e449b4" />
+          <stop offset="0.5" stop-color="#ae3bfc" />
+          <stop offset="1" stop-color="#7f15fd" />
           <animateTransform
             attributeName="gradientTransform"
             type="rotate"
-            from="0 130 130"
-            to="360 130 130"
-            dur="5s"
+            from="0 640 125"
+            to="360 640 125"
+            dur="6.5s"
             repeatCount="indefinite"
           />
         </linearGradient>
@@ -112,8 +105,8 @@
       [style.marginLeft]="meteorFieldData.marginLeft + 'px'"
       [style.marginTop]="meteorFieldData.marginTop + 'px'"
     >
-      @for (m of meteors; track $index) {
-        <div [class]="['meteor', 'type-1', 'mt-' + ($index + 1)]"></div>
+      @for (type of meteors; track $index) {
+        <div [class]="['meteor', 'type-' + type, 'mt-' + ($index + 1)]"></div>
       }
     </div>
   </div>

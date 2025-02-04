@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 /*
  * Global transition.
  *
@@ -51,6 +53,7 @@ $transition: 200ms linear;
         white-space: nowrap;
         margin-top: 0;
         margin-bottom: 0.5em;
+        z-index: 1;
       }
 
       p {
@@ -241,7 +244,7 @@ $transition: 200ms linear;
       .title {
         color: transparent;
         display: inline-block;
-        background: linear-gradient(110deg, rgba(231, 14, 231) 0, rgb(255, 0, 93) 50%, #3a373f 0%);
+        background: linear-gradient(110deg, #f31a5b 0, #8737e9 50%, #3a373f 0%);
         background-size: 205% 100%;
         background-clip: text;
         background-size: 205% 100%;
@@ -254,6 +257,8 @@ $transition: 200ms linear;
       overflow: hidden;
 
       .field {
+        --math-pi: #{math.$pi}rad;
+
         position: absolute;
         flex-wrap: wrap;
         align-content: flex-start;
@@ -289,12 +294,25 @@ $transition: 200ms linear;
             left: 0;
           }
 
-          &.type-1::after {
+          @mixin meteor-gradient($startColor, $endColor) {
             background: linear-gradient(
-              rgb(204, 47, 79) 0,
-              rgb(199, 64, 199) 75%,
+              calc(var(--math-pi) + var(--anim-meteor-tilt-angle)),
+              $startColor 0,
+              $endColor 66%,
               transparent 100%
             );
+          }
+
+          &.type-1::after {
+            @include meteor-gradient(rgb(228, 49, 85), rgb(219, 64, 219));
+          }
+
+          &.type-2::after {
+            @include meteor-gradient(rgb(152, 56, 226), rgb(217, 18, 167));
+          }
+
+          &.type-3::after {
+            @include meteor-gradient(rgb(214, 53, 150), rgb(229, 91, 229));
           }
         }
       }

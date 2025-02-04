@@ -63,14 +63,18 @@ export class HomeAnimationComponent implements AfterViewInit {
   readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
 
   meteorFieldData: MeteorFieldData;
-  meteors: null[];
+  meteors: number[];
 
   constructor() {
     // Limitation: Meteor dimensions won't change on page resize
     const meteorDimensions = this._calculateMeteorDimensions();
     this._setCssVariables(meteorDimensions);
     this.meteorFieldData = this._calculateMeteorFieldData(meteorDimensions);
-    this.meteors = new Array(this.meteorFieldData.count).fill(null);
+
+    // Generate a meteor field. The number represents the type [1, 3]
+    this.meteors = new Array(this.meteorFieldData.count)
+      .fill(1)
+      .map(() => Math.round(Math.random() * 2 + 1));
   }
 
   ngAfterViewInit() {
