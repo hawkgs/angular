@@ -18,10 +18,12 @@ export class AnimationScrollHandler implements AnimationPlugin {
    *
    * @param _hostElementRef `ElementRef` of the animation host component.
    * @param injector
+   * @param _addSpacer Enabled by default. Use when the position of the animation is `fixed`.
    */
   constructor(
     private _hostElementRef: ElementRef,
     injector: Injector,
+    private _addSpacer: boolean = true,
   ) {
     this._win = injector.get(WINDOW);
     this._renderer = injector.get(RendererFactory2).createRenderer(null, null);
@@ -31,9 +33,7 @@ export class AnimationScrollHandler implements AnimationPlugin {
     // Calculate the total scroll height needed for the animation.
     this._scrollHeight = animation.duration / animation.timestep;
 
-    this._createSpacer();
-
-    this._unlisteners = [
+    this._unlisteners.push(
       this._renderer.listen(this._win, 'scroll', () => {
         if (animation.isPlaying()) {
           animation.pause();
@@ -41,16 +41,23 @@ export class AnimationScrollHandler implements AnimationPlugin {
         const progress = this._win.scrollY / this._scrollHeight;
         animation.seek(progress);
       }),
-      this._renderer.listen(this._win, 'resize', () => {
-        if (this._resizeDebounceTimeout) {
-          clearTimeout(this._resizeDebounceTimeout);
-        }
-        this._resizeDebounceTimeout = setTimeout(
-          () => requestAnimationFrame(() => this._updateSpacerHeight()),
-          RESIZE_DEBOUNCE,
-        );
-      }),
-    ];
+    );
+
+    if (this._addSpacer) {
+      this._createSpacer();
+
+      this._unlisteners.push(
+        this._renderer.listen(this._win, 'resize', () => {
+          if (this._resizeDebounceTimeout) {
+            clearTimeout(this._resizeDebounceTimeout);
+          }
+          this._resizeDebounceTimeout = setTimeout(
+            () => this._updateSpacerHeight(),
+            RESIZE_DEBOUNCE,
+          );
+        }),
+      );
+    }
   }
 
   destroy() {
