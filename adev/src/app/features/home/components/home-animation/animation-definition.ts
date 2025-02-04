@@ -8,9 +8,15 @@ import {AnimationRule} from '../../animation/types';
 // Represents percentage of the total.
 // Avoid using large waves (the total shouldn't be too big as well).
 // Check meteorShower function for more details.
-export const FIRST_WAVE_METEORS = 0.05;
-export const SECOND_WAVE_METEORS = 0.15;
-export const THIRD_WAVE_METEORS = 0.25;
+const FIRST_WAVE_METEORS = 0.05;
+const SECOND_WAVE_METEORS = 0.15;
+const THIRD_WAVE_METEORS = 0.25;
+
+// Use to increase or decrease the animation duration (i.e. a fine tuning parameter).
+// Employed by `timeframe()` and `at()`.
+const TIMING_MULTIPLIER = 1.5;
+
+export const ANIM_TIMESTEP = 10; // In milliseconds
 
 /**
  * SELECTORS
@@ -51,11 +57,18 @@ const BUILD_FOR_EVERYONE_TITLE = `${BUILD_FOR_EVERYONE_LAYER_ID} >> .title`;
  * ANIMATION/HELPER FUNCTIONS
  */
 
+// Timing functions (they employ `TIMING_MULTIPLIER`) – Use when setting the time of a rule.
+const at = (at: number): number => at * TIMING_MULTIPLIER;
+const timeframe = (from: number, to: number): [number, number] => [
+  from * TIMING_MULTIPLIER,
+  to * TIMING_MULTIPLIER,
+];
+
 /** Duration: 1 second */
 function hideLetter(selector: string, startTime: number): AnimationRule<Styles> {
   return {
     selector,
-    timeframe: [startTime, startTime + 1],
+    timeframe: timeframe(startTime, startTime + 1),
     from: {
       opacity: '1',
     },
@@ -67,10 +80,10 @@ function hideLetter(selector: string, startTime: number): AnimationRule<Styles> 
 
 /** Duration: 1 to 2 seconds */
 function showMeteor(selector: string, startTime: number): AnimationRule<Styles> {
-  const randomizedStartTime = startTime + Math.random(); // Up to +1 second
+  const randomizedStartTime = startTime + Math.random(); // Up to +1 second (excl.)
   return {
     selector,
-    timeframe: [randomizedStartTime, randomizedStartTime + 1],
+    timeframe: timeframe(randomizedStartTime, randomizedStartTime + 1),
     from: {
       opacity: '0',
       transform: 'translate(200%, 200%) scale(0.3)',
@@ -112,14 +125,14 @@ function meteorShower(
  * DEFINITION
  */
 
-/** Generate the animation definition for the home page. */
+/** Generate the animation definition for the home page animation. */
 export function generateHomeAnimationDefinition(meteorCount: number): AnimationDefinition {
-  // Banners and buttons
-  // *******************
+  // Banners and buttons layer
+  // *************************
   const bannersLayerAnim: AnimationDefinition = [
     {
       selector: ADEV_BANNER,
-      timeframe: [3, 5.5],
+      timeframe: timeframe(3, 5.5),
       from: {
         transform: 'translateY(0)',
       },
@@ -129,12 +142,19 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: LEARN_ANGULAR_BTN,
-      timeframe: [3.5, 5],
+      timeframe: timeframe(3.5, 5),
       from: {
         opacity: '1',
       },
       to: {
         opacity: '0',
+      },
+    },
+    {
+      selector: LEARN_ANGULAR_BTN,
+      at: at(5.5),
+      styles: {
+        visibility: 'hidden',
       },
     },
   ];
@@ -144,7 +164,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   const logoLayerAnim: AnimationDefinition = [
     {
       selector: LOGO,
-      timeframe: [0, 5],
+      timeframe: timeframe(0, 5),
       from: {
         transform: 'translateX(0)',
       },
@@ -163,7 +183,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     hideLetter(CAPITAL_A_LETTER, 4),
     {
       selector: SHIELD_MIDDLE,
-      timeframe: [5.5, 5.6],
+      timeframe: timeframe(5.5, 5.6),
       from: {
         transform: 'scale(1)',
       },
@@ -173,7 +193,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: SHIELD_BOTTOM_A_ARC,
-      timeframe: [5.5, 5.6],
+      timeframe: timeframe(5.5, 5.6),
       from: {
         transform: 'scaleY(1)',
       },
@@ -183,7 +203,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: SHIELD_BOTTOM_EXTENSION,
-      timeframe: [5.5, 5.6],
+      timeframe: timeframe(5.5, 5.6),
       from: {
         transform: 'scale(0)',
       },
@@ -193,7 +213,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: SHIELD,
-      timeframe: [5.5, 10],
+      timeframe: timeframe(5.5, 10),
       from: {
         transform: 'scale(1) rotate(0deg)',
       },
@@ -203,7 +223,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: SHIELD,
-      timeframe: [10, 12],
+      timeframe: timeframe(10, 12),
       from: {
         transform: 'scale(20) rotate(360deg)',
       },
@@ -218,9 +238,9 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   const waasLayerAnim: AnimationDefinition = [
     {
       selector: WORKS_AT_ANY_SCALE_LAYER_ID,
-      timeframe: [5, 10],
+      timeframe: timeframe(5.7, 10), // Make sure it appears after SHIELD_MIDDLE disappears.
       from: {
-        transform: 'scale(0)',
+        transform: 'scale(0.1)',
         opacity: '0',
       },
       to: {
@@ -230,7 +250,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: WORKS_AT_ANY_SCALE_LAYER_ID,
-      timeframe: [12.5, 14],
+      timeframe: timeframe(12.5, 14),
       from: {
         transform: 'scale(1)',
         opacity: '1',
@@ -265,14 +285,14 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   const meteorFieldLayerAnim: AnimationDefinition = [
     {
       selector: METEOR_FIELD,
-      at: 10,
+      at: at(10),
       styles: {
         display: 'flex',
       },
     },
     {
       selector: METEOR_FIELD,
-      timeframe: [11.5, 14.5],
+      timeframe: timeframe(11.5, 14.5),
       from: {
         transform: 'scale(1.42)',
       },
@@ -286,7 +306,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     ...lastWave,
     {
       selector: METEORS,
-      timeframe: [19.5, 21],
+      timeframe: timeframe(19.5, 21),
       from: {
         transform: 'translate(0, 0) scale(1)',
       },
@@ -296,7 +316,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: METEOR_FIELD,
-      timeframe: [19.5, 21],
+      timeframe: timeframe(19.5, 21),
       from: {
         opacity: '1',
       },
@@ -306,7 +326,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: METEOR_FIELD,
-      at: 22,
+      at: at(22),
       styles: {
         display: 'none',
       },
@@ -318,7 +338,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   const lovedByMillionsAnim: AnimationDefinition = [
     {
       selector: LOVED_BY_MILLIONS_LAYER_ID,
-      timeframe: [14.5, 16.5],
+      timeframe: timeframe(14.5, 16.5),
       from: {
         transform: 'scale(0.75)',
         opacity: '0',
@@ -330,7 +350,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: LOVED_BY_MILLIONS_LAYER_ID,
-      timeframe: [19.5, 21],
+      timeframe: timeframe(19.5, 21),
       from: {
         transform: 'scale(1)',
         opacity: '1',
@@ -347,7 +367,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
   const buildForEveryoneAnim: AnimationDefinition = [
     {
       selector: BUILD_FOR_EVERYONE_LAYER_ID,
-      timeframe: [22.5, 24.5],
+      timeframe: timeframe(22.5, 25.5),
       from: {
         transform: 'scale(0.75)',
         opacity: '0',
@@ -359,7 +379,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: BUILD_FOR_EVERYONE_TITLE,
-      timeframe: [22.5, 24.5],
+      timeframe: timeframe(22.5, 25.5),
       from: {
         'background-position-x': '100%',
       },
@@ -369,7 +389,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
     },
     {
       selector: BUILD_FOR_EVERYONE_LAYER_ID,
-      timeframe: [27.5, 29],
+      timeframe: timeframe(28.5, 31),
       from: {
         opacity: '1',
       },

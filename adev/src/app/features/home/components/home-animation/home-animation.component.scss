@@ -262,7 +262,7 @@ $transition: 200ms linear;
         position: absolute;
         flex-wrap: wrap;
         align-content: flex-start;
-        gap: var(--anim-meteor-gap);
+        gap: var(--meteor-gap);
         display: none;
         transform: scale(1.42);
         top: 0;
@@ -274,8 +274,8 @@ $transition: 200ms linear;
 
         .meteor {
           position: relative;
-          width: var(--anim-meteor-width);
-          height: var(--anim-meteor-height);
+          width: var(--meteor-width);
+          height: var(--meteor-height);
           opacity: 0;
           transform: translate(200%, 200%) scale(0.3);
           transition:
@@ -286,17 +286,17 @@ $transition: 200ms linear;
             content: '';
             position: absolute;
             width: 4px;
-            height: var(--anim-meteor-tail-length);
+            height: var(--meteor-tail-length);
             border-radius: 2px;
             transform-origin: top center;
-            transform: rotate(var(--anim-meteor-tilt-angle));
+            transform: rotate(var(--meteor-tilt-angle));
             top: 0;
             left: 0;
           }
 
           @mixin meteor-gradient($startColor, $endColor) {
             background: linear-gradient(
-              calc(var(--math-pi) + var(--anim-meteor-tilt-angle)),
+              calc(var(--math-pi) + var(--meteor-tilt-angle)),
               $startColor 0,
               $endColor 66%,
               transparent 100%

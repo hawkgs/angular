@@ -14,9 +14,9 @@ import {WINDOW, isIos} from '@angular/docs';
 import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../../animation';
 import {AnimationPlayer} from '../../animation/plugins/animation-player';
 import {AnimationScrollHandler} from '../../animation/plugins/animation-scroll-handler';
-import {generateHomeAnimationDefinition} from './animation-definition';
+import {generateHomeAnimationDefinition, ANIM_TIMESTEP} from './animation-definition';
 
-export const METEOR_SIZE_RATIO = 1.42;
+export const METEOR_HW_RATIO = 1.42; // Height to width ratio
 export const METEOR_GAP_RATIO = 1.33; // Use 0.7 for WebGL-like field. Renders a lot of elements though.
 
 // A map with screen size to meteor width
@@ -80,7 +80,7 @@ export class HomeAnimationComponent implements AfterViewInit {
   ngAfterViewInit() {
     this._animation = this._animCreator
       .createAnimation(this.animationLayers(), {
-        timestep: 10,
+        timestep: ANIM_TIMESTEP,
       })
       .define(generateHomeAnimationDefinition(this.meteors.length))
       .addPlugin(new AnimationPlayer(this._vcr, 'right'))
@@ -100,7 +100,7 @@ export class HomeAnimationComponent implements AfterViewInit {
       }
     }
 
-    const height = width * METEOR_SIZE_RATIO;
+    const height = width * METEOR_HW_RATIO;
     const gap = width * METEOR_GAP_RATIO;
 
     // Pythagorean theorem + some trigonometry
@@ -143,10 +143,10 @@ export class HomeAnimationComponent implements AfterViewInit {
 
   private _setCssVariables({width, height, tailLength, tiltAngle, gap}: MeteorDimensions) {
     const styleRef = this._elementRef.nativeElement.style;
-    styleRef.setProperty('--anim-meteor-width', width + 'px');
-    styleRef.setProperty('--anim-meteor-height', height + 'px');
-    styleRef.setProperty('--anim-meteor-tail-length', tailLength + 'px');
-    styleRef.setProperty('--anim-meteor-tilt-angle', tiltAngle + 'rad');
-    styleRef.setProperty('--anim-meteor-gap', gap + 'px');
+    styleRef.setProperty('--meteor-width', width + 'px');
+    styleRef.setProperty('--meteor-height', height + 'px');
+    styleRef.setProperty('--meteor-tail-length', tailLength + 'px');
+    styleRef.setProperty('--meteor-tilt-angle', tiltAngle + 'rad');
+    styleRef.setProperty('--meteor-gap', gap + 'px');
   }
 }

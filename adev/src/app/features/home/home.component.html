@@ -6,11 +6,11 @@
   </div>
 }
 <!-- TBD: markers description -->
-<div #marker1 style="position:absolute;top:2200px;border-top:1px solid red;width:100%"></div>
-<div #marker2 style="position:absolute;top:3200px;border-top:1px solid blue;width:100%"></div>
+<div #lovedByMillions class="marker" style="top:3200px;border-top:1px solid red;"></div>
+<div #buildForEveryone class="marker" style="top:4200px;border-top:1px solid blue;"></div>
 <div class="adev-editor-scroll-container">
   <div class="adev-code-editor">
-    @defer (on viewport(marker2); prefetch on viewport(marker1)) {
+    @defer (on viewport(buildForEveryone); prefetch on viewport(lovedByMillions)) {
       <adev-code-editor [tutorialFiles]="tutorialFiles" />
     } @loading {
       <img alt="Code editor" />
