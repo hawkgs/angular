@@ -16,7 +16,7 @@ import {
   ParsedStyles,
   Styles,
 } from './types';
-import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parsing';
+import {CssPropertyValue, cssValueParser, stringifyParsedValue} from './parser';
 import {calculateNextCssValue} from './calculations';
 import {AnimationPlugin} from './plugins/types';
 
@@ -44,20 +44,20 @@ const getEndStyles = (r: AnimationRule<ParsedStyles>): ParsedStyles =>
  * CSS animation player.
  */
 export class Animation {
-  private _renderer: Renderer2;
+  private renderer: Renderer2;
 
   /** Parsed rules. Time is in milliseconds. */
-  private _rules: AnimationRule<ParsedStyles>[] = [];
-  private _config: AnimationConfig;
-  private _currentTime: number = 0;
+  private rules: AnimationRule<ParsedStyles>[] = [];
+  private config: AnimationConfig;
+  private currentTime: number = 0;
+  private allObjects = new Map<string, Element | Element[]>(); // selector; element(s)
+  private activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
+  private animationFrameId: number | null = null;
+  private completed: boolean = false;
+  private plugins: AnimationPlugin[] = [];
   private _duration: number = 0;
-  private _allObjects = new Map<string, Element | Element[]>(); // selector; element(s)
-  private _activeStyles = new Map<string, ParsedStyles>(); // selector; ParsedStyles
-  private _animationFrameId: number | null = null;
-  private _completed: boolean = false;
   private _isPlaying = signal<boolean>(false);
   private _progress = signal<number>(0);
-  private _plugins: AnimationPlugin[] = [];
 
   /** Returns whether the animation is playing or not */
   isPlaying = this._isPlaying.asReadonly();
@@ -70,13 +70,13 @@ export class Animation {
     injector: Injector,
     config?: Partial<AnimationConfig>,
   ) {
-    this._renderer = injector.get(RendererFactory2).createRenderer(null, null);
+    this.renderer = injector.get(RendererFactory2).createRenderer(null, null);
 
     // Merge the config with the default one, if incomplete.
-    this._config = {...DEFAULT_CONFIG, ...(config || {})};
+    this.config = {...DEFAULT_CONFIG, ...(config || {})};
 
     // Set layer elements in the objects map.
-    this._allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
+    this.allObjects = new Map(layers.map((f) => [f.id(), f.elementRef.nativeElement]));
   }
 
   /** Animation duration. In milliseconds */
@@ -86,7 +86,7 @@ export class Animation {
 
   /** Animation timestep (config). In milliseconds */
   get timestep() {
-    return this._config.timestep;
+    return this.config.timestep;
   }
 
   /**
@@ -101,7 +101,7 @@ export class Animation {
 
     // Parse the rules.
     // IMPORTANT: Parsed rules use milliseconds instead of seconds.
-    this._rules = definition
+    this.rules = definition
       .sort((a, b) => getStartTime(a) - getStartTime(b))
       .map((rule) => {
         if (rule.timeframe) {
@@ -133,24 +133,24 @@ export class Animation {
 
     // Calculate the duration of the animation.
     // IMPORTANT: Use parsed rules with milliseconds.
-    this._duration = Math.max(...this._rules.map((r) => getEndTime(r)));
+    this._duration = Math.max(...this.rules.map((r) => getEndTime(r)));
 
     return this;
   }
 
   /** Play the animation. */
   play() {
-    if (this._animationFrameId !== null) {
+    if (this.animationFrameId !== null) {
       return;
     }
-    if (!this._rules.length) {
+    if (!this.rules.length) {
       console.warn("Animation: Can't play without a definition");
       return;
     }
     // If the animation is completed, reset it on play.
-    if (this._completed) {
+    if (this.completed) {
       this.reset();
-      this._completed = false;
+      this.completed = false;
     }
 
     this._isPlaying.set(true);
@@ -161,9 +161,9 @@ export class Animation {
 
   /** Pause the animation. */
   pause() {
-    if (this._animationFrameId !== null) {
-      cancelAnimationFrame(this._animationFrameId);
-      this._animationFrameId = null;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
       this._isPlaying.set(false);
     }
   }
@@ -177,7 +177,7 @@ export class Animation {
   seek(progress: number) {
     this.pause();
 
-    if (!this._rules.length) {
+    if (!this.rules.length) {
       console.warn("Animation: Can't  without a definition");
       return;
     }
@@ -186,7 +186,7 @@ export class Animation {
     const time = Math.round(progress * this._duration);
 
     this._updateFrame(time);
-    this._completed = progress === 1;
+    this.completed = progress === 1;
   }
 
   /**
@@ -198,18 +198,18 @@ export class Animation {
   forward(timestep?: number) {
     this.pause();
 
-    if (!this._rules.length) {
+    if (!this.rules.length) {
       console.warn("Animation: Can't go forward without a definition");
       return;
     }
-    timestep = timestep ?? this._config.timestep;
+    timestep = timestep ?? this.config.timestep;
 
-    const time = this._currentTime + timestep;
+    const time = this.currentTime + timestep;
 
     if (time <= this._duration) {
       this._updateFrame(time);
     } else {
-      this._completed = true;
+      this.completed = true;
     }
   }
 
@@ -222,33 +222,33 @@ export class Animation {
   back(timestep?: number) {
     this.pause();
 
-    if (!this._rules.length) {
+    if (!this.rules.length) {
       console.warn("Animation: Can't go back without a definition");
       return;
     }
-    timestep = timestep ?? this._config.timestep;
+    timestep = timestep ?? this.config.timestep;
 
-    const time = this._currentTime - timestep;
+    const time = this.currentTime - timestep;
 
     if (time >= 0) {
       this._updateFrame(time);
 
       // Uncomplete the animation, if it was completed.
-      this._completed = false;
+      this.completed = false;
     }
   }
 
   /** Reset the animation. */
   reset() {
     this.pause();
-    this._currentTime = 0;
+    this.currentTime = 0;
     this._progress.set(0);
 
-    for (const [selector, styles] of this._activeStyles) {
+    for (const [selector, styles] of this.activeStyles) {
       for (const style of Object.keys(styles)) {
         this._removeStyle(selector, style);
       }
-      this._activeStyles.delete(selector);
+      this.activeStyles.delete(selector);
     }
   }
 
@@ -265,7 +265,7 @@ export class Animation {
    */
   addPlugin(plugin: AnimationPlugin) {
     plugin.init(this);
-    this._plugins.push(plugin);
+    this.plugins.push(plugin);
 
     return this;
   }
@@ -275,13 +275,13 @@ export class Animation {
    * Resets the animation and cleans the definition.
    */
   dispose() {
-    for (const plugin of this._plugins) {
+    for (const plugin of this.plugins) {
       plugin.destroy();
     }
     this.reset();
-    this._rules = [];
+    this.rules = [];
     this._duration = 0;
-    this._plugins = [];
+    this.plugins = [];
   }
 
   /**
@@ -290,8 +290,8 @@ export class Animation {
    * @param time Time at which the animation should be rendered.
    */
   private _updateFrame(time: number) {
-    const completedRules = this._rules.filter((r) => time > getEndTime(r));
-    const inProgressDynamicRules = this._rules.filter((r) => {
+    const completedRules = this.rules.filter((r) => time > getEndTime(r));
+    const inProgressDynamicRules = this.rules.filter((r) => {
       const start = getStartTime(r);
       const end = getEndTime(r);
       // We exclude the static animation rules by `start < end` since `start == end`.
@@ -308,7 +308,7 @@ export class Animation {
       stylesState.set(rule.selector, objectStyles);
     }
 
-    const deltaTime = time - this._currentTime;
+    const deltaTime = time - this.currentTime;
 
     // ... and then calculate the change of the dynamic rules in progress.
     for (const rule of inProgressDynamicRules) {
@@ -353,7 +353,7 @@ export class Animation {
     }
 
     // Get rid of any active styles that are not part of the current styles state
-    for (const [selector, styles] of this._activeStyles) {
+    for (const [selector, styles] of this.activeStyles) {
       const newStyles = stylesState.get(selector);
       for (const prop of Object.keys(styles)) {
         if (!newStyles || !newStyles[prop]) {
@@ -369,57 +369,57 @@ export class Animation {
       }
     }
 
-    this._currentTime = time;
+    this.currentTime = time;
     this._progress.set(time / this.duration);
   }
 
   /** Set active style. */
   private _setStyle(selector: string, property: string, value: CssPropertyValue) {
-    const elements = this._allObjects.get(selector)!;
+    const elements = this.allObjects.get(selector)!;
 
     const valueString = stringifyParsedValue(value);
 
     if (elements instanceof Element) {
-      this._renderer.setStyle(elements, property, valueString);
+      this.renderer.setStyle(elements, property, valueString);
     } else {
       for (const e of elements) {
-        this._renderer.setStyle(e, property, valueString);
+        this.renderer.setStyle(e, property, valueString);
       }
     }
 
-    const activeStyles = this._activeStyles.get(selector) || {};
+    const activeStyles = this.activeStyles.get(selector) || {};
     activeStyles[property] = value;
-    this._activeStyles.set(selector, activeStyles);
+    this.activeStyles.set(selector, activeStyles);
   }
 
   /** Remove active style. */
   private _removeStyle(selector: string, property: string) {
-    const elements = this._allObjects.get(selector)!;
+    const elements = this.allObjects.get(selector)!;
 
     if (elements instanceof Element) {
-      this._renderer.removeStyle(elements, property);
+      this.renderer.removeStyle(elements, property);
     } else {
       for (const e of elements) {
-        this._renderer.removeStyle(e, property);
+        this.renderer.removeStyle(e, property);
       }
     }
 
-    const activeStyles = this._activeStyles.get(selector) || {};
+    const activeStyles = this.activeStyles.get(selector) || {};
     delete activeStyles[property];
   }
 
   /** Animate function. */
   private _animate(then: number, elapsed: number) {
-    this._animationFrameId = requestAnimationFrame(() => this._animate(then, elapsed));
+    this.animationFrameId = requestAnimationFrame(() => this._animate(then, elapsed));
 
     const now = Date.now();
     elapsed = now - then;
 
-    if (elapsed >= this._config.timestep) {
+    if (elapsed >= this.config.timestep) {
       // Subtract the overflowed time from Now to maintain steady fps.
-      then = now - (elapsed % this._config.timestep);
+      then = now - (elapsed % this.config.timestep);
 
-      const time = this._currentTime + elapsed;
+      const time = this.currentTime + elapsed;
 
       if (time <= this._duration) {
         this._updateFrame(time);
@@ -427,7 +427,7 @@ export class Animation {
         // Pause the animation and mark it as completed
         // when we go over the duration.
         this.pause();
-        this._completed = true;
+        this.completed = true;
       }
     }
   }
@@ -482,22 +482,19 @@ export class Animation {
     layerId = layerId.trim();
     objectSelector = (objectSelector ?? '').trim();
 
-    const layer = this._allObjects.get(layerId) as Element;
+    const layer = this.allObjects.get(layerId) as Element;
     if (!layer) {
       throw new Error(`Animation: Missing layer ID: ${layerId}`);
     }
 
-    if (objectSelector && !this._allObjects.has(rule.selector)) {
+    if (objectSelector && !this.allObjects.has(rule.selector)) {
       const objects = layer.getElementsByClassName(objectSelector.replaceAll('.', ' ').trim());
       if (!objects.length) {
         throw new Error(`Animation: Missing layer object(s): ${rule.selector}`);
       }
 
-      if (!this._allObjects.has(rule.selector)) {
-        this._allObjects.set(
-          rule.selector,
-          objects.length === 1 ? objects[0] : Array.from(objects),
-        );
+      if (!this.allObjects.has(rule.selector)) {
+        this.allObjects.set(rule.selector, objects.length === 1 ? objects[0] : Array.from(objects));
       }
     }
   }

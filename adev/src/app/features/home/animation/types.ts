@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {CssPropertyValue} from './parsing';
+import {CssPropertyValue} from './parser';
 
 export type AnimationConfig = {
   /**

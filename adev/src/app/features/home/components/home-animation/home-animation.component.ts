@@ -52,12 +52,12 @@ type MeteorFieldData = {
   providers: [AnimationCreatorService],
 })
 export class HomeAnimationComponent implements AfterViewInit {
-  private readonly _win = inject(WINDOW);
-  private readonly _animCreator = inject(AnimationCreatorService);
-  private readonly _vcr = inject(ViewContainerRef);
-  private readonly _injector = inject(Injector);
-  private readonly _elementRef = inject(ElementRef);
-  private _animation?: Animation;
+  private readonly win = inject(WINDOW);
+  private readonly animCreator = inject(AnimationCreatorService);
+  private readonly vcr = inject(ViewContainerRef);
+  private readonly injector = inject(Injector);
+  private readonly elementRef = inject(ElementRef);
+  private animation?: Animation;
 
   readonly animationLayers = viewChildren(AnimationLayerDirective);
   readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
@@ -67,9 +67,9 @@ export class HomeAnimationComponent implements AfterViewInit {
 
   constructor() {
     // Limitation: Meteor dimensions won't change on page resize
-    const meteorDimensions = this._calculateMeteorDimensions();
-    this._setCssVariables(meteorDimensions);
-    this.meteorFieldData = this._calculateMeteorFieldData(meteorDimensions);
+    const meteorDimensions = this.calculateMeteorDimensions();
+    this.setCssVariables(meteorDimensions);
+    this.meteorFieldData = this.calculateMeteorFieldData(meteorDimensions);
 
     // Generate a meteor field. The number represents the type [1, 3]
     this.meteors = new Array(this.meteorFieldData.count)
@@ -78,24 +78,24 @@ export class HomeAnimationComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this._animation = this._animCreator
+    this.animation = this.animCreator
       .createAnimation(this.animationLayers(), {
         timestep: ANIM_TIMESTEP,
       })
       .define(generateHomeAnimationDefinition(this.meteors.length))
-      .addPlugin(new AnimationPlayer(this._vcr, 'right'))
-      .addPlugin(new AnimationScrollHandler(this._elementRef, this._injector));
+      .addPlugin(new AnimationPlayer(this.vcr, 'right'))
+      .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
   }
 
   ngOnDestroy() {
-    this._animation?.dispose();
+    this.animation?.dispose();
   }
 
-  private _calculateMeteorDimensions(): MeteorDimensions {
+  private calculateMeteorDimensions(): MeteorDimensions {
     let width = METEOR_WIDTH_DEFAULT;
 
     for (const [screenSize, meteorWidth] of METEOR_WIDTH_MAP) {
-      if (this._win.innerWidth <= screenSize) {
+      if (this.win.innerWidth <= screenSize) {
         width = meteorWidth;
       }
     }
@@ -116,16 +116,16 @@ export class HomeAnimationComponent implements AfterViewInit {
     };
   }
 
-  private _calculateMeteorFieldData(meteorDim: MeteorDimensions): MeteorFieldData {
+  private calculateMeteorFieldData(meteorDim: MeteorDimensions): MeteorFieldData {
     const mW = meteorDim.width + meteorDim.gap;
     const mH = meteorDim.height + meteorDim.gap;
     let rows = 1;
     let cols = 1;
 
-    while (cols * mW - meteorDim.gap <= this._win.innerWidth) {
+    while (cols * mW - meteorDim.gap <= this.win.innerWidth) {
       cols++;
     }
-    while (rows * mH - meteorDim.gap <= this._win.innerHeight) {
+    while (rows * mH - meteorDim.gap <= this.win.innerHeight) {
       rows++;
     }
 
@@ -136,13 +136,13 @@ export class HomeAnimationComponent implements AfterViewInit {
       count: rows * cols,
       width,
       height,
-      marginLeft: -(width - this._win.innerWidth) / 2,
-      marginTop: -(height - this._win.innerHeight) / 2,
+      marginLeft: -(width - this.win.innerWidth) / 2,
+      marginTop: -(height - this.win.innerHeight) / 2,
     };
   }
 
-  private _setCssVariables({width, height, tailLength, tiltAngle, gap}: MeteorDimensions) {
-    const styleRef = this._elementRef.nativeElement.style;
+  private setCssVariables({width, height, tailLength, tiltAngle, gap}: MeteorDimensions) {
+    const styleRef = this.elementRef.nativeElement.style;
     styleRef.setProperty('--meteor-width', width + 'px');
     styleRef.setProperty('--meteor-height', height + 'px');
     styleRef.setProperty('--meteor-tail-length', tailLength + 'px');

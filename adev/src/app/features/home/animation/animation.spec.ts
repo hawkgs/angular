@@ -27,12 +27,12 @@ const TEST_TIMESTEP = 500;
   `,
 })
 class AnimationHost implements AfterViewInit {
-  private _animationCreator = inject(AnimationCreatorService);
+  private animationCreator = inject(AnimationCreatorService);
   layers = viewChildren(AnimationLayerDirective);
   animation!: Animation;
 
   ngAfterViewInit() {
-    this.animation = this._animationCreator.createAnimation(this.layers(), {
+    this.animation = this.animationCreator.createAnimation(this.layers(), {
       timestep: TEST_TIMESTEP,
     });
   }

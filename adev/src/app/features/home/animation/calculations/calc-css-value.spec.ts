@@ -7,7 +7,7 @@
  */
 
 import {calculateNextCssValue} from './calc-css-value';
-import {ColorValue, NumericValue, StaticValue, TransformValue} from '../parsing';
+import {ColorValue, NumericValue, StaticValue, TransformValue} from '../parser';
 
 //
 // Test values

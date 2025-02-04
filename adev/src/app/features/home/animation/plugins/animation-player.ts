@@ -4,7 +4,7 @@ import {AnimationPlugin} from './types';
 import {AnimationPlayerComponent, ComponentAlignment} from './animation-player.component';
 
 export class AnimationPlayer implements AnimationPlugin {
-  private _cmpRef?: ComponentRef<AnimationPlayerComponent>;
+  private cmpRef?: ComponentRef<AnimationPlayerComponent>;
 
   /**
    * USED FOR ANIMATION DEVELOPMENT.
@@ -12,21 +12,21 @@ export class AnimationPlayer implements AnimationPlugin {
    *
    * Animation player.
    *
-   * @param _hostVcr VCR of the animation host component.
+   * @param hostVcr VCR of the animation host component.
    * @param alignment Alignment of the player. Default: `center`
    */
   constructor(
-    private _hostVcr: ViewContainerRef,
-    private _alignment?: ComponentAlignment,
+    private hostVcr: ViewContainerRef,
+    private alignment?: ComponentAlignment,
   ) {}
 
   init(animation: Animation) {
-    this._cmpRef = this._hostVcr.createComponent(AnimationPlayerComponent);
-    this._cmpRef.instance.animation.set(animation);
-    this._cmpRef.instance.alignment.set(this._alignment || 'center');
+    this.cmpRef = this.hostVcr.createComponent(AnimationPlayerComponent);
+    this.cmpRef.instance.animation.set(animation);
+    this.cmpRef.instance.alignment.set(this.alignment || 'center');
   }
 
   destroy() {
-    this._cmpRef?.destroy();
+    this.cmpRef?.destroy();
   }
 }

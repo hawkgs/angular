@@ -12,7 +12,7 @@ import {
   CssPropertyValue,
   NumericValue,
   TransformValue,
-} from '../parsing';
+} from '../parser';
 
 /**
  * Calculate the next `CssPropertyValue` based on the source and a target one.
