@@ -206,6 +206,8 @@ $transition: 200ms linear;
           transition: transform $transition;
 
           .shield {
+            /* `transform-origin` values are calculated based on the 1280x400 SVG view box */
+
             &,
             .shield-middle {
               transform-origin: 177px 200px;

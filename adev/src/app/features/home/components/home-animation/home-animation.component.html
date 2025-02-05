@@ -24,7 +24,12 @@
     <div adevAnimationLayer layerId="logo" class="logo-layer layer">
       <svg class="svg" viewBox="0 0 1280 400" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="gradient" gradientUnits="userSpaceOnUse">
+          <!-- Do not remove `gradientTransform` attribute. Safari needs it in order to start the animation. -->
+          <linearGradient
+            id="gradient"
+            gradientUnits="userSpaceOnUse"
+            gradientTransform="rotate(0 640 125)"
+          >
             <stop offset="0" stop-color="#ed0100" />
             <stop offset="0.25" stop-color="#e449b4" />
             <stop offset="0.5" stop-color="#ae3bfc" />

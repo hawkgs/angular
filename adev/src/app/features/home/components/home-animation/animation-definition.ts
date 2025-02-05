@@ -173,7 +173,7 @@ export function generateHomeAnimationDefinition(
         transform: 'translateX(0)',
       },
       to: {
-        transform: 'translateX(467px)',
+        transform: 'translateX(467px)', // Value based on the 1280x400 SVG view box
       },
     },
     hideLetter(R_LETTER, 1),
