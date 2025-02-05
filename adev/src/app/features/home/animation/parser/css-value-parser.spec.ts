@@ -153,6 +153,20 @@ describe('css-value-parser', () => {
     });
   });
 
+  it('should parse a list of numeric values with and without units', () => {
+    const value = cssValueParser('13 37px -3.14 66.6rem');
+
+    expect(value).toEqual({
+      type: 'numeric',
+      values: [
+        [13, ''],
+        [37, 'px'],
+        [-3.14, ''],
+        [66.6, 'rem'],
+      ],
+    });
+  });
+
   it('should parse a simple transform value', () => {
     const value = cssValueParser('translateX(42%)');
 
@@ -267,15 +281,6 @@ describe('css-value-parser', () => {
     expect(value).toEqual({
       type: 'static',
       value: 'translate()',
-    });
-  });
-
-  it('should parse a list of numeric values with and without units as a static one', () => {
-    const value = cssValueParser('13 37px');
-
-    expect(value).toEqual({
-      type: 'static',
-      value: '13 37px',
     });
   });
 });

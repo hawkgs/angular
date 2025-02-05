@@ -87,24 +87,26 @@ const numericValueHandler: ParserHandler = (tokens) => {
     let buffer = [];
 
     for (const token of tokens) {
-      buffer.push(token);
+      if (typeof token === 'number') {
+        // Add a value to the list (with or without unit)
+        if (buffer.length) {
+          value.values.push((buffer.length === 1 ? [buffer[0], ''] : buffer) as [number, string]);
+          buffer = [];
+        }
 
-      if (buffer.length === 2 && typeof buffer[0] === 'number' && typeof buffer[1] === 'string') {
-        value.values.push(buffer as [number, string]);
-        buffer = [];
+        buffer.push(token);
+      } else if (buffer.length === 1) {
+        // If string, expect a numeric value (i.e. buffer.length == 1) in the buffer.
+        buffer.push(token);
+      } else {
+        // Any other case means, the value is invalid.
+        return null;
       }
     }
 
-    // If the values do not match number-unit format
+    // Add any remaining values in the buffer
     if (buffer.length) {
-      const numbersOnly = !buffer.find((v) => typeof v === 'string');
-      // Invalid
-      if (!numbersOnly) {
-        return null;
-      }
-
-      const pairs = buffer.map((v) => [v, ''] as [number, string]);
-      value.values = value.values.concat(pairs);
+      value.values.push((buffer.length === 1 ? [buffer[0], ''] : buffer) as [number, string]);
     }
 
     return value;

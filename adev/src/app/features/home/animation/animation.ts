@@ -41,7 +41,7 @@ const getEndStyles = (r: AnimationRule<ParsedStyles>): ParsedStyles =>
   r.timeframe ? r.to : r.styles;
 
 /**
- * CSS animation player.
+ * CSS animation player/processor.
  */
 export class Animation {
   private renderer: Renderer2;

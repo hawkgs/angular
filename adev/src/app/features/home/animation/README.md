@@ -1,6 +1,6 @@
 # `Animation` API
 
-The `Animation` class provides an simplistic interface for creating and processing CSS-based animations. In essence, it represents a CSS animation player.
+The `Animation` class provides a simplistic interface for creating and processing CSS-based animations. In essence, it represents a CSS animation player.
 
 ## API
 
@@ -23,7 +23,7 @@ The layers should be styled as normal elements/components in the animation host 
 
 ### Creating an `Animation` instance
 
-Respectively, in order to create a new animation instance, you should use the `AnimationCreatorService` service in your animation host component as follows:
+To create a new animation instance, you should use the `AnimationCreatorService` service in your animation host component as follows:
 
 ```typescript
 class AnimationHost implements AfterViewInit {
@@ -46,10 +46,10 @@ After you create an `Animation` instance, you have to provide your `AnimationDef
 animation.define(DEFINITION);
 ```
 
-The definition is where the actual animation is described. The API is very similar to CSS `@keyframes` where you provide start (`from`) and end (`to`) styles with the added extra that you now have control over the timing – when the animation processor should start applying the styles. Additionaly, you have to specify the target element or layer (`<LAYER_ID> >> .<CLASS_NAME>`; for more details, check `AnimationDefinition` or `AnimationRule`).
+The definition is where the actual animation is described. The API is very similar to CSS `@keyframes` where you provide start (`from`) and end (`to`) styles with the added extra that you now have control over the timing – when the animation processor should start applying the styles. Additionally, you have to specify the target element or layer (`<LAYER_ID> >> .<CLASS_NAME>`; for more details, check `AnimationDefinition` or `AnimationRule`).
 
 > [!TIP]
-> You can achieve `@keyframes` percentage-based sequencing by combining multiple `AnimationRule`-s with different timings and change rates.
+> You can achieve `@keyframes` percentage-based sequencing by combining multiple `AnimationRule`-s with different timings and change rates. The same can be said about CSS timing functions – you can achieve similar resemblance by animation rule composition (currently, only linear transitions are supported but that might change if there is a need for that).
 
 ```typescript
 const DEFINITION: AnimationDefinition = [
@@ -98,9 +98,9 @@ Note that animation duration is automatically inferred by the rule that ends its
 
 #### Plugins
 
-The plugins system allows extending the animation functionality. Currently, there are two available plugins:
+The plugin system allows for extending the animation functionality. Currently, there are two available plugins:
 
-- `AnimationPlayer` – Used for development. Basically, as the name suggests, it renders animaiton controls for ease of use.
+- `AnimationPlayer` – Used for development. As the name suggests, it renders animation controls for ease of use.
 - `AnimationScrollHandler` – Enables page scroll control over the animation.
 
 ```typescript
@@ -108,7 +108,7 @@ animation.addPlugin(new AnimationScrollHandler(...));
 ```
 
 > [!TIP]
-> You can create your own plugin by extending `AnimationPlugin` interface
+> You can create your own plugin by extending the `AnimationPlugin` interface
 
 > [!CAUTION]
 > Use `animation.dispose()` on host component destroy, if you add any plugins as they might result in memory leaks or stale UI leftovers.
@@ -117,10 +117,10 @@ animation.addPlugin(new AnimationScrollHandler(...));
 
 It's worth mentioning that the speed of animation progression in the context of the scroll handler plugin is determined by both the animation duration and the provided timestep (check `AnimationConfig` for detailed info). The timings in the definition merely act as a way to describe relative timing among the different animation rules not absolute time of execution.
 
-By default, the plugin will add a spacer to the host element that will be tall enough to match the whole animation duration. This means it's implied that the animation layers use `position: fixed`. You can disable the spacer and use an alternative layout, if you desire.
+By default, the plugin will add a spacer to the host element that will be tall enough to match the whole animation duration. This means it's implied that the animation layers use `position: fixed`. You can disable the spacer and use an alternative layout if you desire.
 
 > [!TIP]
-> Apply transitions to to the animated properties when using the scroll handler. This might be needed since scrolling via mouse scroll wheel results in non-continuous `scrollY` which results in jagged animation.
+> Apply transitions to the animated properties when using the scroll handler. This might be needed since scrolling via mouse scroll wheel results in non-continuous `scrollY` which results in jagged animation.
 
 ## Limitations
 
@@ -128,13 +128,13 @@ There are certain limitations that come with the usage of the `Animation` API. M
 
 - _Parsing shorthand CSS properties like `border`_ – The animation processor won't be able to animate `1px solid red` <=> `20px solid red`, for example. In such cases, it is suggested to use the standard CSS properties that describe only the numeric part of the property, i.e. `border-width: 1px <=> 20px`.
 - _Only hex, `rgb` and `rgba` colors are supported_ – At this stage, color spaces like `hsl` or `lch`, for instance, are not supported.
-- _A sequence composed of numeric values with and without units is not supported (e.g. `margin: 0 20px`)_ – As the title suggests, this is not supported. Decorate all values with units instead. NOTE: If the numeric value is composed by a single zero-based number, the unit can be inferred/deduced.
-- _Not all transform functions are supported_ – You can check the list [here](https://github.com). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifing if it works or not.
+- _Not all transform functions are supported_ – You can check the list [here](https://github.com). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifying if it works or not.
+- _`calc` and `var` (and probably more) are not supported_ – The parser is not fully CSS-spec-compliant. There are probably more CSS perks that won't be parsable but the current functionality should be sufficient enough for rich animations.
 
 **Other limitations**
 
 - _Definition can't be changed dynamically_ – This means that you can't add additional layers or animation rules to the animation during its runtime.
-- _Number of animated elements_ – This is probably obvious but rendering a lot of elements and animating them can be computationally expensive and, respectively, degrade user experience. For such animations, use HTML Canvas solutions.
+- _Number of animated elements_ – This is probably obvious but rendering a lot of elements and animating them can be computationally expensive and, respectively, degrade the user experience. For such animations, use HTML Canvas solutions.
 
 ## How it works?
 
