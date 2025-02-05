@@ -7,7 +7,6 @@ import {
   Injector,
   input,
   viewChildren,
-  ViewContainerRef,
 } from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {WINDOW, isIos} from '@angular/docs';
@@ -54,7 +53,6 @@ type MeteorFieldData = {
 export class HomeAnimationComponent implements AfterViewInit {
   private readonly win = inject(WINDOW);
   private readonly animCreator = inject(AnimationCreatorService);
-  private readonly vcr = inject(ViewContainerRef);
   private readonly injector = inject(Injector);
   private readonly elementRef = inject(ElementRef);
   private animation?: Animation;
@@ -84,7 +82,6 @@ export class HomeAnimationComponent implements AfterViewInit {
         timestep: ANIM_TIMESTEP,
       })
       .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
-      // .addPlugin(new AnimationPlayer(this.vcr, 'right'))
       .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
   }
 

@@ -68,7 +68,6 @@ export class AnimationScrollHandler implements AnimationPlugin {
 
   /** Creates and stores a spacer that occupies/creates the scrollable space needed for the animation. */
   private _createSpacer() {
-    // Create the spacer and append it to the body.
     this.spacer = this.renderer.createElement('div');
     this.renderer.addClass(this.spacer, 'anim-scroll-spacer');
     this._updateSpacerHeight();

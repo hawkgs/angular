@@ -71,8 +71,6 @@ export class Animation {
     config?: Partial<AnimationConfig>,
   ) {
     this.renderer = injector.get(RendererFactory2).createRenderer(null, null);
-
-    // Merge the config with the default one, if incomplete.
     this.config = {...DEFAULT_CONFIG, ...(config || {})};
 
     // Set layer elements in the objects map.
@@ -147,7 +145,6 @@ export class Animation {
       console.warn("Animation: Can't play without a definition");
       return;
     }
-    // If the animation is completed, reset it on play.
     if (this.completed) {
       this.reset();
       this.completed = false;
@@ -233,7 +230,7 @@ export class Animation {
     if (time >= 0) {
       this.updateFrame(time);
 
-      // Uncomplete the animation, if it was completed.
+      // Un-complete the animation, if it was completed.
       this.completed = false;
     }
   }
@@ -298,7 +295,7 @@ export class Animation {
       return start < end && start <= time && time <= end;
     }) as DynamicAnimationRule<ParsedStyles>[];
 
-    // All styles/styles state relative to `time`.
+    // All styles/styles state at `time`.
     const stylesState = new Map<string, ParsedStyles>();
 
     // Extract the completed rules (their styles) directly ...
@@ -362,7 +359,7 @@ export class Animation {
       }
     }
 
-    // Apply the rule styles.
+    // Apply the new rule styles.
     for (const [selector, styles] of stylesState) {
       for (const [prop, value] of Object.entries(styles)) {
         this.setStyle(selector, prop, value);
@@ -441,7 +438,7 @@ export class Animation {
     }
   }
 
-  /** Extract the objects from the selectors and validate their rules.  */
+  /** Extract the objects from the selectors and validate their rules. */
   private extractObjectsAndValidateRules(definition: AnimationDefinition) {
     for (const rule of definition) {
       this.validateRules(rule);

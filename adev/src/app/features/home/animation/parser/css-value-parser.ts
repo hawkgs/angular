@@ -129,7 +129,6 @@ const transformValueHandler: ParserHandler = (tokens) => {
     const isBufferNumOnly = () => !paramBuffer.find((v) => typeof v === 'string');
 
     for (const token of tokens) {
-      // If function name is found
       if (typeof token === 'string' && SUPPORTED_FUNCS.includes(token)) {
         // If there is already an extracted function, add it to the values map
         if (paramPairs.length || paramBuffer.length) {

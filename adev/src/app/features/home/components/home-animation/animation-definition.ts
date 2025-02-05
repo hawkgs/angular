@@ -22,7 +22,6 @@ export const ANIM_TIMESTEP = 10; // In milliseconds
  * SELECTORS
  */
 
-// Layers and layer objects selectors
 const BANNERS_LAYER_ID = 'banners';
 const ADEV_BANNER = `${BANNERS_LAYER_ID} >> .adev-banner`;
 const LEARN_ANGULAR_BTN = `${BANNERS_LAYER_ID} >> .learn-angular`;
@@ -239,7 +238,7 @@ export function generateHomeAnimationDefinition(
   ];
 
   // "UwU logo" layer animation
-  // ************************************
+  // **************************
   const uwuLayerAnimation: AnimationDefinition = [
     {
       selector: UWU_LAYER_ID,
