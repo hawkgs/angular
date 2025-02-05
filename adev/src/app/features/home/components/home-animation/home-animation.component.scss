@@ -214,6 +214,21 @@ $transition: 200ms linear;
       }
     }
 
+    .uwu-layer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition:
+        transform $transition,
+        opacity $transition;
+
+      img {
+        user-select: none;
+        width: max(calc(700 * min(100vw, 2560px) / 1470), 350px);
+        height: auto;
+      }
+    }
+
     .works-at-any-scale-layer,
     .loved-by-millions-layer,
     .build-for-everyone-layer {

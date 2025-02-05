@@ -27,14 +27,6 @@
     width: 100%;
   }
 
-  .uwu-logo {
-    img {
-      user-select: none;
-      width: max(calc(700 * min(100vw, 2560px) / 1470), 350px);
-      height: auto;
-    }
-  }
-
   .adev-editor-scroll-container {
     position: relative;
     height: 300vh;

@@ -1,10 +1,4 @@
-@if (!isUwu) {
-  <adev-home-animation />
-} @else {
-  <div class="uwu-logo">
-    <img src="assets/images/uwu.png" alt="Angular logo" />
-  </div>
-}
+<adev-home-animation [isUwu]="isUwu" />
 <!-- TBD: markers description -->
 <div #lovedByMillions class="marker" style="top:3200px;border-top:1px solid red;"></div>
 <div #buildForEveryone class="marker" style="top:4200px;border-top:1px solid blue;"></div>

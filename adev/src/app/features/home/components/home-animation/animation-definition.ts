@@ -41,6 +41,8 @@ const L_LETTER = `${LOGO_LAYER_ID} >> .l-letter`;
 const A_LETTER = `${LOGO_LAYER_ID} >> .a-letter`;
 const R_LETTER = `${LOGO_LAYER_ID} >> .r-letter`;
 
+const UWU_LAYER_ID = 'uwu';
+
 const WORKS_AT_ANY_SCALE_LAYER_ID = 'works-at-any-scale';
 
 const METEOR_FIELD_LAYER_ID = 'meteor-field';
@@ -126,7 +128,10 @@ function meteorShower(
  */
 
 /** Generate the animation definition for the home page animation. */
-export function generateHomeAnimationDefinition(meteorCount: number): AnimationDefinition {
+export function generateHomeAnimationDefinition(
+  isUwu: boolean,
+  meteorCount: number,
+): AnimationDefinition {
   // Banners and buttons layer
   // *************************
   const bannersLayerAnim: AnimationDefinition = [
@@ -218,7 +223,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
         transform: 'scale(1) rotate(0deg)',
       },
       to: {
-        transform: 'scale(20) rotate(360deg)',
+        transform: 'scale(20) rotate(-360deg)',
       },
     },
     {
@@ -229,6 +234,31 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
       },
       to: {
         transform: 'scale(40) rotate(360deg)',
+      },
+    },
+  ];
+
+  // "UwU logo" layer animation
+  // ************************************
+  const uwuLayerAnimation: AnimationDefinition = [
+    {
+      selector: UWU_LAYER_ID,
+      timeframe: timeframe(0, 5.5),
+      from: {
+        transform: 'scale(1)',
+      },
+      to: {
+        transform: 'scale(0)',
+      },
+    },
+    {
+      selector: UWU_LAYER_ID,
+      timeframe: timeframe(4, 5.5),
+      from: {
+        opacity: '1',
+      },
+      to: {
+        opacity: '0',
       },
     },
   ];
@@ -401,7 +431,7 @@ export function generateHomeAnimationDefinition(meteorCount: number): AnimationD
 
   return [
     ...bannersLayerAnim,
-    ...logoLayerAnim,
+    ...(!isUwu ? logoLayerAnim : uwuLayerAnimation),
     ...waasLayerAnim,
     ...meteorFieldLayerAnim,
     ...lovedByMillionsAnim,

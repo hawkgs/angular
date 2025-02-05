@@ -5,6 +5,7 @@ import {
   ElementRef,
   inject,
   Injector,
+  input,
   viewChildren,
   ViewContainerRef,
 } from '@angular/core';
@@ -61,6 +62,7 @@ export class HomeAnimationComponent implements AfterViewInit {
 
   readonly animationLayers = viewChildren(AnimationLayerDirective);
   readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
+  readonly isUwu = input.required<boolean>();
 
   meteorFieldData: MeteorFieldData;
   meteors: number[];
@@ -82,7 +84,7 @@ export class HomeAnimationComponent implements AfterViewInit {
       .createAnimation(this.animationLayers(), {
         timestep: ANIM_TIMESTEP,
       })
-      .define(generateHomeAnimationDefinition(this.meteors.length))
+      .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
       .addPlugin(new AnimationPlayer(this.vcr, 'right'))
       .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
   }
@@ -91,6 +93,7 @@ export class HomeAnimationComponent implements AfterViewInit {
     this.animation?.dispose();
   }
 
+  /** Calculte the dimensions and sizes of a meteor – width, height, tail, tilt angle, etc. */
   private calculateMeteorDimensions(): MeteorDimensions {
     let width = METEOR_WIDTH_DEFAULT;
 
@@ -116,6 +119,7 @@ export class HomeAnimationComponent implements AfterViewInit {
     };
   }
 
+  /** Calculate the number of meteors and size of the field. */
   private calculateMeteorFieldData(meteorDim: MeteorDimensions): MeteorFieldData {
     const mW = meteorDim.width + meteorDim.gap;
     const mH = meteorDim.height + meteorDim.gap;
