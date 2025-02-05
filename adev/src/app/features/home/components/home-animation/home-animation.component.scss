@@ -1,4 +1,5 @@
 @use 'sass:math';
+@use '@angular/docs/styles/media-queries' as mq;
 
 /*
  * Global transition.
@@ -54,6 +55,12 @@ $transition: 200ms linear;
         margin-top: 0;
         margin-bottom: 0.5em;
         z-index: 1;
+
+        @include mq.for-tablet-landscape-down {
+          & {
+            font-size: 2rem;
+          }
+        }
       }
 
       p {
@@ -69,6 +76,10 @@ $transition: 200ms linear;
       p {
         background-color: var(--page-background);
         box-shadow: 0 0 20px 20px var(--page-background);
+
+        @include mq.for-desktop-down {
+          box-shadow: 0 0 10px 10px var(--page-background);
+        }
       }
     }
 
@@ -94,6 +105,19 @@ $transition: 200ms linear;
           transform $transition;
         top: var(--layout-padding);
         left: calc(var(--layout-padding) + var(--primary-nav-width));
+
+        @include mq.for-tablet-landscape-down {
+          & {
+            top: 6rem;
+            left: var(--layout-padding);
+          }
+        }
+
+        @include mq.for-phone-only {
+          & {
+            top: 5rem;
+          }
+        }
 
         h1,
         p {
@@ -182,8 +206,20 @@ $transition: 200ms linear;
       }
 
       .wrapper {
-        transform: scale(0.6);
+        transform: scale(0.55);
         transform-origin: 50% 50%;
+
+        @include mq.for-tablet-down {
+          & {
+            transform: scale(0.8);
+          }
+        }
+
+        @include mq.for-big-desktop-up {
+          & {
+            transform: scale(0.5);
+          }
+        }
 
         .logo {
           transition: transform $transition;

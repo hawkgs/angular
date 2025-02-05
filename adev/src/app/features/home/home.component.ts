@@ -8,7 +8,6 @@
 
 import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {isIos} from '@angular/docs';
 
 import {HomeAnimationComponent} from './components/home-animation/home-animation.component';
 import {CodeEditorComponent} from './components/home-editor.component';
@@ -27,6 +26,4 @@ export default class Home {
 
   protected readonly tutorialFiles = TUTORIALS_HOMEPAGE_DIRECTORY;
   protected readonly isUwu = 'uwu' in this.activatedRoute.snapshot.queryParams;
-
-  readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
 }

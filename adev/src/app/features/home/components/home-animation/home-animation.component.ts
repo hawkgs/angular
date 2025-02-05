@@ -13,7 +13,6 @@ import {RouterLink} from '@angular/router';
 import {WINDOW, isIos} from '@angular/docs';
 
 import {Animation, AnimationCreatorService, AnimationLayerDirective} from '../../animation';
-import {AnimationPlayer} from '../../animation/plugins/animation-player';
 import {AnimationScrollHandler} from '../../animation/plugins/animation-scroll-handler';
 import {generateHomeAnimationDefinition, ANIM_TIMESTEP} from './animation-definition';
 
@@ -85,7 +84,7 @@ export class HomeAnimationComponent implements AfterViewInit {
         timestep: ANIM_TIMESTEP,
       })
       .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
-      .addPlugin(new AnimationPlayer(this.vcr, 'right'))
+      // .addPlugin(new AnimationPlayer(this.vcr, 'right'))
       .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
   }
 

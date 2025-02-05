@@ -137,7 +137,7 @@ There are certain limitations that come with the usage of the `Animation` API. M
 
 - _Parsing shorthand CSS properties like `border`_ – The animation processor won't be able to animate `1px solid red` <=> `20px solid red`, for example. In such cases, it is suggested to use the standard CSS properties that describe only the numeric part of the property, i.e. `border-width: 1px <=> 20px`.
 - _Only hex, `rgb` and `rgba` colors are supported_ – At this stage, color spaces like `hsl` or `lch`, for instance, are not supported.
-- _Not all transform functions are supported_ – You can check the list [here](https://github.com/angular/angular/blob/docs/rework-home-page-animation/adev/src/app/features/home/animation/parser/css-value-parser.ts#L13). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifying if it works or not.
+- _Not all transform functions are supported_ – You can check the list [here](https://github.com/angular/angular/blob/main/adev/src/app/features/home/animation/parser/css-value-parser.ts#L13). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifying if it works or not.
 - _`calc` and `var` (and probably more) are not supported_ – The parser is not fully CSS-spec-compliant. There are probably more CSS perks that won't be parsable but the current functionality should be sufficient enough for rich animations.
 
 **Other limitations**
