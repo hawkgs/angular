@@ -14,7 +14,7 @@ const THIRD_WAVE_METEORS = 0.25;
 
 // Use to increase or decrease the animation duration (i.e. a fine tuning parameter).
 // Employed by `timeframe()` and `at()`.
-const TIMING_MULTIPLIER = 1.5;
+const TIMING_MULTIPLIER = 1.55;
 
 export const ANIM_TIMESTEP = 10; // In milliseconds
 
@@ -136,7 +136,7 @@ export function generateHomeAnimationDefinition(
   const bannersLayerAnim: AnimationDefinition = [
     {
       selector: ADEV_BANNER,
-      timeframe: timeframe(3, 5.5),
+      timeframe: timeframe(2, 3),
       from: {
         transform: 'translateY(0)',
       },
@@ -146,7 +146,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: LEARN_ANGULAR_BTN,
-      timeframe: timeframe(3.5, 5),
+      timeframe: timeframe(2.5, 3.5),
       from: {
         opacity: '1',
       },
@@ -156,7 +156,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: LEARN_ANGULAR_BTN,
-      at: at(5.5),
+      at: at(4),
       styles: {
         visibility: 'hidden',
       },
@@ -222,17 +222,7 @@ export function generateHomeAnimationDefinition(
         transform: 'scale(1) rotate(0deg)',
       },
       to: {
-        transform: 'scale(20) rotate(-360deg)',
-      },
-    },
-    {
-      selector: SHIELD,
-      timeframe: timeframe(10, 12),
-      from: {
-        transform: 'scale(20) rotate(360deg)',
-      },
-      to: {
-        transform: 'scale(40) rotate(360deg)',
+        transform: 'scale(50) rotate(-360deg)',
       },
     },
   ];
@@ -267,7 +257,7 @@ export function generateHomeAnimationDefinition(
   const waasLayerAnim: AnimationDefinition = [
     {
       selector: WORKS_AT_ANY_SCALE_LAYER_ID,
-      timeframe: timeframe(5.7, 10), // Make sure it appears after SHIELD_MIDDLE disappears.
+      timeframe: timeframe(5.7, 8), // Make sure it appears after SHIELD_MIDDLE disappears.
       from: {
         transform: 'scale(0.1)',
         opacity: '0',
@@ -279,7 +269,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: WORKS_AT_ANY_SCALE_LAYER_ID,
-      timeframe: timeframe(12.5, 14),
+      timeframe: timeframe(11, 12.5),
       from: {
         transform: 'scale(1)',
         opacity: '1',
@@ -298,10 +288,10 @@ export function generateHomeAnimationDefinition(
   const thirdWaveSize = meteorCount * THIRD_WAVE_METEORS;
 
   const meteorsInUse = new Set<number>();
-  const firstWave = meteorShower(11, firstWaveSize, meteorCount, meteorsInUse);
-  const secondWave = meteorShower(12.5, secondWaveSize, meteorCount, meteorsInUse);
-  const thirdWave = meteorShower(13, thirdWaveSize, meteorCount, meteorsInUse);
-  const lastWaveStart = 14.5;
+  const firstWave = meteorShower(8, firstWaveSize, meteorCount, meteorsInUse);
+  const secondWave = meteorShower(10, secondWaveSize, meteorCount, meteorsInUse);
+  const thirdWave = meteorShower(12, thirdWaveSize, meteorCount, meteorsInUse);
+  const lastWaveStart = 16;
 
   // For the last wave, just use the remaining meteors (don't use `meteorShower`).
   const lastWave: AnimationRule<Styles>[] = [];
@@ -314,14 +304,14 @@ export function generateHomeAnimationDefinition(
   const meteorFieldLayerAnim: AnimationDefinition = [
     {
       selector: METEOR_FIELD,
-      at: at(10),
+      at: at(7),
       styles: {
         display: 'flex',
       },
     },
     {
       selector: METEOR_FIELD,
-      timeframe: timeframe(11.5, 14.5),
+      timeframe: timeframe(8, 18),
       from: {
         transform: 'scale(1.42)',
       },
@@ -367,7 +357,7 @@ export function generateHomeAnimationDefinition(
   const lovedByMillionsAnim: AnimationDefinition = [
     {
       selector: LOVED_BY_MILLIONS_LAYER_ID,
-      timeframe: timeframe(14.5, 16.5),
+      timeframe: timeframe(14, 15.5),
       from: {
         transform: 'scale(0.75)',
         opacity: '0',
@@ -379,7 +369,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: LOVED_BY_MILLIONS_LAYER_ID,
-      timeframe: timeframe(19.5, 21),
+      timeframe: timeframe(19, 20.5),
       from: {
         transform: 'scale(1)',
         opacity: '1',
@@ -396,7 +386,7 @@ export function generateHomeAnimationDefinition(
   const buildForEveryoneAnim: AnimationDefinition = [
     {
       selector: BUILD_FOR_EVERYONE_LAYER_ID,
-      timeframe: timeframe(22.5, 25.5),
+      timeframe: timeframe(22, 25),
       from: {
         transform: 'scale(0.75)',
         opacity: '0',
@@ -408,7 +398,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: BUILD_FOR_EVERYONE_TITLE,
-      timeframe: timeframe(22.5, 25.5),
+      timeframe: timeframe(23, 25),
       from: {
         'background-position-x': '100%',
       },
@@ -418,7 +408,7 @@ export function generateHomeAnimationDefinition(
     },
     {
       selector: BUILD_FOR_EVERYONE_LAYER_ID,
-      timeframe: timeframe(28.5, 31),
+      timeframe: timeframe(29, 31.5),
       from: {
         opacity: '1',
       },

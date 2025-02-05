@@ -20,8 +20,8 @@ export const METEOR_GAP_RATIO = 1.33; // Use 0.7 for WebGL-like field. Renders a
 
 // A map with screen size to meteor width
 export const METEOR_WIDTH_MAP = [
-  [800, 80],
-  [1100, 100],
+  [800, 60],
+  [1100, 90],
 ];
 
 export const METEOR_WIDTH_DEFAULT = 120; // For screens larger than 1100px
