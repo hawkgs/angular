@@ -290,7 +290,7 @@ export class Animation {
    * @param time Time at which the animation should be rendered.
    */
   private updateFrame(time: number) {
-    const completedRules = this.rules.filter((r) => time > getEndTime(r));
+    const completedRules = this.rules.filter((r) => time >= getEndTime(r));
     const inProgressDynamicRules = this.rules.filter((r) => {
       const start = getStartTime(r);
       const end = getEndTime(r);
@@ -428,6 +428,15 @@ export class Animation {
         // when we go over the duration.
         this.pause();
         this.completed = true;
+
+        // Since the last frame can be few milliseconds behind the duration
+        // (e.g. duration = 5000; current time = 4998) when the animation is
+        // completed, we perform one additional call to updateFrame in order
+        // to visualize any remaining static rules that match exactly the end
+        // of the animation.
+        if (this.duration > this.currentTime) {
+          requestAnimationFrame(() => this.updateFrame(this.duration));
+        }
       }
     }
   }

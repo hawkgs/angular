@@ -382,6 +382,24 @@ describe('Animation', () => {
     }
   });
 
+  it('should animate a single static rule', () => {
+    animation.define([
+      {
+        selector: 'layer-2 >> .square',
+        at: 1.5,
+        styles: {
+          'top': '100px',
+        },
+      },
+    ]);
+
+    animation.seek(1);
+
+    const square = layerObjects.get('.square');
+
+    expect(square?.style.top).toEqual('100px');
+  });
+
   it('should track animation progress', () => {
     animation.define(DEFINITION);
     animation.seek(0.5);

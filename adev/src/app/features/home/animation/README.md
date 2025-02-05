@@ -21,6 +21,9 @@ To start, you need to divide your animation template into layers that make logic
 
 The layers should be styled as normal elements/components in the animation host component stylesheet. These styles will act as the initial animation styles.
 
+> [!CAUTION]
+> Do not style elements via the `style` attribute, if you plan to animate them. Stale styles are removed by the animation processor which means that any initial styles set via `style` will be cleared as well.
+
 ### Creating an `Animation` instance
 
 To create a new animation instance, you should use the `AnimationCreatorService` service in your animation host component as follows:
@@ -46,7 +49,13 @@ After you create an `Animation` instance, you have to provide your `AnimationDef
 animation.define(DEFINITION);
 ```
 
-The definition is where the actual animation is described. The API is very similar to CSS `@keyframes` where you provide start (`from`) and end (`to`) styles with the added extra that you now have control over the timing – when the animation processor should start applying the styles. Additionally, you have to specify the target element or layer (`<LAYER_ID> >> .<CLASS_NAME>`; for more details, check `AnimationDefinition` or `AnimationRule`).
+The definition is where the actual animation is described. The API is very similar to CSS `@keyframes` where you provide start (`from`) and end (`to`) styles with the added extra that you now have control over the timing – when the animation processor should start applying the styles. Additionally, you have to specify the target element or layer in the following format:
+
+```
+<LAYER_ID> >> .<CLASS_NAME>
+```
+
+The class name should be of an element within the layer. Accessing the layer directly without a specified element is supported as well (i.e. just use `<LAYER_ID>`). Pay attention to the dot in front of the class name. Although, internally, we are using `getElementsByClassName` the dot is still there in case we want to add support for other types of selectors in the future which will require switching to `getQuerySelectorAll`, for instance. It also provides some form of differentiation between the layer ID and the class name.
 
 > [!TIP]
 > You can achieve `@keyframes` percentage-based sequencing by combining multiple `AnimationRule`-s with different timings and change rates. The same can be said about CSS timing functions – you can achieve similar resemblance by animation rule composition (currently, only linear transitions are supported but that might change if there is a need for that).
@@ -74,7 +83,7 @@ It is suggested that the start styles match the initial styles of the element. G
 
 #### Static rules
 
-If you want to apply certain styles at a concrete time, you use a static animation rule instead:
+If you want to apply certain styles at a concrete time, you should use a static animation rule instead:
 
 ```typescript
 // Hides the layer at the 7th second.
@@ -108,7 +117,7 @@ animation.addPlugin(new AnimationScrollHandler(...));
 ```
 
 > [!TIP]
-> You can create your own plugin by extending the `AnimationPlugin` interface
+> You can create your own plugin by extending the `AnimationPlugin` interface.
 
 > [!CAUTION]
 > Use `animation.dispose()` on host component destroy, if you add any plugins as they might result in memory leaks or stale UI leftovers.
@@ -120,15 +129,15 @@ It's worth mentioning that the speed of animation progression in the context of 
 By default, the plugin will add a spacer to the host element that will be tall enough to match the whole animation duration. This means it's implied that the animation layers use `position: fixed`. You can disable the spacer and use an alternative layout if you desire.
 
 > [!TIP]
-> Apply transitions to the animated properties when using the scroll handler. This might be needed since scrolling via mouse scroll wheel results in non-continuous `scrollY` which results in jagged animation.
+> Apply transitions, as part of the initial styles, to the animated properties when using the scroll handler. This might be needed since scrolling via mouse scroll wheel results in non-continuous `scrollY` which results in jagged animation.
 
 ## Limitations
 
-There are certain limitations that come with the usage of the `Animation` API. Most of them are related to CSS property values parsing. So, it's crucial to understand that there are several data types – `numeric`, `transition`, `color` and `static` values. All values can be animated with the exclusion of static values. For example `display: block` is considered static (i.e. non-animatable). However, there are certain cases where the parser is unable to process a value that might be deemed numeric which will then be treated as static one. These cases are as follows:
+There are certain limitations that come with the usage of the `Animation` API. Most of them are related to CSS property values parsing. So, it's crucial to understand that there are several data types – `numeric`, `transition`, `color` and `static` values. All values can be animated with the exclusion of `static` values. For example `display: block` is considered static (i.e. non-animatable). However, there are certain cases where the parser is unable to process a value that might be deemed animatable/continuous which will then be treated as static one. These cases are as follows:
 
 - _Parsing shorthand CSS properties like `border`_ – The animation processor won't be able to animate `1px solid red` <=> `20px solid red`, for example. In such cases, it is suggested to use the standard CSS properties that describe only the numeric part of the property, i.e. `border-width: 1px <=> 20px`.
 - _Only hex, `rgb` and `rgba` colors are supported_ – At this stage, color spaces like `hsl` or `lch`, for instance, are not supported.
-- _Not all transform functions are supported_ – You can check the list [here](https://github.com). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifying if it works or not.
+- _Not all transform functions are supported_ – You can check the list [here](https://github.com/angular/angular/blob/docs/rework-home-page-animation/adev/src/app/features/home/animation/parser/css-value-parser.ts#L13). It's merely a preventative measure in case a new function is added to the standard that requires additional changes to the parser. You can try adding your desired function to the list and verifying if it works or not.
 - _`calc` and `var` (and probably more) are not supported_ – The parser is not fully CSS-spec-compliant. There are probably more CSS perks that won't be parsable but the current functionality should be sufficient enough for rich animations.
 
 **Other limitations**
