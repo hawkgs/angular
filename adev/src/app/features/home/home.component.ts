@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 
 import {HomeAnimationComponent} from './components/home-animation/home-animation.component';
@@ -26,4 +26,9 @@ export default class Home {
 
   protected readonly tutorialFiles = TUTORIALS_HOMEPAGE_DIRECTORY;
   protected readonly isUwu = 'uwu' in this.activatedRoute.snapshot.queryParams;
+  animationReady = signal<boolean>(false);
+
+  onAnimationReady(ready: boolean) {
+    this.animationReady.set(ready);
+  }
 }

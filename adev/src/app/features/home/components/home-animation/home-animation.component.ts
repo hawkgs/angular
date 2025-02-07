@@ -1,3 +1,11 @@
+/*!
+ * @license
+ * Copyright Google LLC All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.dev/license
+ */
+
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -7,6 +15,7 @@ import {
   Injector,
   input,
   OnDestroy,
+  output,
   viewChildren,
 } from '@angular/core';
 import {RouterLink} from '@angular/router';
@@ -61,6 +70,7 @@ export class HomeAnimationComponent implements OnDestroy {
   readonly animationLayers = viewChildren(AnimationLayerDirective);
   readonly ctaLink = isIos ? 'overview' : 'tutorials/learn-angular';
   readonly isUwu = input.required<boolean>();
+  readonly ready = output<boolean>();
 
   meteorFieldData: MeteorFieldData;
   meteors: number[];
@@ -84,6 +94,8 @@ export class HomeAnimationComponent implements OnDestroy {
           })
           .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
           .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
+
+        this.ready.emit(true);
       },
     });
   }
