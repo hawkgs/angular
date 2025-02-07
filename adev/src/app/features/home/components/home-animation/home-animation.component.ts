@@ -1,11 +1,12 @@
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
   Injector,
   input,
+  OnDestroy,
   viewChildren,
 } from '@angular/core';
 import {RouterLink} from '@angular/router';
@@ -50,7 +51,7 @@ type MeteorFieldData = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [AnimationCreatorService],
 })
-export class HomeAnimationComponent implements AfterViewInit {
+export class HomeAnimationComponent implements OnDestroy {
   private readonly win = inject(WINDOW);
   private readonly animCreator = inject(AnimationCreatorService);
   private readonly injector = inject(Injector);
@@ -74,15 +75,17 @@ export class HomeAnimationComponent implements AfterViewInit {
     this.meteors = new Array(this.meteorFieldData.count)
       .fill(1)
       .map(() => Math.round(Math.random() * 2 + 1));
-  }
 
-  ngAfterViewInit() {
-    this.animation = this.animCreator
-      .createAnimation(this.animationLayers(), {
-        timestep: ANIM_TIMESTEP,
-      })
-      .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
-      .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
+    afterNextRender({
+      read: () => {
+        this.animation = this.animCreator
+          .createAnimation(this.animationLayers(), {
+            timestep: ANIM_TIMESTEP,
+          })
+          .define(generateHomeAnimationDefinition(this.isUwu(), this.meteors.length))
+          .addPlugin(new AnimationScrollHandler(this.elementRef, this.injector));
+      },
+    });
   }
 
   ngOnDestroy() {

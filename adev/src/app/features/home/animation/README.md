@@ -33,10 +33,12 @@ class AnimationHost implements AfterViewInit {
   private animationCreator = inject(AnimationCreatorService);
   layers = viewChildren(AnimationLayerDirective);
 
-  ngAfterViewInit() {
-    // The layers must be provided
-    const animation = this.animationCreator.createAnimation(this.layers());
-    // ...
+  constructor() {
+    afterNextRender({ read: () => {
+      // The layers must be provided
+      const animation = this.animationCreator.createAnimation(this.layers());
+      // ...
+    }});
   }
 }
 ```
