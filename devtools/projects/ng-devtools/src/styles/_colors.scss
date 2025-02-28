@@ -40,7 +40,6 @@
     --color-073: #bbddfb;
     --color-055: #cfe8fc;
     --color-037: oklch(0.65 0.25 266 / 1);
-    --color-043: oklch(0.65 0.25 266/1);
 
     /* Purples */
     --color-051: #8a1882;
@@ -48,7 +47,6 @@
     --color-042: #c79eff;
 
     /* Grayscale (some of them have a miniscule blueish shade) */
-    --color-038: #000;
     --color-016: #000000;
     --color-005: rgb(17, 17, 17);
     --color-069: rgb(1, 1, 1, 0.2);
@@ -58,7 +56,7 @@
     --color-066: #262d36;
     --color-048: #2f2c2c;
     --color-071: rgb(41, 42, 45);
-    --color-079: #333;
+    --color-079: #333333;
     --color-007: #3e3e3e;
     --color-082: #303030;
     --color-011: #474747;
@@ -74,25 +72,23 @@
     --color-020: #c6c6c6;
     --color-006: #bcc5ce;
     --color-019: #dddddd;
-    --color-081: #ddd;
     --color-010: #e2e2e2;
     --color-017: #e8e8e8;
     --color-054: #ebf1fb;
     --color-070: rgb(243, 243, 243);
     --color-021: #f5f5f5;
     --color-023: #f3f3f3;
-    --color-013: #fff;
     --color-024: #ffffff;
 
     /* with Alpha channel */
     --color-028: rgba(0, 0, 0, 0.87);
     --color-001: rgba(0, 0, 0, 0.2);
     --color-060: rgba(0, 0, 0, 0.03);
-    --color-062: rgba(1, 1, 1, 0.05);
     --color-027: rgba(0, 0, 0, 0.12);
     --color-002: rgba(0, 0, 0, 0);
     --color-074: rgba(0, 0, 0, 0.05);
     --color-059: rgba(0, 0, 0, 0.003);
+    --color-062: rgba(1, 1, 1, 0.05);
     --color-076: rgba(165, 165, 165, 0.05);
     --color-029: rgba(255, 255, 255, 0.12);
     --color-030: rgba(255, 255, 255, 0.87);

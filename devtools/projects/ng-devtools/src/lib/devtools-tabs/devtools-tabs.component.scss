@@ -123,16 +123,16 @@ mat-icon {
 @include theme.dark-theme {
   .frame-selector {
     background-color: var(--color-012);
-    color: var(--color-013);
+    color: var(--color-024);
   }
 
   #app-angular-version {
-    color: var(--color-013);
+    color: var(--color-024);
   }
 
   #nav-buttons {
     button {
-      color: var(--color-013);
+      color: var(--color-024);
     }
   }
 
