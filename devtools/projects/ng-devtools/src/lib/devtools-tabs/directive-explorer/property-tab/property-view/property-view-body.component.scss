@@ -24,14 +24,14 @@
       }
 
       .docs-link {
-        color: #000000de;
+        color: var(--color-016)de;
         height: inherit;
         width: fit-content;
         font-size: initial;
         padding-left: 0.1rem;
 
         &:active {
-          color: #1b1aa5;
+          color: var(--color-009);
         }
       }
     }
@@ -50,10 +50,10 @@
 
     @include theme.dark-theme {
       .docs-link {
-        color: #bcc5ce;
+        color: var(--color-006);
 
         &:active {
-          color: #5caace;
+          color: var(--color-014);
         }
       }
     }

@@ -49,12 +49,12 @@
       text-overflow: ellipsis;
 
       &.warning-label {
-        color: #d83c34;
+        color: var(--color-033);
       }
     }
 
     .value {
-      color: #8a1882;
+      color: var(--color-051);
     }
   }
 
@@ -69,13 +69,13 @@
 
 @include theme.dark-theme {
   .details .value {
-    color: #5cadd3;
+    color: var(--color-063);
   }
 
   .warning-label {
-    color: #ff625a;
+    color: var(--color-034);
   }
   .details {
-    color: #ffffff;
+    color: var(--color-024);
   }
 }

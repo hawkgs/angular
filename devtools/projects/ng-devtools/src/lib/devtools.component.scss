@@ -2,19 +2,19 @@
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 0px var(--color-001);
   }
   100% {
-    box-shadow: 0 0 0 35px rgba(0, 0, 0, 0);
+    box-shadow: 0 0 0 35px var(--color-002);
   }
 }
 
 @keyframes darkmode-pulse {
   0% {
-    box-shadow: 0 0 0 0px rgb(126, 40, 40);
+    box-shadow: 0 0 0 0px var(--color-003);
   }
   100% {
-    box-shadow: 0 0 0 35px rgba(0, 0, 0, 0);
+    box-shadow: 0 0 0 35px var(--color-002);
   }
 }
 
@@ -32,7 +32,7 @@
 
 @include theme.dark-theme {
   .devtools-wrapper {
-    background: #202124;
+    background: var(--color-004);
   }
 
   .initializing {
@@ -74,7 +74,7 @@
     display: inline-block;
     font-size: 0.8em;
     border-radius: 50%;
-    border: solid 2px rgb(17, 17, 17);
+    border: solid 2px var(--color-005);
     cursor: pointer;
     width: 16px;
     height: 16px;
@@ -85,11 +85,11 @@
 
 @include theme.dark-theme {
   .info-icon {
-    border: solid 2px #bcc5ce;
+    border: solid 2px var(--color-006);
   }
 
   a {
-    color: #bcc5ce;
+    color: var(--color-006);
   }
 }
 
@@ -104,8 +104,8 @@
 
   code {
     padding: 2px;
-    color: lightgreen;
-    background: #3e3e3e;
+    color: var(--color-084);
+    background: var(--color-007);
     border-radius: 5px;
   }
 

@@ -31,6 +31,6 @@
 
 @include theme.dark-theme {
   .info {
-    color: #ffffff;
+    color: var(--color-024);
   }
 }

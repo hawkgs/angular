@@ -7,7 +7,7 @@
 
   .tree-node {
     position: relative;
-    color: #8a1882;
+    color: var(--color-051);
 
     cursor: default;
     font-family: Menlo, monospace;
@@ -38,47 +38,47 @@
     }
 
     .dir-names {
-      color: #9b4807;
+      color: var(--color-052);
     }
 
     .console-reference,
     .on-push {
-      color: #748591;
+      color: var(--color-053);
       padding-left: 8px;
       font-style: italic;
     }
 
     &:hover {
-      background-color: #ebf1fb;
+      background-color: var(--color-054);
     }
 
     &.matched {
-      background-color: #ebf1fb;
+      background-color: var(--color-054);
 
       &:hover {
-        background-color: #cfe8fc;
+        background-color: var(--color-055);
       }
     }
 
     &.selected,
     &.highlighted {
-      background-color: #cfe8fc;
+      background-color: var(--color-055);
     }
 
     .hydration {
       margin: auto 8px auto auto;
       font-size: 14px;
-      color: #60a6fc;
+      color: var(--color-056);
 
       position: sticky;
       right: 0;
 
       &.skipped {
-        color: #9a9a9a;
+        color: var(--color-057);
       }
 
       &.mismatched {
-        color: #ff0040;
+        color: var(--color-058);
       }
     }
   }
@@ -89,7 +89,7 @@
     background-color: transparent;
   }
   50% {
-    background-color: #cfe8fc;
+    background-color: var(--color-055);
   }
   100% {
     background-color: transparent;
@@ -112,8 +112,8 @@
 
   .filter-input {
     border: none;
-    background: rgba(0, 0, 0, 0.003);
-    box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
+    background: var(--color-059);
+    box-shadow: inset 0 -2px 1px var(--color-060);
     width: 100%;
     font-size: 2em;
     font-family: inherit;
@@ -135,7 +135,7 @@
 
 .angular-element {
   content: '';
-  color: #1b1aa5;
+  color: var(--color-009);
 
   &::before {
     content: '<';
@@ -147,13 +147,13 @@
 }
 
 .hydration-error {
-  color: #e62222;
+  color: var(--color-061);
   margin-left: 16px;
   padding: 0 8px 8px 0px;
 
   pre {
     margin: 0;
-    background: rgba(1, 1, 1, 0.05);
+    background: var(--color-062);
     padding: 8px;
     border-radius: 8px;
 
@@ -165,53 +165,53 @@
 
 @include theme.dark-theme {
   .tree-node {
-    color: #5cadd3;
+    color: var(--color-063);
 
     .mat-icon {
-      color: #bcc5ce;
+      color: var(--color-006);
     }
 
     .dir-names {
-      color: #91adcb;
+      color: var(--color-064);
     }
 
     .angular-element {
-      color: #dc8c61;
+      color: var(--color-065);
     }
 
     &:hover {
-      background-color: #262d36;
+      background-color: var(--color-066);
     }
 
     &.matched {
-      background-color: #262d36;
+      background-color: var(--color-066);
 
       &:hover {
-        background-color: #073d69;
+        background-color: var(--color-067);
       }
     }
 
     &.selected,
     &.highlighted {
-      background-color: #073d69;
+      background-color: var(--color-067);
     }
 
     .hydration {
-      color: #60a6fc;
+      color: var(--color-056);
 
       &.skipped {
-        color: #9a9a9a;
+        color: var(--color-057);
       }
 
       &.mismatched {
-        color: #ff0040;
+        color: var(--color-058);
       }
     }
 
     .hydration-error {
-      color: #ea7171;
+      color: var(--color-068);
       pre {
-        background: rgb(1, 1, 1, 0.2);
+        background: var(--color-069);
       }
     }
   }

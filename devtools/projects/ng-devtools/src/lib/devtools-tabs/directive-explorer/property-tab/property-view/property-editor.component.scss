@@ -10,8 +10,8 @@
 }
 
 .editor-input {
-  background-color: #bbddfb;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-073);
+  box-shadow: 0 0 0 1px var(--color-074);
 }
 
 input {
@@ -25,12 +25,12 @@ input {
 
 @include theme.dark-theme {
   input {
-    color: #bcc5ce;
-    background-color: #202124;
+    color: var(--color-006);
+    background-color: var(--color-004);
   }
 
   .editor-input {
-    background-color: #454546;
-    box-shadow: 0 0 0 1px rgba(165, 165, 165, 0.05);
+    background-color: var(--color-075);
+    box-shadow: 0 0 0 1px var(--color-076);
   }
 }

@@ -82,7 +82,7 @@ tr.example-detail-row {
 
 .example-element-diagram {
   min-width: 80px;
-  border: 2px solid black;
+  border: 2px solid var(--color-016);
   padding: 8px;
   font-weight: lighter;
   margin: 8px 0;
@@ -111,10 +111,10 @@ tr.example-detail-row {
 
 @include theme.dark-theme {
   .providers-title {
-    color: #ffffff;
+    color: var(--color-024);
   }
 
   .no-providers-label {
-    color: #bcc5ce;
+    color: var(--color-006);
   }
 }

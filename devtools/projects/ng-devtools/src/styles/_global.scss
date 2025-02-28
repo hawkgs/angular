@@ -2,8 +2,11 @@
 
 @use 'sass:map';
 @use 'external/npm/node_modules/@angular/material/index' as mat;
+@use './colors' as colors;
+
 @include mat.all-component-typographies();
 @include mat.core();
+@include colors.root-colors();
 
 html,
 body {
@@ -24,19 +27,19 @@ $dark-theme: map.deep-merge(
   (
     'color': (
       'background': (
-        background: #202124,
-        card: #202124,
+        background: colors.$color-004,
+        card: colors.$color-004,
       ),
       'foreground': (
-        text: #bcc5ce,
+        text: colors.$color-006,
       ),
     ),
     'background': (
-      background: #202124,
-      card: #202124,
+      background: colors.$color-004,
+      card: colors.$color-004,
     ),
     'foreground': (
-      'text': #bcc5ce,
+      'text': colors.$color-006,
     ),
   )
 );
@@ -53,7 +56,7 @@ $dark-theme: map.deep-merge(
 /* Keep class name in sync with ThemeService */
 .dark-theme {
   color-scheme: dark;
-  background: #202124;
+  background: var(--color-004);
   @include mat.all-component-themes($dark-theme);
 
   .mat-mdc-chip.mat-mdc-standard-chip {

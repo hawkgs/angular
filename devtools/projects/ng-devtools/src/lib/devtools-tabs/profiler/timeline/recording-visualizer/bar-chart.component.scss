@@ -37,6 +37,6 @@
 
 @include theme.dark-theme {
   .bar span {
-    color: #bcc5ce;
+    color: var(--color-006);
   }
 }

@@ -10,13 +10,13 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--color-081);
 }
 
 @include theme.dark-theme {
   .name,
   .method,
   .value {
-    color: #ffffff;
+    color: var(--color-024);
   }
 }
