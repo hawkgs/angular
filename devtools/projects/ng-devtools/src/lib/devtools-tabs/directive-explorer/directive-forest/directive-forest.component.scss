@@ -196,18 +196,6 @@
       background-color: var(--color-067);
     }
 
-    .hydration {
-      color: var(--color-056);
-
-      &.skipped {
-        color: var(--color-057);
-      }
-
-      &.mismatched {
-        color: var(--color-058);
-      }
-    }
-
     .hydration-error {
       color: var(--color-068);
       pre {

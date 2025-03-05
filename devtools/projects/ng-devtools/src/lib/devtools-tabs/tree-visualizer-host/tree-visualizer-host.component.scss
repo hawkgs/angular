@@ -131,19 +131,10 @@
 
     .link {
       stroke: var(--color-006);
-      fill: none;
-
-      &.highlighted {
-        stroke: var(--color-036);
-      }
     }
 
     .arrow {
       fill: var(--color-024);
-    }
-
-    .node-label {
-      color: var(--color-016);
     }
 
     .legend-router-tree {

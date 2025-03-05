@@ -138,10 +138,6 @@ mat-icon {
 
   #version-number {
     color: var(--color-014);
-
-    &.unsupported-version {
-      color: var(--color-083);
-    }
   }
 
   .inspector-active {
