@@ -49,7 +49,7 @@
       text-overflow: ellipsis;
 
       &.warning-label {
-        color: var(--color-033);
+        color: var(--color-032);
       }
     }
 
@@ -69,7 +69,7 @@
 
 @include theme.dark-theme {
   .details .value {
-    color: var(--color-063);
+    color: var(--color-014);
   }
 
   .warning-label {

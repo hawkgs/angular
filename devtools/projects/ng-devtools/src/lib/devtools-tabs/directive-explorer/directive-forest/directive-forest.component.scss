@@ -43,42 +43,42 @@
 
     .console-reference,
     .on-push {
-      color: var(--color-053);
+      color: var(--color-080);
       padding-left: 8px;
       font-style: italic;
     }
 
     &:hover {
-      background-color: var(--color-054);
+      background-color: var(--color-023);
     }
 
     &.matched {
-      background-color: var(--color-054);
+      background-color: var(--color-023);
 
       &:hover {
-        background-color: var(--color-055);
+        background-color: var(--color-044);
       }
     }
 
     &.selected,
     &.highlighted {
-      background-color: var(--color-055);
+      background-color: var(--color-044);
     }
 
     .hydration {
       margin: auto 8px auto auto;
       font-size: 14px;
-      color: var(--color-056);
+      color: var(--color-008);
 
       position: sticky;
       right: 0;
 
       &.skipped {
-        color: var(--color-057);
+        color: var(--color-035);
       }
 
       &.mismatched {
-        color: var(--color-058);
+        color: var(--color-083);
       }
     }
   }
@@ -89,7 +89,7 @@
     background-color: transparent;
   }
   50% {
-    background-color: var(--color-055);
+    background-color: var(--color-044);
   }
   100% {
     background-color: transparent;
@@ -147,7 +147,7 @@
 }
 
 .hydration-error {
-  color: var(--color-061);
+  color: var(--color-032);
   margin-left: 16px;
   padding: 0 8px 8px 0px;
 
@@ -165,10 +165,10 @@
 
 @include theme.dark-theme {
   .tree-node {
-    color: var(--color-063);
+    color: var(--color-014);
 
     .mat-icon {
-      color: var(--color-006);
+      color: var(--color-049);
     }
 
     .dir-names {
@@ -197,7 +197,7 @@
     }
 
     .hydration-error {
-      color: var(--color-068);
+      color: var(--color-034);
       pre {
         background: var(--color-069);
       }

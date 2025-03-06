@@ -10,7 +10,7 @@
 }
 
 .editor-input {
-  background-color: var(--color-073);
+  background-color: var(--color-044);
   box-shadow: 0 0 0 1px var(--color-074);
 }
 
@@ -25,7 +25,7 @@ input {
 
 @include theme.dark-theme {
   input {
-    color: var(--color-006);
+    color: var(--color-049);
     background-color: var(--color-004);
   }
 

@@ -21,7 +21,7 @@
         fill: none;
 
         &.highlighted {
-          stroke: var(--color-036);
+          stroke: var(--color-008);
         }
       }
 
@@ -31,7 +31,7 @@
         &.highlighted {
           .node-container,
           .node-container:hover {
-            background: var(--color-037);
+            background: var(--color-008);
             border-color: var(--color-024);
             color: var(--color-024);
             font-weight: 400;
@@ -40,10 +40,10 @@
           &.selected {
             .node-container,
             .node-container:hover {
-              color: var(--color-037);
+              color: var(--color-008);
               background: var(--color-024);
               border-width: 3px;
-              border-color: var(--color-037);
+              border-color: var(--color-008);
               font-weight: 800;
             }
           }
@@ -72,11 +72,11 @@
         }
 
         .node-environment {
-          border: 1px solid var(--color-039);
+          border: 1px solid var(--color-034);
           background: var(--color-040);
 
           &:hover {
-            background: var(--color-039);
+            background: var(--color-034);
           }
         }
 
@@ -90,7 +90,7 @@
         }
 
         .node-lazy {
-          border-color: var(--color-037);
+          border-color: var(--color-008);
           background: var(--color-044);
 
           &:hover {
@@ -100,7 +100,7 @@
 
         .node-element {
           border-color: var(--color-045);
-          background: var(--color-046);
+          background: var(--color-084);
 
           &:hover {
             background: var(--color-045);
@@ -108,7 +108,7 @@
         }
 
         .node-null {
-          border: 1px solid var(--color-047);
+          border: 1px solid var(--color-080);
           background: var(--color-024);
         }
 
@@ -126,11 +126,11 @@
 :host-context(.dark-theme) {
   svg ::ng-deep {
     .legend {
-      background: var(--color-048);
+      background: var(--color-004);
     }
 
     .link {
-      stroke: var(--color-006);
+      stroke: var(--color-049);
     }
 
     .arrow {

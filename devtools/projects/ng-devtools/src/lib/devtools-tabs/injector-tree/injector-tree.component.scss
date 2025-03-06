@@ -52,7 +52,7 @@ as-split-area {
       }
 
       .docs-link {
-        color: var(--color-016)de;
+        color: var(--color-016) de;
         height: inherit;
         width: fit-content;
         font-size: initial;
@@ -85,7 +85,7 @@ as-split-area {
         height: 90px;
         flex-shrink: 0;
         align-items: center;
-        border-right: 1px solid var(--color-017);
+        border-right: 1px solid var(--color-023);
       }
 
       .parameter {
@@ -109,20 +109,20 @@ as-split-area {
       }
 
       .parameter-name {
-        color: var(--color-018);
+        color: var(--color-032);
       }
 
       .parameter-flag {
         a {
           display: inline-block;
           padding: 0px 6px;
-          background: var(--color-019);
+          background: var(--color-049);
           border-radius: 10px;
           color: inherit;
           text-decoration: none;
 
           &:hover {
-            background: var(--color-020);
+            background: var(--color-049);
           }
         }
       }
@@ -158,16 +158,16 @@ as-split-area {
   display: flex;
   overflow: auto;
 
-  background: var(--color-021);
+  background: var(--color-023);
 
   .dep {
-    border-top: 1px solid var(--color-017);
-    border-bottom: 1px solid var(--color-017);
-    border-left: 1px solid var(--color-017);
+    border-top: 1px solid var(--color-023);
+    border-bottom: 1px solid var(--color-023);
+    border-left: 1px solid var(--color-023);
     padding: 1rem;
 
     &:last-of-type {
-      border-right: 1px solid var(--color-017);
+      border-right: 1px solid var(--color-023);
     }
 
     .dep-header {
@@ -191,7 +191,7 @@ as-split-area {
   font-size: 11px;
   font-weight: 500;
   height: auto;
-  background: var(--color-021);
+  background: var(--color-023);
 }
 
 .injector-hierarchy {
@@ -203,7 +203,7 @@ as-split-area {
     margin: 0;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--color-022);
+    border-bottom: 1px solid var(--color-080);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -237,10 +237,10 @@ as-split-area {
   }
 
   .deps {
-    background: var(--color-025);
+    background: var(--color-004);
   }
 
   .injector-graph {
-    background: var(--color-026);
+    background: var(--color-004);
   }
 }

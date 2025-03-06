@@ -23,7 +23,7 @@
     }
 
     &.type-element {
-      background: var(--color-050);
+      background: var(--color-084);
     }
 
     &.type-imported {
@@ -76,6 +76,6 @@
 @include theme.dark-theme {
   :host,
   .node:not(:last-of-type)::before {
-    background: var(--color-026);
+    background: var(--color-004);
   }
 }

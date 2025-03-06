@@ -4,16 +4,9 @@
     /* Reds */
     --color-003: rgb(126, 40, 40);
     --color-052: #9b4807;
-    --color-077: #ce271e;
-    --color-018: #d23a32;
     --color-032: #d32f2f;
-    --color-033: #d83c34;
-    --color-061: #e62222;
-    --color-058: #ff0040;
     --color-083: #ff0000;
-    --color-034: #ff625a; // D; of 033
-    --color-039: #ff7a7e;
-    --color-068: #ea7171; // D; of 061
+    --color-034: #ff625a; // D|L; of 032
     --color-065: #dc8c61; // D; of 009
     --color-040: #f9c2c5;
 
@@ -21,25 +14,15 @@
     --color-031: #388e3c;
     --color-045: #28ab2c;
     --color-084: rgb(144, 238, 144);
-    --color-046: #a7d5a9;
-    --color-050: #a6d5a9;
     --color-078: #54c9bd; // D; of 077
 
     /* Blues */
-    --color-067: #073d69; // D; of 055
-    --color-072: #093e69; // D; of 054
+    --color-067: #073d69; // D; of 055, 054
     --color-009: #1b1aa5;
     --color-008: #1a73e8;
-    --color-037: oklch(0.65 0.25 266 / 1);
-    --color-015: #4688f1; // D; of 008
-    --color-036: #4da1ff;
-    --color-056: #60a6fc;
     --color-014: #5caace; // D; of 009, 051
-    --color-063: #5cadd3; // D; of 051
-    --color-044: #8bc1ff;
     --color-064: #91adcb; // D; of 052
-    --color-073: #bbddfb;
-    --color-055: #cfe8fc;
+    --color-044: #8bc1ff;
 
     /* Purples */
     --color-051: #8a1882;
@@ -48,34 +31,13 @@
 
     /* Grayscale (some of them have a miniscule blueish shade) */
     --color-016: #000000;
-    --color-005: rgb(17, 17, 17);
-    --color-025: #161515; // D; of 021
-    --color-026: #1a1a1a; // D; of 023
-    --color-004: #202124; // D; of 024
     --color-066: #262d36; // D; of 054
-    --color-048: #2f2c2c; // D;
-    --color-071: rgb(41, 42, 45); // D; of 070
-    --color-079: #333333;
-    --color-007: #3e3e3e;
-    --color-082: #303030; // D;
-    --color-011: #474747;
-    --color-012: #464646; // D; of 010
-    --color-075: #454546; // D; of 073
+    --color-004: #202124; // D|L; of 024, 023
+    --color-082: #303030; // D|L;
+    --color-075: #454546; // D|L; of 044, 010
     --color-080: #6e6e6e;
-    --color-022: #777777;
-    --color-053: #748591;
-    --color-047: #8b8b8b;
     --color-035: #9b9b9b;
-    --color-057: #9a9a9a;
-    --color-049: #c4c4c4;
-    --color-020: #c6c6c6;
-    --color-006: #bcc5ce; // D; of 005, 016, 035
-    --color-019: #dddddd;
-    --color-010: #e2e2e2;
-    --color-017: #e8e8e8;
-    --color-054: #ebf1fb;
-    --color-070: rgb(243, 243, 243);
-    --color-021: #f5f5f5;
+    --color-049: #c4c4c4; // D|L; of 004, 016, 035
     --color-023: #f3f3f3;
     --color-024: #ffffff; // D|L; of 011, 028
 
@@ -97,4 +59,4 @@
 
 /* Temporary */
 $color-004: #202124;
-$color-006: #bcc5ce;
+$color-049: #c4c4c4;

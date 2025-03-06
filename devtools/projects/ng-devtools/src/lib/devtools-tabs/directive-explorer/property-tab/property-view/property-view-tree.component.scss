@@ -38,7 +38,7 @@
   margin: 5px 5px 5px 15px;
   mat-tree-node {
     .name {
-      color: var(--color-077);
+      color: var(--color-032);
       font-weight: 500;
     }
   }
@@ -54,7 +54,7 @@
 
 .property-list mat-tree-node.disabled .name,
 .disabled {
-  color: var(--color-079);
+  color: var(--color-082);
 }
 
 .arrow {

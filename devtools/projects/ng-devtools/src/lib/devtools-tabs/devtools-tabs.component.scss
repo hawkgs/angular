@@ -109,9 +109,9 @@ mat-icon {
 }
 
 .frame-selector {
-  background-color: var(--color-010);
+  background-color: var(--color-049);
   border-radius: 2px;
-  color: var(--color-011);
+  color: var(--color-075);
   border: none;
   margin: 4px 4px 2px 4px;
   padding: 2px;
@@ -122,7 +122,7 @@ mat-icon {
 
 @include theme.dark-theme {
   .frame-selector {
-    background-color: var(--color-012);
+    background-color: var(--color-075);
     color: var(--color-024);
   }
 
@@ -138,9 +138,5 @@ mat-icon {
 
   #version-number {
     color: var(--color-014);
-  }
-
-  .inspector-active {
-    color: var(--color-015) !important;
   }
 }
