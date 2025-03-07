@@ -1,7 +1,7 @@
 @mixin root-colors {
   :root {
     /* Reds */
-    --red-01: #7e2828;
+    --red-01: #7e2828; // D; of red-07
     --red-02: #9b4807;
     --red-03: #d32f2f;
     --red-04: #ff0000;
@@ -16,7 +16,7 @@
     --green-04: #54c9bd; // D; of red-03
 
     /* Blues */
-    --blue-01: #073d69; // D; of blue-06, gray-100
+    --blue-01: #073d69; // D; of blue-06
     --blue-02: #1b1aa5;
     --blue-03: #1a73e8;
     --blue-04: #5caace; // D; of blue-02, purple-01
@@ -31,21 +31,18 @@
     /* Grayscale */
     --black: #000000;
     --gray-800: #262d36; // D; of gray-100
-    --gray-700: #202124; // D|L; of white, gray-100
+    --gray-700: #202124; // D|L; of white, gray-100; BACKGROUND
     --gray-600: #303030; // D|L;
-    --gray-500: #454546; // D|L; of blue-06, gray-200
+    --gray-500: #454546; // D|L; of gray-100, gray-200
     --gray-400: #6e6e6e;
     --gray-300: #9b9b9b;
-    --gray-200: #c4c4c4; // D|L; of gray-700, black, gray-300
-    --gray-100: #f3f3f3;
-    --white: #ffffff; // D|L; of gray-500, alpha-01
+    --gray-200: #c4c4c4; // D|L; of gray-700, black
+    --gray-100: #f3f3f3; // D|L; of black
+    --white: #ffffff; // D|L; of gray-500, black
 
     /* with Alpha channel */
-    --alpha-01: rgba(0, 0, 0, 0.87);
     --alpha-02: rgba(1, 1, 1, 0.2); // D|L; of alpha-03
     --alpha-03: rgba(0, 0, 0, 0.03);
-    --alpha-04: rgba(255, 255, 255, 0.12); // D; of alpha-02
-    --alpha-05: rgba(255, 255, 255, 0.87); // D; of alpha-01
   }
 }
 
