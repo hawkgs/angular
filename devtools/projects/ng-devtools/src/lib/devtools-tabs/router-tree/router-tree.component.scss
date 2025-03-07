@@ -9,7 +9,7 @@
 }
 
 .filter-input {
-  border: 1px solid var(--color-069);
+  border: 1px solid var(--alpha-02);
   border-radius: 3px;
   padding-left: 5px;
   margin: 0 5px 0 10px;
@@ -17,12 +17,12 @@
   font-size: 11px;
   height: 28px;
   outline: none;
-  color: var(--color-028);
+  color: var(--alpha-01);
 }
 
 @include theme.dark-theme {
   .filter-input {
-    border: 1px solid var(--color-029);
-    color: var(--color-030);
+    border: 1px solid var(--alpha-04);
+    color: var(--alpha-05);
   }
 }

@@ -1,55 +1,54 @@
 @mixin root-colors {
-  /* Todo: Add context/classify */
   :root {
     /* Reds */
-    --color-003: rgb(126, 40, 40);
-    --color-052: #9b4807;
-    --color-032: #d32f2f;
-    --color-083: #ff0000;
-    --color-034: #ff625a; // D|L; of 032
-    --color-065: #dc8c61; // D; of 009
-    --color-040: #f9c2c5;
+    --red-01: #7e2828;
+    --red-02: #9b4807;
+    --red-03: #d32f2f;
+    --red-04: #ff0000;
+    --red-05: #ff625a; // D|L; of red-03
+    --red-06: #dc8c61; // D; of blue-02
+    --red-07: #f9c2c5;
 
     /* Greens */
-    --color-031: #388e3c;
-    --color-045: #28ab2c;
-    --color-084: rgb(144, 238, 144);
-    --color-078: #54c9bd; // D; of 032
+    --green-01: #388e3c;
+    --green-02: #28ab2c;
+    --green-03: #90ee90;
+    --green-04: #54c9bd; // D; of red-03
 
     /* Blues */
-    --color-067: #073d69; // D; of 044, 054
-    --color-009: #1b1aa5;
-    --color-008: #1a73e8;
-    --color-014: #5caace; // D; of 009, 051
-    --color-064: #91adcb; // D; of 052
-    --color-044: #8bc1ff;
+    --blue-01: #073d69; // D; of blue-06, gray-100
+    --blue-02: #1b1aa5;
+    --blue-03: #1a73e8;
+    --blue-04: #5caace; // D; of blue-02, purple-01
+    --blue-05: #91adcb; // D; of red-02
+    --blue-06: #8bc1ff;
 
     /* Purples */
-    --color-051: #8a1882;
-    --color-041: #8838f7;
-    --color-042: #c79eff;
+    --purple-01: #8a1882;
+    --purple-02: #8838f7;
+    --purple-03: #c79eff;
 
     /* Grayscale */
-    --color-016: #000000;
-    --color-066: #262d36; // D; of 023
-    --color-004: #202124; // D|L; of 024, 023
-    --color-082: #303030; // D|L;
-    --color-075: #454546; // D|L; of 044, 049
-    --color-080: #6e6e6e;
-    --color-035: #9b9b9b;
-    --color-049: #c4c4c4; // D|L; of 004, 016, 035
-    --color-023: #f3f3f3;
-    --color-024: #ffffff; // D|L; of 075, 028
+    --black: #000000;
+    --gray-800: #262d36; // D; of gray-100
+    --gray-700: #202124; // D|L; of white, gray-100
+    --gray-600: #303030; // D|L;
+    --gray-500: #454546; // D|L; of blue-06, gray-200
+    --gray-400: #6e6e6e;
+    --gray-300: #9b9b9b;
+    --gray-200: #c4c4c4; // D|L; of gray-700, black, gray-300
+    --gray-100: #f3f3f3;
+    --white: #ffffff; // D|L; of gray-500, alpha-01
 
     /* with Alpha channel */
-    --color-028: rgba(0, 0, 0, 0.87);
-    --color-069: rgba(1, 1, 1, 0.2); // D|L; of 060
-    --color-060: rgba(0, 0, 0, 0.03);
-    --color-029: rgba(255, 255, 255, 0.12); // D; of 069
-    --color-030: rgba(255, 255, 255, 0.87); // D; of 028
+    --alpha-01: rgba(0, 0, 0, 0.87);
+    --alpha-02: rgba(1, 1, 1, 0.2); // D|L; of alpha-03
+    --alpha-03: rgba(0, 0, 0, 0.03);
+    --alpha-04: rgba(255, 255, 255, 0.12); // D; of alpha-02
+    --alpha-05: rgba(255, 255, 255, 0.87); // D; of alpha-01
   }
 }
 
 /* Temporary */
-$color-004: #202124;
-$color-049: #c4c4c4;
+$gray-700: #202124;
+$gray-200: #c4c4c4;

@@ -17,7 +17,7 @@
 
   ::ng-deep {
     .ngx-fg-label {
-      color: var(--color-016);
+      color: var(--black);
       font-weight: 500;
       font-size: 1em;
     }
@@ -26,18 +26,18 @@
   @include theme.dark-theme {
     .entry-statistics {
       span {
-        color: var(--color-078);
+        color: var(--green-04);
       }
     }
 
     ::ng-deep {
       .ngx-fg-rect {
-        stroke: var(--color-082);
+        stroke: var(--gray-600);
         transition: none;
       }
 
       .ngx-fg-label {
-        color: var(--color-049);
+        color: var(--gray-200);
       }
 
       .ngx-fg-svg-g {

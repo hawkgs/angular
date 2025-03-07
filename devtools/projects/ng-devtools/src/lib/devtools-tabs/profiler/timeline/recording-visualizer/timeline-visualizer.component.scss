@@ -47,7 +47,7 @@
   }
 
   span {
-    color: var(--color-051);
+    color: var(--purple-01);
   }
 }
 
@@ -64,11 +64,11 @@ ul {
 @include theme.dark-theme {
   .entry-statistics {
     span {
-      color: var(--color-014);
+      color: var(--blue-04);
     }
   }
 
   .txt-total-time {
-    color: var(--color-024);
+    color: var(--white);
   }
 }

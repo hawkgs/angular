@@ -7,7 +7,7 @@
 
   .tree-node {
     position: relative;
-    color: var(--color-051);
+    color: var(--purple-01);
 
     cursor: default;
     font-family: Menlo, monospace;
@@ -38,47 +38,47 @@
     }
 
     .dir-names {
-      color: var(--color-052);
+      color: var(--red-02);
     }
 
     .console-reference,
     .on-push {
-      color: var(--color-080);
+      color: var(--gray-400);
       padding-left: 8px;
       font-style: italic;
     }
 
     &:hover {
-      background-color: var(--color-023);
+      background-color: var(--gray-100);
     }
 
     &.matched {
-      background-color: var(--color-023);
+      background-color: var(--gray-100);
 
       &:hover {
-        background-color: var(--color-044);
+        background-color: var(--blue-06);
       }
     }
 
     &.selected,
     &.highlighted {
-      background-color: var(--color-044);
+      background-color: var(--blue-06);
     }
 
     .hydration {
       margin: auto 8px auto auto;
       font-size: 14px;
-      color: var(--color-008);
+      color: var(--blue-03);
 
       position: sticky;
       right: 0;
 
       &.skipped {
-        color: var(--color-035);
+        color: var(--gray-300);
       }
 
       &.mismatched {
-        color: var(--color-083);
+        color: var(--red-04);
       }
     }
   }
@@ -89,7 +89,7 @@
     background-color: transparent;
   }
   50% {
-    background-color: var(--color-044);
+    background-color: var(--blue-06);
   }
   100% {
     background-color: transparent;
@@ -112,8 +112,8 @@
 
   .filter-input {
     border: none;
-    background: var(--color-060);
-    box-shadow: inset 0 -2px 1px var(--color-060);
+    background: var(--alpha-03);
+    box-shadow: inset 0 -2px 1px var(--alpha-03);
     width: 100%;
     font-size: 2em;
     font-family: inherit;
@@ -135,7 +135,7 @@
 
 .angular-element {
   content: '';
-  color: var(--color-009);
+  color: var(--blue-02);
 
   &::before {
     content: '<';
@@ -147,13 +147,13 @@
 }
 
 .hydration-error {
-  color: var(--color-032);
+  color: var(--red-03);
   margin-left: 16px;
   padding: 0 8px 8px 0px;
 
   pre {
     margin: 0;
-    background: var(--color-060);
+    background: var(--alpha-03);
     padding: 8px;
     border-radius: 8px;
 
@@ -165,41 +165,41 @@
 
 @include theme.dark-theme {
   .tree-node {
-    color: var(--color-014);
+    color: var(--blue-04);
 
     .mat-icon {
-      color: var(--color-049);
+      color: var(--gray-200);
     }
 
     .dir-names {
-      color: var(--color-064);
+      color: var(--blue-05);
     }
 
     .angular-element {
-      color: var(--color-065);
+      color: var(--red-06);
     }
 
     &:hover {
-      background-color: var(--color-066);
+      background-color: var(--gray-800);
     }
 
     &.matched {
-      background-color: var(--color-066);
+      background-color: var(--gray-800);
 
       &:hover {
-        background-color: var(--color-067);
+        background-color: var(--blue-01);
       }
     }
 
     &.selected,
     &.highlighted {
-      background-color: var(--color-067);
+      background-color: var(--blue-01);
     }
 
     .hydration-error {
-      color: var(--color-034);
+      color: var(--red-05);
       pre {
-        background: var(--color-069);
+        background: var(--alpha-02);
       }
     }
   }

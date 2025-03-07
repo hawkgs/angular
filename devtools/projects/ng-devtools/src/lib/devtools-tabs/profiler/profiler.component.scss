@@ -21,7 +21,7 @@
   cursor: pointer;
 
   &.recording-button {
-    color: var(--color-032);
+    color: var(--red-03);
   }
 }
 
@@ -40,7 +40,7 @@
 
 @include theme.dark-theme {
   .instructions {
-    color: var(--color-024);
+    color: var(--white);
   }
 }
 
@@ -58,7 +58,7 @@
 @include theme.dark-theme {
   .profiler-control {
     &.recording-button {
-      color: var(--color-034);
+      color: var(--red-05);
     }
   }
 }

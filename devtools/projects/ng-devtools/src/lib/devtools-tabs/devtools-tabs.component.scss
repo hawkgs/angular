@@ -39,7 +39,7 @@ ng-injector-tree.hidden {
 }
 
 .inspector-active {
-  color: var(--color-008) !important;
+  color: var(--blue-03) !important;
 }
 
 #app-angular-version {
@@ -54,7 +54,7 @@ ng-injector-tree.hidden {
 }
 
 #version-number {
-  color: var(--color-009);
+  color: var(--blue-02);
   cursor: text;
   -moz-user-select: text;
   -khtml-user-select: text;
@@ -63,7 +63,7 @@ ng-injector-tree.hidden {
   user-select: text;
 
   &.unsupported-version {
-    color: var(--color-083);
+    color: var(--red-04);
   }
 }
 
@@ -109,9 +109,9 @@ mat-icon {
 }
 
 .frame-selector {
-  background-color: var(--color-049);
+  background-color: var(--gray-200);
   border-radius: 2px;
-  color: var(--color-075);
+  color: var(--gray-500);
   border: none;
   margin: 4px 4px 2px 4px;
   padding: 2px;
@@ -122,21 +122,21 @@ mat-icon {
 
 @include theme.dark-theme {
   .frame-selector {
-    background-color: var(--color-075);
-    color: var(--color-024);
+    background-color: var(--gray-500);
+    color: var(--white);
   }
 
   #app-angular-version {
-    color: var(--color-024);
+    color: var(--white);
   }
 
   #nav-buttons {
     button {
-      color: var(--color-024);
+      color: var(--white);
     }
   }
 
   #version-number {
-    color: var(--color-014);
+    color: var(--blue-04);
   }
 }

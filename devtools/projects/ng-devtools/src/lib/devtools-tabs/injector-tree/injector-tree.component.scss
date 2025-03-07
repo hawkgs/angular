@@ -52,14 +52,14 @@ as-split-area {
       }
 
       .docs-link {
-        color: var(--color-016) de;
+        color: var(--black) de;
         height: inherit;
         width: fit-content;
         font-size: initial;
         padding-left: 0.1rem;
 
         &:active {
-          color: var(--color-009);
+          color: var(--blue-02);
         }
       }
     }
@@ -85,7 +85,7 @@ as-split-area {
         height: 90px;
         flex-shrink: 0;
         align-items: center;
-        border-right: 1px solid var(--color-023);
+        border-right: 1px solid var(--gray-100);
       }
 
       .parameter {
@@ -109,20 +109,20 @@ as-split-area {
       }
 
       .parameter-name {
-        color: var(--color-032);
+        color: var(--red-03);
       }
 
       .parameter-flag {
         a {
           display: inline-block;
           padding: 0px 6px;
-          background: var(--color-049);
+          background: var(--gray-200);
           border-radius: 10px;
           color: inherit;
           text-decoration: none;
 
           &:hover {
-            background: var(--color-049);
+            background: var(--gray-200);
           }
         }
       }
@@ -158,16 +158,16 @@ as-split-area {
   display: flex;
   overflow: auto;
 
-  background: var(--color-023);
+  background: var(--gray-100);
 
   .dep {
-    border-top: 1px solid var(--color-023);
-    border-bottom: 1px solid var(--color-023);
-    border-left: 1px solid var(--color-023);
+    border-top: 1px solid var(--gray-100);
+    border-bottom: 1px solid var(--gray-100);
+    border-left: 1px solid var(--gray-100);
     padding: 1rem;
 
     &:last-of-type {
-      border-right: 1px solid var(--color-023);
+      border-right: 1px solid var(--gray-100);
     }
 
     .dep-header {
@@ -191,7 +191,7 @@ as-split-area {
   font-size: 11px;
   font-weight: 500;
   height: auto;
-  background: var(--color-023);
+  background: var(--gray-100);
 }
 
 .injector-hierarchy {
@@ -203,7 +203,7 @@ as-split-area {
     margin: 0;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--color-080);
+    border-bottom: 1px solid var(--gray-400);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -220,7 +220,7 @@ as-split-area {
 
 .injector-graph {
   overflow: auto;
-  background: var(--color-023);
+  background: var(--gray-100);
   height: calc(100% - 50px);
 }
 
@@ -232,15 +232,15 @@ as-split-area {
 @include theme.dark-theme {
   .injector-hierarchy {
     h2 {
-      color: var(--color-024);
+      color: var(--white);
     }
   }
 
   .deps {
-    background: var(--color-004);
+    background: var(--gray-700);
   }
 
   .injector-graph {
-    background: var(--color-004);
+    background: var(--gray-700);
   }
 }

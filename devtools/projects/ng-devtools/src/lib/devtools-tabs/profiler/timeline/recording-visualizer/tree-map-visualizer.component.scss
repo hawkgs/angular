@@ -12,7 +12,7 @@
       font-size: 0.9em;
     }
     .webtreemap-node:hover {
-      background: var(--color-023);
+      background: var(--gray-100);
     }
   }
 }
@@ -20,13 +20,13 @@
 @include theme.dark-theme {
   ::ng-deep {
     .webtreemap-node {
-      background: var(--color-004);
+      background: var(--gray-700);
     }
     .webtreemap-node:hover {
-      background: var(--color-066);
+      background: var(--gray-800);
     }
     .webtreemap-caption {
-      color: var(--color-024);
+      color: var(--white);
     }
   }
 }

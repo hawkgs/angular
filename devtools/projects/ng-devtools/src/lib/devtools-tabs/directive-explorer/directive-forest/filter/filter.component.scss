@@ -5,7 +5,7 @@
   padding: 0px;
   border-radius: 0px;
   box-shadow: none !important;
-  border-bottom: 1px solid var(--color-069);
+  border-bottom: 1px solid var(--alpha-02);
 
   label {
     display: flex;
@@ -25,7 +25,7 @@
 
     .filter-input {
       border: none;
-      border-left: 1px solid var(--color-069);
+      border-left: 1px solid var(--alpha-02);
       padding-left: 5px;
       width: 100%;
       font-size: 11px;
@@ -33,7 +33,7 @@
       font-weight: inherit;
       height: 30px;
       outline: none;
-      color: var(--color-028);
+      color: var(--alpha-01);
     }
   }
 }
@@ -69,13 +69,13 @@
   .filter {
     label {
       .filter-input {
-        background-color: var(--color-004);
-        color: var(--color-024);
+        background-color: var(--gray-700);
+        color: var(--white);
       }
     }
   }
 
   mat-icon {
-    color: var(--color-024);
+    color: var(--white);
   }
 }

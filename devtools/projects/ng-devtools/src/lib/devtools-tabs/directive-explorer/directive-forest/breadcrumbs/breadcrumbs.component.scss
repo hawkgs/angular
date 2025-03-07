@@ -9,7 +9,7 @@
 
   .scroll-button {
     height: 100%;
-    background-color: var(--color-023);
+    background-color: var(--gray-100);
     border: none;
     cursor: pointer;
 
@@ -34,7 +34,7 @@
       height: 24px;
 
       &.selected {
-        background-color: var(--color-023);
+        background-color: var(--gray-100);
       }
     }
   }
@@ -45,10 +45,10 @@
     font-size: 11px;
     margin-right: 5px;
     width: fit-content;
-    color: var(--color-051);
+    color: var(--purple-01);
 
     &:hover {
-      background-color: var(--color-023);
+      background-color: var(--gray-100);
     }
   }
 }
@@ -57,22 +57,22 @@
   .mdc-card {
     &.breadcrumb-card {
       .scroll-button {
-        background-color: var(--color-004);
-        color: var(--color-024);
+        background-color: var(--gray-700);
+        color: var(--white);
       }
 
       .breadcrumbs {
         button {
           &.selected {
-            background-color: var(--color-004);
+            background-color: var(--gray-700);
           }
         }
       }
 
       .mdc-button {
-        color: var(--color-014);
+        color: var(--blue-04);
         &:hover {
-          background-color: var(--color-067);
+          background-color: var(--blue-01);
         }
       }
     }

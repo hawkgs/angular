@@ -27,19 +27,19 @@ $dark-theme: map.deep-merge(
   (
     'color': (
       'background': (
-        background: colors.$color-004,
-        card: colors.$color-004,
+        background: colors.$gray-700,
+        card: colors.$gray-700,
       ),
       'foreground': (
-        text: colors.$color-049,
+        text: colors.$gray-200,
       ),
     ),
     'background': (
-      background: colors.$color-004,
-      card: colors.$color-004,
+      background: colors.$gray-700,
+      card: colors.$gray-700,
     ),
     'foreground': (
-      'text': colors.$color-049,
+      'text': colors.$gray-200,
     ),
   )
 );
@@ -56,7 +56,7 @@ $dark-theme: map.deep-merge(
 /* Keep class name in sync with ThemeService */
 .dark-theme {
   color-scheme: dark;
-  background: var(--color-004);
+  background: var(--gray-700);
   @include mat.all-component-themes($dark-theme);
 
   .mat-mdc-chip.mat-mdc-standard-chip {
