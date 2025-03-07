@@ -14,10 +14,10 @@
     --color-031: #388e3c;
     --color-045: #28ab2c;
     --color-084: rgb(144, 238, 144);
-    --color-078: #54c9bd; // D; of 077
+    --color-078: #54c9bd; // D; of 032
 
     /* Blues */
-    --color-067: #073d69; // D; of 055, 054
+    --color-067: #073d69; // D; of 044, 054
     --color-009: #1b1aa5;
     --color-008: #1a73e8;
     --color-014: #5caace; // D; of 009, 051
@@ -29,30 +29,23 @@
     --color-041: #8838f7;
     --color-042: #c79eff;
 
-    /* Grayscale (some of them have a miniscule blueish shade) */
+    /* Grayscale */
     --color-016: #000000;
-    --color-066: #262d36; // D; of 054
+    --color-066: #262d36; // D; of 023
     --color-004: #202124; // D|L; of 024, 023
     --color-082: #303030; // D|L;
-    --color-075: #454546; // D|L; of 044, 010
+    --color-075: #454546; // D|L; of 044, 049
     --color-080: #6e6e6e;
     --color-035: #9b9b9b;
     --color-049: #c4c4c4; // D|L; of 004, 016, 035
     --color-023: #f3f3f3;
-    --color-024: #ffffff; // D|L; of 011, 028
+    --color-024: #ffffff; // D|L; of 075, 028
 
     /* with Alpha channel */
     --color-028: rgba(0, 0, 0, 0.87);
-    --color-001: rgba(0, 0, 0, 0.2);
+    --color-069: rgba(1, 1, 1, 0.2); // D|L; of 060
     --color-060: rgba(0, 0, 0, 0.03);
-    --color-069: rgba(1, 1, 1, 0.2); // D; of 062
-    --color-027: rgba(0, 0, 0, 0.12);
-    --color-002: rgba(0, 0, 0, 0);
-    --color-074: rgba(0, 0, 0, 0.05);
-    --color-059: rgba(0, 0, 0, 0.003);
-    --color-062: rgba(1, 1, 1, 0.05);
-    --color-076: rgba(165, 165, 165, 0.05); // D; of 074
-    --color-029: rgba(255, 255, 255, 0.12); // D; of 027
+    --color-029: rgba(255, 255, 255, 0.12); // D; of 069
     --color-030: rgba(255, 255, 255, 0.87); // D; of 028
   }
 }
