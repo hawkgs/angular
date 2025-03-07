@@ -130,7 +130,7 @@
 
   pre {
     margin: 0;
-    background: var(--alpha-03);
+    background: var(--alpha-02);
     padding: 8px;
     border-radius: 8px;
 
@@ -157,11 +157,11 @@
     }
 
     &:hover {
-      background-color: var(--gray-800);
+      background-color: var(--gray-700);
     }
 
     &.matched {
-      background-color: var(--gray-800);
+      background-color: var(--gray-700);
 
       &:hover {
         background-color: var(--blue-01);
@@ -176,7 +176,7 @@
     .hydration-error {
       color: var(--red-05);
       pre {
-        background: var(--alpha-02);
+        background: var(--alpha-01);
       }
     }
   }

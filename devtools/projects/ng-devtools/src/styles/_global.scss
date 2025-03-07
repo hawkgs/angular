@@ -1,12 +1,16 @@
 /* Global styles imported in the main styles.scss of the app wrapper (shell, demo apps). */
 
 @use 'sass:map';
+@use 'sass:color';
 @use 'external/npm/node_modules/@angular/material/index' as mat;
 @use './colors' as colors;
 
 @include mat.all-component-typographies();
 @include mat.core();
 @include colors.root-colors();
+
+$rgb-gray-700: color.to-space(colors.$gray-700, rgb);
+$rgb-gray-200: color.to-space(colors.$gray-200, rgb);
 
 html,
 body {
@@ -36,10 +40,10 @@ $dark-theme: map.deep-merge(
     ),
     'background': (
       background: colors.$gray-700,
-      card: colors.$gray-700,
+      card: $rgb-gray-700,
     ),
     'foreground': (
-      'text': colors.$gray-200,
+      'text': $rgb-gray-200,
     ),
   )
 );

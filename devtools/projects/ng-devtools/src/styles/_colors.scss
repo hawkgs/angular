@@ -1,51 +1,93 @@
+/* Reds */
+$red-01: oklch(40% 0.1 26);
+$red-02: oklch(48% 0.2 26);
+$red-03: oklch(55% 0.2 26);
+$red-04: oklch(63% 0.2 26);
+$red-05: oklch(69% 0.2 26);
+$red-06: oklch(75% 0.2 26);
+$red-07: oklch(95% 0.2 26);
+
+/* Greens */
+$green-01: oklch(58% 0.15 145);
+$green-02: oklch(65% 0.15 145);
+$green-03: oklch(75% 0.15 145);
+$green-04: oklch(83% 0.15 145);
+
+/* Blues */
+$blue-01: oklch(36% 0.1 258);
+$blue-02: oklch(38% 0.2 258);
+$blue-03: oklch(57% 0.2 258);
+$blue-04: oklch(72% 0.2 258);
+$blue-05: oklch(76% 0.2 258);
+$blue-06: oklch(83% 0.2 258);
+
+/* Purples */
+$purple-01: oklch(42% 0.26 320);
+$purple-02: oklch(56% 0.26 295);
+$purple-03: oklch(82% 0.26 295);
+
+/* Full contrast */
+$black: oklch(0% 0 0);
+$white: oklch(100% 0 0);
+
+/* Grayscale */
+$gray-700: oklch(27.68% 0 0);
+$gray-600: oklch(32% 0 0);
+$gray-500: oklch(38% 0 0);
+$gray-400: oklch(53% 0 0);
+$gray-300: oklch(68% 0 0);
+$gray-200: oklch(80% 0 0);
+$gray-100: oklch(95% 0 0);
+
+/* Transparent */
+$alpha-01: oklch(0% 0 0 / 0.2);
+$alpha-02: oklch(0% 0 0 / 0.05);
+
 @mixin root-colors {
   :root {
     /* Reds */
-    --red-01: #7e2828; // D; of red-07
-    --red-02: #9b4807;
-    --red-03: #d32f2f;
-    --red-04: #ff0000;
-    --red-05: #ff625a; // D|L; of red-03
-    --red-06: #dc8c61; // D; of blue-02
-    --red-07: #f9c2c5;
+    --red-01: #{$red-01}; // D; of red-07
+    --red-02: #{$red-02};
+    --red-03: #{$red-03};
+    --red-04: #{$red-04};
+    --red-05: #{$red-05}; // D|L; of red-03
+    --red-06: #{$red-06}; // D; of blue-02
+    --red-07: #{$red-07};
 
     /* Greens */
-    --green-01: #388e3c;
-    --green-02: #28ab2c;
-    --green-03: #90ee90;
-    --green-04: #54c9bd; // D; of red-03
+    --green-01: #{$green-01};
+    --green-02: #{$green-02};
+    --green-03: #{$green-03}; // D; of red-03
+    --green-04: #{$green-04};
 
     /* Blues */
-    --blue-01: #073d69; // D; of blue-06
-    --blue-02: #1b1aa5;
-    --blue-03: #1a73e8;
-    --blue-04: #5caace; // D; of blue-02, purple-01
-    --blue-05: #91adcb; // D; of red-02
-    --blue-06: #8bc1ff;
+    --blue-01: #{$blue-01}; // D; of blue-06
+    --blue-02: #{$blue-02};
+    --blue-03: #{$blue-03};
+    --blue-04: #{$blue-04}; // D; of blue-02, purple-01
+    --blue-05: #{$blue-05}; // D; of red-02
+    --blue-06: #{$blue-06};
 
     /* Purples */
-    --purple-01: #8a1882;
-    --purple-02: #8838f7;
-    --purple-03: #c79eff;
+    --purple-01: #{$purple-01};
+    --purple-02: #{$purple-02};
+    --purple-03: #{$purple-03};
+
+    /* Full contrast */
+    --black: #{$black};
+    --white: #{$white}; // D|L; of gray-500, black
 
     /* Grayscale */
-    --black: #000000;
-    --gray-800: #262d36; // D; of gray-100
-    --gray-700: #202124; // D|L; of white, gray-100; BACKGROUND
-    --gray-600: #303030; // D|L;
-    --gray-500: #454546; // D|L; of gray-100, gray-200
-    --gray-400: #6e6e6e;
-    --gray-300: #9b9b9b;
-    --gray-200: #c4c4c4; // D|L; of gray-700, black
-    --gray-100: #f3f3f3; // D|L; of black
-    --white: #ffffff; // D|L; of gray-500, black
+    --gray-700: #{$gray-700}; // D|L; of white, gray-100; BACKGROUND
+    --gray-600: #{$gray-600}; // D|L;
+    --gray-500: #{$gray-500}; // D|L; of gray-100, gray-200
+    --gray-400: #{$gray-400};
+    --gray-300: #{$gray-300};
+    --gray-200: #{$gray-200}; // D|L; of gray-700, black
+    --gray-100: #{$gray-100}; // D|L; of black
 
-    /* with Alpha channel */
-    --alpha-02: rgba(1, 1, 1, 0.2); // D|L; of alpha-03
-    --alpha-03: rgba(0, 0, 0, 0.03);
+    /* Transparent */
+    --alpha-01: #{$alpha-01}; // D|L; of alpha-03
+    --alpha-02: #{$alpha-02};
   }
 }
-
-/* Temporary */
-$gray-700: #202124;
-$gray-200: #c4c4c4;
