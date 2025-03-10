@@ -1,47 +1,54 @@
+@use 'sass:color';
+
+/* Since Oklch support is  */
+@function to-rgb($color) {
+  @return color.to-space($color, rgb);
+}
+
 /* Reds */
-$red-01: oklch(40% 0.1 26);
-$red-02: oklch(48% 0.2 26);
-$red-03: oklch(55% 0.2 26);
-$red-04: oklch(63% 0.2 26);
-$red-05: oklch(69% 0.2 26);
-$red-06: oklch(75% 0.2 26);
-$red-07: oklch(95% 0.2 26);
+$red-01: to-rgb(oklch(40% 0.1 26));
+$red-02: to-rgb(oklch(48% 0.2 26));
+$red-03: to-rgb(oklch(55% 0.2 26));
+$red-04: to-rgb(oklch(63% 0.2 26));
+$red-05: to-rgb(oklch(69% 0.2 26));
+$red-06: to-rgb(oklch(75% 0.2 26));
+$red-07: to-rgb(oklch(95% 0.2 26));
 
 /* Greens */
-$green-01: oklch(58% 0.15 145);
-$green-02: oklch(65% 0.15 145);
-$green-03: oklch(75% 0.15 145);
-$green-04: oklch(83% 0.15 145);
+$green-01: to-rgb(oklch(58% 0.15 145));
+$green-02: to-rgb(oklch(65% 0.15 145));
+$green-03: to-rgb(oklch(75% 0.15 145));
+$green-04: to-rgb(oklch(83% 0.15 145));
 
 /* Blues */
-$blue-01: oklch(36% 0.1 258);
-$blue-02: oklch(38% 0.2 258);
-$blue-03: oklch(57% 0.2 258);
-$blue-04: oklch(72% 0.2 258);
-$blue-05: oklch(76% 0.2 258);
-$blue-06: oklch(83% 0.2 258);
+$blue-01: to-rgb(oklch(36% 0.1 258));
+$blue-02: to-rgb(oklch(38% 0.2 258));
+$blue-03: to-rgb(oklch(57% 0.2 258));
+$blue-04: to-rgb(oklch(72% 0.2 258));
+$blue-05: to-rgb(oklch(76% 0.2 258));
+$blue-06: to-rgb(oklch(83% 0.2 258));
 
 /* Purples */
-$purple-01: oklch(42% 0.26 320);
-$purple-02: oklch(56% 0.26 295);
-$purple-03: oklch(82% 0.26 295);
+$purple-01: to-rgb(oklch(42% 0.26 320));
+$purple-02: to-rgb(oklch(56% 0.26 295));
+$purple-03: to-rgb(oklch(82% 0.26 295));
 
 /* Full contrast */
-$black: oklch(0% 0 0);
-$white: oklch(100% 0 0);
+$black: to-rgb(oklch(0% 0 0));
+$white: to-rgb(oklch(100% 0 0));
 
 /* Grayscale */
-$gray-700: oklch(27.68% 0 0);
-$gray-600: oklch(32% 0 0);
-$gray-500: oklch(38% 0 0);
-$gray-400: oklch(53% 0 0);
-$gray-300: oklch(68% 0 0);
-$gray-200: oklch(80% 0 0);
-$gray-100: oklch(95% 0 0);
+$gray-700: to-rgb(oklch(27.68% 0 0));
+$gray-600: to-rgb(oklch(32% 0 0));
+$gray-500: to-rgb(oklch(38% 0 0));
+$gray-400: to-rgb(oklch(53% 0 0));
+$gray-300: to-rgb(oklch(68% 0 0));
+$gray-200: to-rgb(oklch(80% 0 0));
+$gray-100: to-rgb(oklch(95% 0 0));
 
 /* Transparent */
-$alpha-01: oklch(0% 0 0 / 0.2);
-$alpha-02: oklch(0% 0 0 / 0.05);
+$alpha-01: to-rgb(oklch(0% 0 0 / 0.2));
+$alpha-02: to-rgb(oklch(0% 0 0 / 0.05));
 
 @mixin root-colors {
   :root {
