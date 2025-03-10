@@ -1,6 +1,7 @@
 @use 'sass:color';
+@use './theme' as theme;
 
-/* Since Oklch support is  */
+/* Since Oklch support is still not sufficient enough, we are converting the colors to RGB. */
 @function to-rgb($color) {
   @return color.to-space($color, rgb);
 }
@@ -50,6 +51,36 @@ $gray-100: to-rgb(oklch(95% 0 0));
 $alpha-01: to-rgb(oklch(0% 0 0 / 0.2));
 $alpha-02: to-rgb(oklch(0% 0 0 / 0.05));
 
+@mixin _light-colors {
+  --color-bg: var(--white);
+  --color-text: var(--black);
+
+  --full-contrast: var(--black);
+
+  --color-primary: var(--grey-700);
+  --color-secondary: var(--grey-600);
+  --color-tertiary: var(--grey-500);
+  --color-quaternary: var(--grey-400);
+  --color-quinary: var(--grey-300);
+  --color-senary: var(--grey-200);
+  --color-septenary: var(--grey-100);
+}
+
+@mixin _dark-colors {
+  --color-bg: var(--black);
+  --color-text: var(--white);
+
+  --full-contrast: var(--white);
+
+  --color-primary: var(--grey-100);
+  --color-secondary: var(--grey-200);
+  --color-tertiary: var(--grey-300);
+  --color-quaternary: var(--grey-400);
+  --color-quinary: var(--grey-500);
+  --color-senary: var(--grey-600);
+  --color-septenary: var(--grey-700);
+}
+
 @mixin root-colors {
   :root {
     /* Reds */
@@ -94,7 +125,13 @@ $alpha-02: to-rgb(oklch(0% 0 0 / 0.05));
     --gray-100: #{$gray-100}; // D|L; of black
 
     /* Transparent */
-    --alpha-01: #{$alpha-01}; // D|L; of alpha-03
+    --alpha-01: #{$alpha-01}; // D|L; of alpha-02
     --alpha-02: #{$alpha-02};
+
+    @include _light-colors();
+
+    &.#{theme.$dark-theme-class} {
+      @include _dark-colors();
+    }
   }
 }
