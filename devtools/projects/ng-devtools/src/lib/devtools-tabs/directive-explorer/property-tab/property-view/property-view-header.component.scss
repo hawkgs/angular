@@ -33,9 +33,3 @@ button {
     opacity: 1;
   }
 }
-
-@include theme.dark-theme {
-  button {
-    color: var(--white);
-  }
-}

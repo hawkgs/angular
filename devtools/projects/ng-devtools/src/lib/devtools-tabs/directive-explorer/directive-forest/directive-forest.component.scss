@@ -7,7 +7,7 @@
 
   .tree-node {
     position: relative;
-    color: var(--purple-01);
+    color: var(--color-tree-node-element-name);
 
     cursor: default;
     font-family: Menlo, monospace;
@@ -35,34 +35,31 @@
       width: 16px;
       height: 13px;
       display: inline-block;
+      color: var(--color-primary);
     }
 
     .dir-names {
-      color: var(--red-02);
+      color: var(--color-tree-node-dir-name);
     }
 
     .console-reference,
     .on-push {
-      color: var(--gray-400);
+      color: var(--color-tree-node-console-ref);
       padding-left: 8px;
       font-style: italic;
     }
 
     &:hover {
-      background-color: var(--gray-100);
+      background-color: var(--color-tree-node-hovered);
     }
 
     &.matched {
-      background-color: var(--gray-100);
-
-      &:hover {
-        background-color: var(--blue-06);
-      }
+      background-color: var(--color-tree-node-matched);
     }
 
     &.selected,
     &.highlighted {
-      background-color: var(--blue-06);
+      background-color: var(--color-tree-node-highlighted);
     }
 
     .hydration {
@@ -74,7 +71,7 @@
       right: 0;
 
       &.skipped {
-        color: var(--gray-300);
+        color: var(--color-senary);
       }
 
       &.mismatched {
@@ -112,7 +109,7 @@
 
 .angular-element {
   content: '';
-  color: var(--blue-02);
+  color: var(--color-tree-node-ng-element);
 
   &::before {
     content: '<';
@@ -124,60 +121,18 @@
 }
 
 .hydration-error {
-  color: var(--red-03);
+  color: var(--red-001);
   margin-left: 16px;
   padding: 0 8px 8px 0px;
 
   pre {
     margin: 0;
-    background: var(--alpha-02);
+    background: var(--transparent-001);
     padding: 8px;
     border-radius: 8px;
 
     &:not(:last-child) {
       margin-bottom: 16px;
-    }
-  }
-}
-
-@include theme.dark-theme {
-  .tree-node {
-    color: var(--blue-04);
-
-    .mat-icon {
-      color: var(--gray-200);
-    }
-
-    .dir-names {
-      color: var(--blue-05);
-    }
-
-    .angular-element {
-      color: var(--red-06);
-    }
-
-    &:hover {
-      background-color: var(--gray-700);
-    }
-
-    &.matched {
-      background-color: var(--gray-700);
-
-      &:hover {
-        background-color: var(--blue-01);
-      }
-    }
-
-    &.selected,
-    &.highlighted {
-      background-color: var(--blue-01);
-    }
-
-    .hydration-error {
-      color: var(--red-05);
-      pre {
-        background: var(--alpha-01);
-      }
     }
   }
 }

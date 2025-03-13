@@ -1,5 +1,3 @@
-@use '../../../../../styles/theme' as theme;
-
 :host {
   display: block;
   overflow: auto;
@@ -59,16 +57,4 @@ ul {
   list-style-type: square;
   margin-block-start: 0px;
   padding-inline-start: 20px;
-}
-
-@include theme.dark-theme {
-  .entry-statistics {
-    span {
-      color: var(--blue-04);
-    }
-  }
-
-  .txt-total-time {
-    color: var(--white);
-  }
 }

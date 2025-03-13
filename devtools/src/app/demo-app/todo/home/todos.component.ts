@@ -6,7 +6,15 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ChangeDetectorRef, Component, inject, OnDestroy, OnInit, output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  output,
+} from '@angular/core';
 
 import {Todo} from './todo';
 import {TodoFilter, TodosFilter} from './todos.pipe';
@@ -26,6 +34,7 @@ const fib = (n: number): number => {
   templateUrl: 'todos.component.html',
   selector: 'app-todos',
   imports: [RouterLink, TodoComponent, TooltipDirective, SamplePipe, TodosFilter],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodosComponent implements OnInit, OnDestroy {
   todos: Todo[] = [

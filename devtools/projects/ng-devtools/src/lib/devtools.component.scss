@@ -1,20 +1,9 @@
-@use '../styles/theme' as theme;
-
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0px var(--red-07);
+    box-shadow: 0 0 0 0px var(--red-002);
   }
   100% {
-    box-shadow: 0 0 0 35px var(--alpha-02);
-  }
-}
-
-@keyframes darkmode-pulse {
-  0% {
-    box-shadow: 0 0 0 0px var(--red-01);
-  }
-  100% {
-    box-shadow: 0 0 0 35px var(--alpha-02);
+    box-shadow: 0 0 0 35px var(--transparent-001);
   }
 }
 
@@ -28,18 +17,6 @@
   width: 100%;
   height: 100%;
   display: block;
-}
-
-@include theme.dark-theme {
-  .devtools-wrapper {
-    background: var(--gray-700);
-  }
-
-  .initializing {
-    .loading {
-      animation: darkmode-pulse 1s infinite;
-    }
-  }
 }
 
 .noselect {
@@ -74,22 +51,12 @@
     display: inline-block;
     font-size: 0.8em;
     border-radius: 50%;
-    border: solid 2px var(--gray-700);
+    border: solid 2px var(--color-primary);
     cursor: pointer;
     width: 16px;
     height: 16px;
     font-weight: bold;
     text-align: center;
-  }
-}
-
-@include theme.dark-theme {
-  .info-icon {
-    border: solid 2px var(--gray-200);
-  }
-
-  a {
-    color: var(--gray-200);
   }
 }
 
@@ -105,7 +72,7 @@
   code {
     padding: 2px;
     color: var(--green-04);
-    background: var(--gray-500);
+    background: var(--color-tertiary);
     border-radius: 5px;
   }
 

@@ -15,8 +15,20 @@
         display: none;
       }
 
+      .legend {
+        background: var(--color-primary);
+      }
+
+      .arrow {
+        fill: var(--full-contrast);
+      }
+
+      .legend-router-tree {
+        fill: var(--full-contrast) !important;
+      }
+
       .link {
-        stroke: var(--gray-300);
+        stroke: var(--color-quaternary);
         stroke-width: 3px;
         fill: none;
 
@@ -27,6 +39,25 @@
 
       .node {
         cursor: pointer;
+
+        .node-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          color: var(--black);
+          font-size: 16px;
+          box-sizing: border-box;
+          border-radius: 2px;
+          border-style: solid;
+          border-width: 2px;
+          font-weight: 300;
+
+          &:hover {
+            color: var(--white);
+          }
+        }
 
         &.highlighted {
           .node-container,
@@ -47,21 +78,6 @@
               font-weight: 800;
             }
           }
-        }
-
-        .node-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          height: 100%;
-          color: var(--black);
-          font-size: 16px;
-          box-sizing: border-box;
-          border-radius: 2px;
-          border-style: solid;
-          border-width: 2px;
-          font-weight: 300;
         }
 
         .node-search {
@@ -91,10 +107,10 @@
 
         .node-lazy {
           border-color: var(--blue-03);
-          background: var(--blue-06);
+          background: var(--blue-04);
 
           &:hover {
-            background: var(--blue-06);
+            background: var(--blue-03);
           }
         }
 
@@ -108,8 +124,12 @@
         }
 
         .node-null {
-          border: 1px solid var(--gray-400);
+          border: 1px solid var(--color-quaternary);
           background: var(--white);
+
+          &:hover {
+            color: var(--black);
+          }
         }
 
         .node-label {
@@ -119,22 +139,6 @@
           text-align: center;
         }
       }
-    }
-  }
-}
-
-:host-context(.dark-theme) {
-  svg ::ng-deep {
-    .legend {
-      background: var(--gray-700);
-    }
-
-    .arrow {
-      fill: var(--white);
-    }
-
-    .legend-router-tree {
-      fill: var(--white) !important;
     }
   }
 }

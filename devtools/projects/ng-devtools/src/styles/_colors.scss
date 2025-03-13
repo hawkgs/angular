@@ -1,133 +1,165 @@
 @use 'sass:color';
+@use 'sass:map';
 @use './theme' as theme;
 
-/* Since Oklch support is still not sufficient enough, we are converting the colors to RGB. */
-@function to-rgb($color) {
-  @return color.to-space($color, rgb);
-}
+/* prettier-ignore */
+$_colors: (
+  /* Reds */
+  red-01: oklch(40% 0.1 26), // D; of red-07                             OUT OF SERVICE
+  red-02: oklch(49.3% 0.2 26),
+  red-03: oklch(55% 0.2 26), //                                          OUT OF SERVICE
+  red-04: oklch(63% 0.2 26),
+  red-05: oklch(68.8% 0.2 26), // D|L; of red-03
+  red-07: oklch(86% 0.06 15), //                                          OUT OF SERVICE
 
-/* Reds */
-$red-01: to-rgb(oklch(40% 0.1 26));
-$red-02: to-rgb(oklch(48% 0.2 26));
-$red-03: to-rgb(oklch(55% 0.2 26));
-$red-04: to-rgb(oklch(63% 0.2 26));
-$red-05: to-rgb(oklch(69% 0.2 26));
-$red-06: to-rgb(oklch(75% 0.2 26));
-$red-07: to-rgb(oklch(95% 0.2 26));
+  /* Greens */
+  green-01: oklch(58% 0.13 145),
+  green-02: oklch(65% 0.13 145),
+  green-04: oklch(83% 0.13 145),
 
-/* Greens */
-$green-01: to-rgb(oklch(58% 0.15 145));
-$green-02: to-rgb(oklch(65% 0.15 145));
-$green-03: to-rgb(oklch(75% 0.15 145));
-$green-04: to-rgb(oklch(83% 0.15 145));
+  /* Blues */
+  blue-01: oklch(36% 0.1 258), // D; of blue-06                          OUT OF SERVICE
+  // blue-02: oklch(38% 0.2 258),
+  blue-03: oklch(57% 0.2 258),
+  blue-04: oklch(72% 0.2 258), // D; of blue-02, purple-01               OUT OF SERVICE
+  blue-06: oklch(83% 0.2 258), //                                        OUT OF SERVICE
+  blue-07: oklch(91% 0.04 258), // NEW
+  blue-08: oklch(96% 0.01 258), // NEW
 
-/* Blues */
-$blue-01: to-rgb(oklch(36% 0.1 258));
-$blue-02: to-rgb(oklch(38% 0.2 258));
-$blue-03: to-rgb(oklch(57% 0.2 258));
-$blue-04: to-rgb(oklch(72% 0.2 258));
-$blue-05: to-rgb(oklch(76% 0.2 258));
-$blue-06: to-rgb(oklch(83% 0.2 258));
+  /* Purples */
+  purple-01: oklch(47.5% 0.26 295),
+  purple-02: oklch(57.9% 0.26 295),
+  purple-03: oklch(76% 0.15 305),
 
-/* Purples */
-$purple-01: to-rgb(oklch(42% 0.26 320));
-$purple-02: to-rgb(oklch(56% 0.26 295));
-$purple-03: to-rgb(oklch(82% 0.26 295));
+  /* Full contrast */
+  black: oklch(0% 0 0),
+  white: oklch(100% 0 0), // D|L; of gray-500, black
 
-/* Full contrast */
-$black: to-rgb(oklch(0% 0 0));
-$white: to-rgb(oklch(100% 0 0));
+  /* Grayscale */
+  gray-800: oklch(24% 0 0),    // NEW                                  OUT OF SERVICE
+  gray-700: oklch(27.68% 0 0), // D|L; of white, gray-100; BACKGROUND; OUT OF SERVICE
+  gray-600: oklch(32% 0 0),    // D|L;                                 OUT OF SERVICE
+  gray-500: oklch(36% 0 0),    // D|L; of gray-100, gray-200           OUT OF SERVICE
+  gray-400: oklch(48% 0 0),    //                                      OUT OF SERVICE
+  gray-300: oklch(68% 0 0),    //                                      OUT OF SERVICE
+  gray-200: oklch(80% 0 0),    // D|L; of gray-700, black              OUT OF SERVICE
+  gray-100: oklch(95% 0 0),    // D|L; of black                        OUT OF SERVICE
 
-/* Grayscale */
-$gray-700: to-rgb(oklch(27.68% 0 0));
-$gray-600: to-rgb(oklch(32% 0 0));
-$gray-500: to-rgb(oklch(38% 0 0));
-$gray-400: to-rgb(oklch(53% 0 0));
-$gray-300: to-rgb(oklch(68% 0 0));
-$gray-200: to-rgb(oklch(80% 0 0));
-$gray-100: to-rgb(oklch(95% 0 0));
-
-/* Transparent */
-$alpha-01: to-rgb(oklch(0% 0 0 / 0.2));
-$alpha-02: to-rgb(oklch(0% 0 0 / 0.05));
+  /* Transparent */
+  alpha-01: oklch(0% 0 0 / 0.2),  // D|L; of alpha-02                     OUT OF SERVICE
+  alpha-02: oklch(0% 0 0 / 0.05), //                                      OUT OF SERVICE
+  alpha-03: oklch(0% 0 0 / 0.8),  // NEW
+  alpha-04: oklch(0% 0 0 / 0.35),  // NEW
+);
 
 @mixin _light-colors {
-  --color-bg: var(--white);
-  --color-text: var(--black);
-
+  /* Dynamic general purpose colors */
   --full-contrast: var(--black);
 
-  --color-primary: var(--grey-700);
-  --color-secondary: var(--grey-600);
-  --color-tertiary: var(--grey-500);
-  --color-quaternary: var(--grey-400);
-  --color-quinary: var(--grey-300);
-  --color-senary: var(--grey-200);
-  --color-septenary: var(--grey-100);
+  --color-primary: var(--gray-800);
+  --color-secondary: var(--gray-700);
+  --color-tertiary: var(--gray-600);
+  --color-quaternary: var(--gray-500);
+  --color-quinary: var(--gray-400);
+  --color-senary: var(--gray-300);
+  --color-septenary: var(--gray-200);
+  --color-octonary: var(--gray-100);
+
+  --red-001: var(--red-03);
+  --red-002: var(--red-07);
+
+  --blue-001: var(--blue-06);
+
+  --transparent-001: var(--alpha-02);
+  --transparent-002: var(--alpha-04);
+
+  /* Main colors – general UI colors like background and text color */
+  --color-background: var(--white);
+  --color-foreground: var(--blue-08);
+  --color-text: var(--black);
+  --color-separator: var(--blue-07);
+
+  /* Special colors */
+  --color-tree-node-element-name: #830042;
+  --color-tree-node-dir-name: #953b13;
+  --color-tree-node-ng-element: #0c3a96;
+  --color-tree-node-console-ref: #146129;
+  --color-tree-node-hovered: #f2f2f2;
+  --color-tree-node-highlighted: #cddffd;
+  --color-tree-node-matched: #f3ce49;
+
+  --color-property-list-name: #71a2f7;
 }
 
 @mixin _dark-colors {
-  --color-bg: var(--black);
-  --color-text: var(--white);
-
+  /* Dynamic general purpose colors */
   --full-contrast: var(--white);
 
-  --color-primary: var(--grey-100);
-  --color-secondary: var(--grey-200);
-  --color-tertiary: var(--grey-300);
-  --color-quaternary: var(--grey-400);
-  --color-quinary: var(--grey-500);
-  --color-senary: var(--grey-600);
-  --color-septenary: var(--grey-700);
+  --color-primary: var(--gray-100);
+  --color-secondary: var(--gray-200);
+  --color-tertiary: var(--gray-300);
+  --color-quaternary: var(--gray-400);
+  --color-quinary: var(--gray-500);
+  --color-senary: var(--gray-600);
+  --color-septenary: var(--gray-700);
+  --color-octonary: var(--gray-800);
+
+  --red-001: var(--red-05);
+  --red-002: var(--red-01);
+
+  --blue-001: var(--blue-01);
+
+  --transparent-001: var(--alpha-01);
+  --transparent-002: var(--alpha-03);
+
+  /* Main colors */
+  --color-background: var(--gray-700);
+  --color-foreground: var(--gray-500);
+  --color-text: var(--white);
+  --color-separator: var(--gray-400);
+
+  /* Special colors */
+  --color-tree-node-element-name: #71a2f7;
+  --color-tree-node-dir-name: #9ec0f9;
+  --color-tree-node-ng-element: #fe824f;
+  --color-tree-node-console-ref: #a1a1a1;
+  --color-tree-node-hovered: #393939;
+  --color-tree-node-highlighted: #00416c;
+  --color-tree-node-matched: #906921;
+
+  --color-property-list-name: #0c3a96;
 }
+
+/* Utilities */
+@function convert-to-rgb($map) {
+  $rgb-map: ();
+
+  @each $name, $color in $map {
+    $rgb-map: map-merge(
+      $rgb-map,
+      (
+        $name: color.to-space($color, rgb),
+      )
+    );
+  }
+
+  @return $rgb-map;
+}
+
+@mixin convert-color-map-to-vars($colors) {
+  @each $name, $color in $colors {
+    --#{$name}: #{$color};
+  }
+}
+
+/* Main */
+
+/* Since Oklch global support is ~93%, we are converting colors to RGB. */
+$colors: convert-to-rgb($_colors); /* Main color map */
 
 @mixin root-colors {
   :root {
-    /* Reds */
-    --red-01: #{$red-01}; // D; of red-07
-    --red-02: #{$red-02};
-    --red-03: #{$red-03};
-    --red-04: #{$red-04};
-    --red-05: #{$red-05}; // D|L; of red-03
-    --red-06: #{$red-06}; // D; of blue-02
-    --red-07: #{$red-07};
-
-    /* Greens */
-    --green-01: #{$green-01};
-    --green-02: #{$green-02};
-    --green-03: #{$green-03}; // D; of red-03
-    --green-04: #{$green-04};
-
-    /* Blues */
-    --blue-01: #{$blue-01}; // D; of blue-06
-    --blue-02: #{$blue-02};
-    --blue-03: #{$blue-03};
-    --blue-04: #{$blue-04}; // D; of blue-02, purple-01
-    --blue-05: #{$blue-05}; // D; of red-02
-    --blue-06: #{$blue-06};
-
-    /* Purples */
-    --purple-01: #{$purple-01};
-    --purple-02: #{$purple-02};
-    --purple-03: #{$purple-03};
-
-    /* Full contrast */
-    --black: #{$black};
-    --white: #{$white}; // D|L; of gray-500, black
-
-    /* Grayscale */
-    --gray-700: #{$gray-700}; // D|L; of white, gray-100; BACKGROUND
-    --gray-600: #{$gray-600}; // D|L;
-    --gray-500: #{$gray-500}; // D|L; of gray-100, gray-200
-    --gray-400: #{$gray-400};
-    --gray-300: #{$gray-300};
-    --gray-200: #{$gray-200}; // D|L; of gray-700, black
-    --gray-100: #{$gray-100}; // D|L; of black
-
-    /* Transparent */
-    --alpha-01: #{$alpha-01}; // D|L; of alpha-02
-    --alpha-02: #{$alpha-02};
-
+    @include convert-color-map-to-vars($colors);
     @include _light-colors();
 
     &.#{theme.$dark-theme-class} {

@@ -1,16 +1,13 @@
-@use '../../../../styles/theme' as theme;
-
 :host {
   display: flex;
   flex-wrap: wrap;
-  background: var(--gray-100);
-  border-top: 1px solid var(--black);
+  background: var(--color-septenary);
   padding: 0.5rem 0.5rem 0.25rem 0.5rem;
 
   .node {
     position: relative;
     border-radius: 5px;
-    background: var(--gray-200);
+    background: var(--color-septenary);
     color: var(--black);
     padding: 4px 25px 4px 15px;
     margin-bottom: 0.25rem;
@@ -56,7 +53,7 @@
 
     &:not(:last-of-type)::before {
       content: '';
-      background: var(--gray-100);
+      background: var(--color-septenary);
       width: 21px;
       height: 21px;
       top: calc(50% - 6px);
@@ -70,12 +67,5 @@
     &:not(:last-of-type) {
       margin-right: -14px;
     }
-  }
-}
-
-@include theme.dark-theme {
-  :host,
-  .node:not(:last-of-type)::before {
-    background: var(--gray-700);
   }
 }

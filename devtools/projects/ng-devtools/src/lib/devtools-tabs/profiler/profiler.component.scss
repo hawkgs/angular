@@ -21,7 +21,7 @@
   cursor: pointer;
 
   &.recording-button {
-    color: var(--red-03);
+    color: var(--red-001);
   }
 }
 
@@ -38,12 +38,6 @@
   }
 }
 
-@include theme.dark-theme {
-  .instructions {
-    color: var(--white);
-  }
-}
-
 #profiler-content-wrapper {
   margin: 0;
   height: calc(100% - 30px);
@@ -53,14 +47,6 @@
 .visualization {
   margin: 0;
   height: 100%;
-}
-
-@include theme.dark-theme {
-  .profiler-control {
-    &.recording-button {
-      color: var(--red-05);
-    }
-  }
 }
 
 .mdc-card {
