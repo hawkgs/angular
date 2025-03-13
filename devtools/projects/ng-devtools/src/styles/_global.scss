@@ -18,7 +18,7 @@ body {
 
 input,
 select {
-  color: var(--color-primary);
+  color: var(--primary-contrast);
   background: var(--color-foreground);
 }
 
@@ -35,16 +35,16 @@ $dark-theme: map.deep-merge(
   (
     'color': (
       'background': (
-        background: map.get(clr.$colors, gray-700),
-        card: map.get(clr.$colors, gray-700),
+        background: map.get(clr.$colors, gray-800),
+        card: map.get(clr.$colors, gray-800),
       ),
       'foreground': (
         text: map.get(clr.$colors, gray-200),
       ),
     ),
     'background': (
-      background: map.get(clr.$colors, gray-700),
-      card: map.get(clr.$colors, gray-700),
+      background: map.get(clr.$colors, gray-800),
+      card: map.get(clr.$colors, gray-800),
     ),
     'foreground': (
       'text': map.get(clr.$colors, gray-200),

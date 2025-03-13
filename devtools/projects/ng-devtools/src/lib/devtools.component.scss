@@ -1,9 +1,9 @@
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0px var(--red-002);
+    box-shadow: 0 0 0 0px var(--dynamic-red-02);
   }
   100% {
-    box-shadow: 0 0 0 35px var(--transparent-001);
+    box-shadow: 0 0 0 35px var(--dynamic-transparent-01);
   }
 }
 
@@ -51,7 +51,7 @@
     display: inline-block;
     font-size: 0.8em;
     border-radius: 50%;
-    border: solid 2px var(--color-primary);
+    border: solid 2px var(--primary-contrast);
     cursor: pointer;
     width: 16px;
     height: 16px;
@@ -66,13 +66,13 @@
   padding: 1rem;
   width: 80%;
   margin: auto;
-  border: 1px solid;
+  border: 1px solid var(--quinary-contrast);
   border-radius: 16px;
 
   code {
     padding: 2px;
-    color: var(--green-04);
-    background: var(--color-tertiary);
+    color: var(--dynamic-green-01);
+    background: var(--senary-contrast);
     border-radius: 5px;
   }
 

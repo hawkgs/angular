@@ -35,7 +35,7 @@ nav {
     border: none;
     cursor: pointer;
     opacity: 0.8;
-    color: var(--color-secondary);
+    color: var(--secondary-contrast);
 
     &:active {
       opacity: 1;
@@ -44,7 +44,7 @@ nav {
 }
 
 .inspector-active {
-  color: var(--blue-03) !important;
+  color: var(--blue-02) !important;
 }
 
 #app-angular-version {
@@ -59,7 +59,7 @@ nav {
 }
 
 #version-number {
-  color: var(--blue-03);
+  color: var(--blue-02);
   cursor: text;
   -moz-user-select: text;
   -khtml-user-select: text;

@@ -1,13 +1,14 @@
 :host {
   display: flex;
   flex-wrap: wrap;
-  background: var(--color-septenary);
+  background: var(--octonary-contrast);
   padding: 0.5rem 0.5rem 0.25rem 0.5rem;
+  border-top: 1px solid var(--senary-contrast);
 
   .node {
     position: relative;
     border-radius: 5px;
-    background: var(--color-septenary);
+    background: var(--octonary-contrast);
     color: var(--black);
     padding: 4px 25px 4px 15px;
     margin-bottom: 0.25rem;
@@ -16,11 +17,11 @@
     box-sizing: border-box;
 
     &.type-env {
-      background: var(--red-07);
+      background: var(--red-06);
     }
 
     &.type-element {
-      background: var(--green-04);
+      background: var(--green-03);
     }
 
     &.type-imported {
@@ -53,7 +54,7 @@
 
     &:not(:last-of-type)::before {
       content: '';
-      background: var(--color-septenary);
+      background: var(--octonary-contrast);
       width: 21px;
       height: 21px;
       top: calc(50% - 6px);

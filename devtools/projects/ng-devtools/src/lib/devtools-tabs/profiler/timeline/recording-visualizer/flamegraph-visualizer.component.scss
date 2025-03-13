@@ -17,11 +17,11 @@
     .ngx-fg-label {
       font-weight: 500;
       font-size: 1em;
-      color: var(--color-senary);
+      color: var(--senary-contrast);
     }
 
     .ngx-fg-rect {
-      stroke: var(--color-secondary);
+      stroke: var(--secondary-contrast);
       transition: none;
     }
 

@@ -47,12 +47,12 @@
       text-overflow: ellipsis;
 
       &.warning-label {
-        color: var(--red-001);
+        color: var(--dynamic-red-01);
       }
     }
 
     .value {
-      color: var(--purple-01);
+      color: var(--dynamic-purple-01);
     }
   }
 

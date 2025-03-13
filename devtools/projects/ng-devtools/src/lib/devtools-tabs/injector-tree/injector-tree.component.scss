@@ -57,7 +57,7 @@ as-split-area {
         padding-left: 0.1rem;
 
         &:active {
-          color: var(--blue-03);
+          color: var(--blue-02);
         }
       }
     }
@@ -83,7 +83,7 @@ as-split-area {
         height: 90px;
         flex-shrink: 0;
         align-items: center;
-        border-right: 1px solid var(--color-septenary);
+        border-right: 1px solid var(--septenary-contrast);
       }
 
       .parameter {
@@ -107,20 +107,20 @@ as-split-area {
       }
 
       .parameter-name {
-        color: var(--red-001);
+        color: var(--dynamic-red-01);
       }
 
       .parameter-flag {
         a {
           display: inline-block;
           padding: 0px 6px;
-          background: var(--color-senary);
+          background: var(--senary-contrast);
           border-radius: 10px;
           color: inherit;
           text-decoration: none;
 
           &:hover {
-            background: var(--color-senary);
+            background: var(--senary-contrast);
           }
         }
       }
@@ -156,16 +156,16 @@ as-split-area {
   display: flex;
   overflow: auto;
 
-  background: var(--color-septenary);
+  background: var(--septenary-contrast);
 
   .dep {
-    border-top: 1px solid var(--color-septenary);
-    border-bottom: 1px solid var(--color-septenary);
-    border-left: 1px solid var(--color-septenary);
+    border-top: 1px solid var(--septenary-contrast);
+    border-bottom: 1px solid var(--septenary-contrast);
+    border-left: 1px solid var(--septenary-contrast);
     padding: 1rem;
 
     &:last-of-type {
-      border-right: 1px solid var(--color-septenary);
+      border-right: 1px solid var(--septenary-contrast);
     }
 
     .dep-header {
@@ -189,7 +189,7 @@ as-split-area {
   font-size: 11px;
   font-weight: 500;
   height: auto;
-  background: var(--color-septenary);
+  background: var(--septenary-contrast);
 }
 
 .injector-hierarchy {
@@ -201,7 +201,7 @@ as-split-area {
     margin: 0;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--color-quaternary);
+    border-bottom: 1px solid var(--quaternary-contrast);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -218,7 +218,7 @@ as-split-area {
 
 .injector-graph {
   overflow: auto;
-  background: var(--color-octonary);
+  background: var(--octonary-contrast);
   height: calc(100% - 50px);
 }
 

@@ -16,7 +16,7 @@
       }
 
       .legend {
-        background: var(--color-primary);
+        background: var(--primary-contrast);
       }
 
       .arrow {
@@ -28,12 +28,12 @@
       }
 
       .link {
-        stroke: var(--color-quaternary);
+        stroke: var(--quaternary-contrast);
         stroke-width: 3px;
         fill: none;
 
         &.highlighted {
-          stroke: var(--blue-03);
+          stroke: var(--blue-02);
         }
       }
 
@@ -62,7 +62,7 @@
         &.highlighted {
           .node-container,
           .node-container:hover {
-            background: var(--blue-03);
+            background: var(--blue-02);
             border-color: var(--white);
             color: var(--white);
             font-weight: 400;
@@ -71,10 +71,10 @@
           &.selected {
             .node-container,
             .node-container:hover {
-              color: var(--blue-03);
+              color: var(--blue-02);
               background: var(--white);
               border-width: 3px;
-              border-color: var(--blue-03);
+              border-color: var(--blue-02);
               font-weight: 800;
             }
           }
@@ -89,7 +89,7 @@
 
         .node-environment {
           border: 1px solid var(--red-05);
-          background: var(--red-07);
+          background: var(--red-06);
 
           &:hover {
             background: var(--red-05);
@@ -106,17 +106,17 @@
         }
 
         .node-lazy {
-          border-color: var(--blue-03);
-          background: var(--blue-04);
+          border-color: var(--blue-02);
+          background: var(--blue-03);
 
           &:hover {
-            background: var(--blue-03);
+            background: var(--blue-02);
           }
         }
 
         .node-element {
           border-color: var(--green-02);
-          background: var(--green-04);
+          background: var(--green-03);
 
           &:hover {
             background: var(--green-02);
@@ -124,7 +124,7 @@
         }
 
         .node-null {
-          border: 1px solid var(--color-quaternary);
+          border: 1px solid var(--quaternary-contrast);
           background: var(--white);
 
           &:hover {

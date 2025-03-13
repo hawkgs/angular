@@ -106,7 +106,7 @@ export class RouterTreeVisualizer {
       .attr('width', size)
       .attr('height', size)
       .style('stroke', 'var(--red-05)')
-      .style('fill', 'var(--red-07)');
+      .style('fill', 'var(--red-06)');
 
     svg
       .append('rect')
@@ -114,8 +114,8 @@ export class RouterTreeVisualizer {
       .attr('y', 45)
       .attr('width', size)
       .attr('height', size)
-      .style('stroke', 'var(--blue-03)')
-      .style('fill', 'var(--blue-04)');
+      .style('stroke', 'var(--blue-02)')
+      .style('fill', 'var(--blue-03)');
 
     svg
       .append('rect')
@@ -124,7 +124,7 @@ export class RouterTreeVisualizer {
       .attr('width', size)
       .attr('height', size)
       .style('stroke', 'var(--green-02)')
-      .style('fill', 'var(--green-04)');
+      .style('fill', 'var(--green-03)');
 
     svg
       .append('text')
