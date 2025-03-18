@@ -2,6 +2,7 @@
 
 @use 'sass:map';
 @use 'external/npm/node_modules/@angular/material/index' as mat;
+@use './typography' as tg;
 @include mat.all-component-typographies();
 @include mat.core();
 
@@ -9,6 +10,7 @@ html,
 body {
   padding: 0;
   margin: 0;
+  font-family: tg.$font-family;
 }
 
 // Light theme
