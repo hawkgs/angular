@@ -6,11 +6,16 @@
 @include mat.all-component-typographies();
 @include mat.core();
 
+@include tg.font-face();
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: tg.$font-family;
+}
+
+body {
+  @extend %body-01;
 }
 
 // Light theme
