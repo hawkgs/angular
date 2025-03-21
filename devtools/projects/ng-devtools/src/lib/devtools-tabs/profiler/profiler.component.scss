@@ -2,7 +2,6 @@
 
 :host,
 .profiler-wrapper {
-  font-size: 1em;
   width: 100%;
   height: calc(100% - 30px);
 
@@ -33,7 +32,6 @@
   input,
   span {
     margin-top: 5px;
-    font-size: 1em;
     cursor: pointer;
   }
 }

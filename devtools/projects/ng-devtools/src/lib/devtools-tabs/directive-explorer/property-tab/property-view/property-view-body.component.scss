@@ -1,4 +1,5 @@
 @use '../../../../../styles/theme' as theme;
+@use '../../../../../styles/typography';
 
 :host {
   ::ng-deep {
@@ -37,8 +38,7 @@
     }
 
     .mat-expansion-panel-header-title {
-      font-size: 0.8em;
-      font-family: Menlo, monospace;
+      @extend %body-medium-01;
     }
 
     .mat-expansion-indicator {

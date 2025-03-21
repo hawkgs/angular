@@ -1,11 +1,12 @@
 @use '../../../../styles/theme' as theme;
+@use '../../../../styles/typography';
 
 .element-header {
   display: flex;
   justify-content: space-between;
   width: 100%;
   align-items: center;
-  font-size: 11px;
+  @extend %body-bold-01;
 
   .component-name {
     margin-left: 10px;

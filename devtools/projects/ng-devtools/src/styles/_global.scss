@@ -18,6 +18,26 @@ body {
   @extend %body-01;
 }
 
+input,
+select,
+textarea {
+  @extend %body-01;
+}
+
+$body-tg-level: mat.m2-define-typography-level(
+  $font-family: tg.$font-family,
+  $font-weight: 350,
+  $font-size: 10px,
+  $line-height: 1rem,
+  $letter-spacing: normal,
+);
+
+$typography: mat.m2-define-typography-config(
+  $font-family: serif,
+  $body-1: $body-tg-level,
+  $body-2: $body-tg-level,
+);
+
 // Light theme
 $light-primary: mat.m2-define-palette(mat.$m2-grey-palette, 700, 200);
 $light-accent: mat.m2-define-palette(mat.$m2-blue-palette, 800);
@@ -45,6 +65,7 @@ $dark-theme: map.deep-merge(
     'foreground': (
       'text': #bcc5ce,
     ),
+    'typography': $typography,
   )
 );
 
