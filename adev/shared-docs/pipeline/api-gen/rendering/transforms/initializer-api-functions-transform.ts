@@ -20,12 +20,12 @@ import {
 } from './jsdoc-transforms';
 import {addModuleName} from './module-name';
 
-export function getInitializerApiFunctionRenderable(
+export async function getInitializerApiFunctionRenderable(
   entry: InitializerApiFunctionEntry,
   moduleName: string,
-): InitializerApiFunctionRenderable {
+): Promise<InitializerApiFunctionRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addHtmlJsDocTagComments(
         addHtmlUsageNotes(
           addHtmlDescription(addHtmlAdditionalLinks(addModuleName(entry, moduleName))),

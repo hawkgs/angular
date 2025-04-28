@@ -20,9 +20,12 @@ import {addRenderableMembers} from './member-transforms';
 import {addModuleName} from './module-name';
 
 /** Given an unprocessed enum entry, get the fully renderable enum entry. */
-export function getEnumRenderable(classEntry: EnumEntry, moduleName: string): EnumEntryRenderable {
+export async function getEnumRenderable(
+  classEntry: EnumEntry,
+  moduleName: string,
+): Promise<EnumEntryRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addRenderableMembers(
         addHtmlAdditionalLinks(
           addHtmlUsageNotes(

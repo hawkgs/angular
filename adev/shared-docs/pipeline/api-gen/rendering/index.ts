@@ -118,10 +118,12 @@ async function main() {
     // Setting the symbols are a global context for the rendering templates of this entry
     setSymbols(collection.symbols);
 
-    const renderableEntries = extractedEntries.map((entry) => {
+    const renderableEntries = [];
+    for (const entry of extractedEntries) {
       setCurrentSymbol(entry.name);
-      return getRenderable(entry, collection.moduleName);
-    });
+      const renderable = await getRenderable(entry, collection.moduleName);
+      renderableEntries.push(renderable);
+    }
 
     const htmlOutputs = renderableEntries.map(renderEntry);
 

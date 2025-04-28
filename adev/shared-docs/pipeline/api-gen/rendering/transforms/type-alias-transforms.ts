@@ -19,12 +19,12 @@ import {
 import {addModuleName} from './module-name';
 
 /** Given an unprocessed type alias entry, get the fully renderable type alias entry. */
-export function getTypeAliasRenderable(
+export async function getTypeAliasRenderable(
   typeAliasEntry: TypeAliasEntry,
   moduleName: string,
-): TypeAliasEntryRenderable {
+): Promise<TypeAliasEntryRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addHtmlAdditionalLinks(
         addHtmlUsageNotes(
           addHtmlJsDocTagComments(addHtmlDescription(addModuleName(typeAliasEntry, moduleName))),

@@ -20,12 +20,12 @@ import {addRenderableMembers} from './member-transforms';
 import {addModuleName} from './module-name';
 
 /** Given an unprocessed class entry, get the fully renderable class entry. */
-export function getClassRenderable(
+export async function getClassRenderable(
   classEntry: ClassEntry,
   moduleName: string,
-): ClassEntryRenderable {
+): Promise<ClassEntryRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addRenderableMembers(
         addHtmlAdditionalLinks(
           addHtmlUsageNotes(

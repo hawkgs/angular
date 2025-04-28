@@ -23,12 +23,12 @@ import {addModuleName} from './module-name';
 import {addRenderableFunctionParams} from './params-transforms';
 
 /** Given an unprocessed function entry, get the fully renderable function entry. */
-export function getFunctionRenderable(
+export async function getFunctionRenderable(
   entry: FunctionEntry,
   moduleName: string,
-): FunctionEntryRenderable {
+): Promise<FunctionEntryRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addHtmlAdditionalLinks(
         addHtmlUsageNotes(
           setEntryFlags(

@@ -38,33 +38,33 @@ import {
 import {addModuleName} from './transforms/module-name';
 import {getTypeAliasRenderable} from './transforms/type-alias-transforms';
 
-export function getRenderable(
+export async function getRenderable(
   entry: DocEntry,
   moduleName: string,
-): DocEntryRenderable | CliCommandRenderable {
+): Promise<DocEntryRenderable | CliCommandRenderable> {
   if (isClassEntry(entry)) {
-    return getClassRenderable(entry, moduleName);
+    return await getClassRenderable(entry, moduleName);
   }
   if (isDecoratorEntry(entry)) {
-    return getDecoratorRenderable(entry, moduleName);
+    return await getDecoratorRenderable(entry, moduleName);
   }
   if (isConstantEntry(entry)) {
-    return getConstantRenderable(entry, moduleName);
+    return await getConstantRenderable(entry, moduleName);
   }
   if (isEnumEntry(entry)) {
-    return getEnumRenderable(entry, moduleName);
+    return await getEnumRenderable(entry, moduleName);
   }
   if (isInterfaceEntry(entry)) {
-    return getInterfaceRenderable(entry, moduleName);
+    return await getInterfaceRenderable(entry, moduleName);
   }
   if (isFunctionEntry(entry)) {
-    return getFunctionRenderable(entry, moduleName);
+    return await getFunctionRenderable(entry, moduleName);
   }
   if (isTypeAliasEntry(entry)) {
-    return getTypeAliasRenderable(entry, moduleName);
+    return await getTypeAliasRenderable(entry, moduleName);
   }
   if (isInitializerApiFunctionEntry(entry)) {
-    return getInitializerApiFunctionRenderable(entry, moduleName);
+    return await getInitializerApiFunctionRenderable(entry, moduleName);
   }
   if (isCliEntry(entry)) {
     return getCliRenderable(entry);

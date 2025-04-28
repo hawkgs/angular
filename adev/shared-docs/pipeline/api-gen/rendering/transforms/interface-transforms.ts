@@ -20,12 +20,12 @@ import {addRenderableMembers} from './member-transforms';
 import {addModuleName} from './module-name';
 
 /** Given an unprocessed interface entry, get the fully renderable interface entry. */
-export function getInterfaceRenderable(
+export async function getInterfaceRenderable(
   entry: InterfaceEntry,
   moduleName: string,
-): InterfaceEntryRenderable {
+): Promise<InterfaceEntryRenderable> {
   return setEntryFlags(
-    addRenderableCodeToc(
+    await addRenderableCodeToc(
       addRenderableMembers(
         addHtmlAdditionalLinks(
           addHtmlUsageNotes(

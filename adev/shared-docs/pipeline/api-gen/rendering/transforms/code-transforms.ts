@@ -38,6 +38,8 @@ import {codeToHtml, replaceKeywordFromShikiHtml} from '../shiki/shiki';
 import {filterLifecycleMethods, mergeGettersAndSetters} from './member-transforms';
 import {getLinkToModule} from './url-transforms';
 
+import * as prettier from 'prettier';
+
 // Allows to generate links for code lines.
 interface CodeTableOfContentsData {
   // The contents of code block.
@@ -61,10 +63,10 @@ export function splitLines(text: string): string[] {
  * 2. Run syntax highlighting
  * 3. Generate list of renderable code lines.
  */
-export function addRenderableCodeToc<T extends DocEntry & HasModuleName>(
+export async function addRenderableCodeToc<T extends DocEntry & HasModuleName>(
   entry: T,
-): T & HasRenderableToc {
-  const metadata = mapDocEntryToCode(entry);
+): Promise<T & HasRenderableToc> {
+  const metadata = await mapDocEntryToCode(entry);
   appendPrefixAndSuffix(entry, metadata);
 
   let codeWithSyntaxHighlighting = codeToHtml(metadata.contents, 'typescript');
@@ -127,7 +129,7 @@ function groupCodeLines(lines: string[], metadata: CodeTableOfContentsData, entr
   }, new Map<string, CodeLineRenderable[]>());
 }
 
-export function mapDocEntryToCode(entry: DocEntry): CodeTableOfContentsData {
+export async function mapDocEntryToCode(entry: DocEntry): Promise<CodeTableOfContentsData> {
   const isDeprecated = isDeprecatedEntry(entry);
   const deprecatedLineNumbers = isDeprecated ? [0] : [];
 
@@ -158,7 +160,6 @@ export function mapDocEntryToCode(entry: DocEntry): CodeTableOfContentsData {
 
   if (isFunctionEntry(entry)) {
     const codeLineNumbersWithIdentifiers = new Map<number, string>();
-    const hasSingleSignature = entry.signatures.length === 1;
 
     if (entry.signatures.length > 0) {
       const initialMetadata: CodeTableOfContentsData = {
@@ -166,6 +167,8 @@ export function mapDocEntryToCode(entry: DocEntry): CodeTableOfContentsData {
         codeLineNumbersWithIdentifiers: new Map<number, string>(),
         deprecatedLineNumbers,
       };
+
+      const hasSingleSignature = entry.signatures.length === 1;
 
       return entry.signatures.reduce(
         (acc: CodeTableOfContentsData, curr: FunctionSignatureMetadata, index: number) => {
@@ -187,9 +190,12 @@ export function mapDocEntryToCode(entry: DocEntry): CodeTableOfContentsData {
       );
     }
 
+    const code = `async function $§{getMethodCodeLine(entry.implementation, [], true)}`;
+    const contents = await prettier.format(code, {parser: 'babel'});
+
     return {
       // It is important to add the function keyword as shiki will only highlight valid ts
-      contents: `function ${getMethodCodeLine(entry.implementation, [], true)}`,
+      contents,
       codeLineNumbersWithIdentifiers,
       deprecatedLineNumbers,
     };
