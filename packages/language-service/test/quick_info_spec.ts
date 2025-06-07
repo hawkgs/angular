@@ -388,6 +388,31 @@ describe('quick info', () => {
             'AddEventListenerOptions): void (+1 overload)',
         });
       });
+
+      it('should handle createEmbeddedView $implicit context (i.e. let-*)', () => {
+        const files = {
+          'app.ts': `import {Component, signal, viewChild, TemplateRef, ViewContainerRef, afterNextRender} from '@angular/core';
+            @Component({template: '<ng-template #tpl let-hero></ng-template><ng-container #vcr></ng-container>'})
+            export class AppCmp {
+              tpl = viewChild.required('tpl', { read: TemplateRef });
+              vcr = viewChild.required('vcr', { read: ViewContainerRef });
+              constructor() {
+                afterNextRender(() => {
+                  this.vcr().createEmbeddedView(this.tpl(), {
+                    $implicit: { id: 'id', hero: 'name' } as Hero,
+                  });
+                });
+              }
+            }`,
+        };
+        const project = createModuleAndProjectWithDeclarations(env, 'test_project', files);
+        const appFile = project.openFile('app.ts');
+        appFile.moveCursorToText('let-he¦ro');
+        const info = appFile.getQuickInfoAtPosition()!;
+
+        expect(info).toBeTruthy();
+        expect(toText(info.displayParts)).toEqual('(variable) hero: Hero');
+      });
     });
 
     describe('variables', () => {
