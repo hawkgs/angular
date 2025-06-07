@@ -341,7 +341,7 @@ describe('resource', () => {
     const res = resource({
       params: request,
       loader: async ({params}) => {
-        if (params === 1) {
+        if (params === 2) {
           throw new Error('err');
         }
         return ['data'];
@@ -351,15 +351,13 @@ describe('resource', () => {
     });
     expect(res.value()).toBe(DEFAULT);
 
-    // Verify the value is not the default one on request resolution.
     await TestBed.inject(ApplicationRef).whenStable();
     expect(res.value()).not.toBe(DEFAULT);
 
-    // Retain the non-default value during request execution.
     request.set(1);
-    expect(res.value()).not.toBe(DEFAULT);
+    expect(res.value()).toBe(DEFAULT);
 
-    // Resolve the request.
+    request.set(2);
     await TestBed.inject(ApplicationRef).whenStable();
     expect(res.error()).not.toBeUndefined();
     const err = extractError(() => res.value())!;
@@ -754,7 +752,7 @@ describe('resource', () => {
     expect(res.value()).toBe(4);
   });
 
-  it('should not accept new errors after a request is cancelled', async () => {
+  it('should not accept new values/errors after a request is cancelled', async () => {
     const appRef = TestBed.inject(ApplicationRef);
     const stream = signal<{value: number} | {error: Error}>({value: 0});
     const request = signal(1);
@@ -777,6 +775,9 @@ describe('resource', () => {
     // Changing the request aborts the previous one.
     request.set(2);
 
+    // The previous set/error functions should no longer result in changes to the resource.
+    stream.set({value: 2});
+    expect(res.value()).toBe(undefined);
     // The previous error functions should no longer result in changes to the resource.
     stream.set({error: new Error('fail')});
     expect(res.value()).toBe(undefined);
@@ -884,6 +885,7 @@ describe('resource', () => {
       params: request,
       loader: ({params}) => backend.fetch(params),
       injector: TestBed.inject(Injector),
+      keepCurrentValueUntilLoaded: true,
     });
 
     // Fully resolve the resource to start.
@@ -911,6 +913,7 @@ describe('resource', () => {
       params: request,
       loader: ({params}) => backend.fetch(params),
       injector: TestBed.inject(Injector),
+      keepCurrentValueUntilLoaded: true,
     });
 
     // Fully resolve the resource to start.

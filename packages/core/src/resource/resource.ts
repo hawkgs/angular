@@ -80,6 +80,7 @@ export function resource<T, R>(options: ResourceOptions<T, R>): ResourceRef<T | 
     options.equal ? wrapEqualityFn(options.equal) : undefined,
     options.injector ?? inject(Injector),
     RESOURCE_VALUE_THROWS_ERRORS_DEFAULT,
+    options.keepCurrentValueUntilLoaded,
   );
 }
 
@@ -176,6 +177,7 @@ export class ResourceImpl<T, R> extends BaseWritableResource<T> implements Resou
     private readonly equal: ValueEqualityFn<T> | undefined,
     injector: Injector,
     throwErrorsFromValue: boolean = RESOURCE_VALUE_THROWS_ERRORS_DEFAULT,
+    private readonly keepCurrentValueUntilLoaded: boolean = false,
   ) {
     super(
       // Feed a computed signal for the value to `BaseWritableResource`, which will upgrade it to a
@@ -237,8 +239,10 @@ export class ResourceImpl<T, R> extends BaseWritableResource<T> implements Resou
             extRequest,
             status,
             previousStatus: projectStatusOfState(previous.value),
-            // If the request hasn't changed or the previous stream didn't error, keep the previous stream.
-            stream: isSameRequest || isPreviousStreamResolved ? previous.value.stream : undefined,
+            stream:
+              isSameRequest || (this.keepCurrentValueUntilLoaded && isPreviousStreamResolved)
+                ? previous.value.stream
+                : undefined,
           };
         }
       },

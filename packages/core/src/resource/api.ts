@@ -180,6 +180,11 @@ export interface BaseResourceOptions<T, R> {
    * Overrides the `Injector` used by `resource`.
    */
   injector?: Injector;
+
+  /**
+   * Keep the current value of the resource until the new the request completes.
+   */
+  keepCurrentValueUntilLoaded?: boolean;
 }
 
 /**
