@@ -99,12 +99,10 @@ export class NgProfiler extends Profiler {
   }
 
   [ɵProfilerEvent.ChangeDetectionSyncStart](_directive: any, _eventFn: any): void {
-    // todo: implement
     return;
   }
 
   [ɵProfilerEvent.ChangeDetectionSyncEnd](_directive: any, _eventFn: any): void {
-    // todo: implement
     return;
   }
 
@@ -126,6 +124,10 @@ export class NgProfiler extends Profiler {
   [ɵProfilerEvent.ComponentEnd](_directive: any, _eventFn: any): void {
     // todo: implement
     return;
+  }
+
+  [ɵProfilerEvent.MarkForCheck](_directive: any, _eventFn: any): void {
+    console.log('marked for check', _directive);
   }
 
   [ɵProfilerEvent.DeferBlockStateStart](_directive: any, _eventFn: any): void {

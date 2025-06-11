@@ -154,6 +154,11 @@ export const enum ProfilerEvent {
    * of a directive.
    */
   HostBindingsUpdateEnd,
+
+  /**
+   * TBD
+   */
+  MarkForCheck,
 }
 
 /**

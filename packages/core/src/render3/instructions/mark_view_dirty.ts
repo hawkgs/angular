@@ -8,7 +8,9 @@
 
 import {NotificationSource} from '../../change_detection/scheduling/zoneless_scheduling';
 import {isRootView} from '../interfaces/type_checks';
-import {ENVIRONMENT, FLAGS, LView, LViewFlags} from '../interfaces/view';
+import {CONTEXT, ENVIRONMENT, FLAGS, LView, LViewFlags} from '../interfaces/view';
+import {profiler} from '../profiler';
+import {ProfilerEvent} from '../profiler_types';
 import {isRefreshingViews} from '../state';
 import {getLViewParent} from '../util/view_utils';
 
@@ -40,6 +42,8 @@ export function markViewDirty(lView: LView, source: NotificationSource): LView |
   lView[ENVIRONMENT].changeDetectionScheduler?.notify(source);
   while (lView) {
     lView[FLAGS] |= dirtyBitsToUse;
+    profiler(ProfilerEvent.MarkForCheck, lView[CONTEXT]);
+
     const parent = getLViewParent(lView);
     // Stop traversing up as soon as you find a root view that wasn't attached to any container
     if (isRootView(lView) && !parent) {
