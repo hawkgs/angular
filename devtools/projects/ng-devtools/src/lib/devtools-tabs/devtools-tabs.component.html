@@ -21,7 +21,7 @@
 
   <select
     matTooltip="Select a frame to inspect with Angular Devtools"
-    class="frame-selector"
+    class="frame-selector size-compact"
     (change)="emitSelectedFrame($event)"
   >
     @for (frame of frameManager.frames(); track frame.id) {
