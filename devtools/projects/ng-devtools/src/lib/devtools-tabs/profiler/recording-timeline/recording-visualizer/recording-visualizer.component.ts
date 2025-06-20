@@ -7,8 +7,6 @@
  */
 
 import {ChangeDetectionStrategy, Component, computed, input, linkedSignal} from '@angular/core';
-import {MatToolbar} from '@angular/material/toolbar';
-import {MatCard} from '@angular/material/card';
 import {DecimalPipe} from '@angular/common';
 
 import {ProfilerFrame} from '../../../../../../../protocol';
@@ -34,8 +32,6 @@ import {SplitComponent} from '../../../../vendor/angular-split/lib/component/spl
     FlamegraphVisualizerComponent,
     TreeMapVisualizerComponent,
     BargraphVisualizerComponent,
-    MatCard,
-    MatToolbar,
     ExecutionDetailsComponent,
     DecimalPipe,
   ],
