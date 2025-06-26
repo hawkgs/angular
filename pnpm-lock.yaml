@@ -252,8 +252,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       ngx-flamegraph:
-        specifier: 0.0.12
-        version: 0.0.12
+        specifier: ^0.1.1
+        version: 0.1.1
       ngx-progressbar:
         specifier: ^14.0.0
         version: 14.0.0(@angular/cdk@20.1.0-next.2)(rxjs@7.8.2)
@@ -15646,11 +15646,11 @@ packages:
     engines: {node: '>= 0.4.0'}
     dev: true
 
-  /ngx-flamegraph@0.0.12:
-    resolution: {integrity: sha512-YoxrqlL36Bg5Ca9fu10kuSUmaWHAvx7jkxINF4/4cXn9bBPRfu78FqnZ5LIULC0+iScZcSDSWDAnUdn8H7+wGw==, tarball: https://registry.npmjs.org/ngx-flamegraph/-/ngx-flamegraph-0.0.12.tgz}
+  /ngx-flamegraph@0.1.1:
+    resolution: {integrity: sha512-BTyyOnPDXW0Xi5iOd+H03atdiCNdnYNzpkNJ4iqTrkYGJnOnzaMEzdlaN9Jt3Qpjcs3oyvUoJvD85xZnZpzTyQ==, tarball: https://registry.npmjs.org/ngx-flamegraph/-/ngx-flamegraph-0.1.1.tgz}
     peerDependencies:
-      '@angular/common': ^9.0.0
-      '@angular/core': ^9.0.0
+      '@angular/common': ^20.0.0
+      '@angular/core': ^20.0.0
     dependencies:
       tslib: 2.8.1
     dev: false
