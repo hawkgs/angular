@@ -8,6 +8,7 @@ $ver-dropdown-width: 200px;
   align-items: center;
   padding: var(--layout-padding) 0px;
   container: update-guide-page / inline-size;
+  border: 1px solid red;
 
   .docs-viewer {
     padding-inline: var(--layout-padding);
@@ -126,14 +127,19 @@ h4 {
 
 .adev-recommentation-item {
   display: flex;
-  align-items: center;
 
   > div {
     margin-inline-start: 2rem;
   }
 
-  // Code blocks are generable from the markdown, we need to opt-out of the scoping
-  ::ng-deep code {
-    cursor: pointer;
+  ::ng-deep {
+    // Code blocks are generable from the markdown, we need to opt-out of the scoping
+    code {
+      cursor: pointer;
+    }
+
+    p {
+      padding: 0;
+    }
   }
 }

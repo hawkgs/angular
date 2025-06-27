@@ -178,6 +178,7 @@ export default class AppComponent {
 
         // Render and replace variables
         step.renderedStep = await marked(this.replaceVariables(step.action));
+        step.renderedStep = step.renderedStep.replace('<pre>', '<pre class="shell">');
 
         // If you could do it before now, but didn't have to finish it before now
         if (step.possibleIn <= this.from.number && step.necessaryAsOf >= this.from.number) {
@@ -279,6 +280,10 @@ export default class AppComponent {
       }
 
       upgradeStep.renderedStep = await marked(upgradeStep.action);
+      upgradeStep.renderedStep = upgradeStep.renderedStep.replace(
+        '<code>',
+        '<code class="docs-code">',
+      );
 
       this.duringRecommendations.push(upgradeStep);
     }

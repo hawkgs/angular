@@ -1685,7 +1685,7 @@ export const RECOMMENDATIONS: Step[] = [
     level: ApplicationComplexity.Basic,
     step: 'v15 ng update',
     action:
-      "In the application's project directory, run `ng update @angular/core@15 @angular/cli@15` to update your application to Angular v15.",
+      "In the application's project directory, run ```ng update @angular/core@15 @angular/cli@15``` to update your application to Angular v15.",
   },
   {
     possibleIn: 1500,
@@ -2539,7 +2539,7 @@ export const RECOMMENDATIONS: Step[] = [
   },
   {
     action:
-      "In the application's project directory, run `ng update @angular/core@20 @angular/cli@20` to update your application to Angular v20.",
+      'In the application\'s project directory, run \n<docs-code language="shell">\nng update @angular/core@20 @angular/cli@20\n</docs-code>\n to update your application to Angular v20.',
     level: ApplicationComplexity.Basic,
     necessaryAsOf: 2000,
     possibleIn: 2000,
