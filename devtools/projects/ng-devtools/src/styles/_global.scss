@@ -77,9 +77,16 @@ $dark-theme: map.deep-merge(
   @include mat.all-component-themes($light-theme);
 }
 
+@media (prefers-color-scheme: light) {
+  @include mat.all-component-themes($light-theme);
+}
+
 /* Keep class name in sync with ThemeService */
 .dark-theme {
-  color-scheme: dark;
+  @include mat.all-component-themes($dark-theme);
+}
+
+@media (prefers-color-scheme: dark) {
   @include mat.all-component-themes($dark-theme);
 }
 

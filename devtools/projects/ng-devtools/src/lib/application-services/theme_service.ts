@@ -6,43 +6,56 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {inject, Injectable, Renderer2, RendererFactory2, signal} from '@angular/core';
+import {effect, inject, Injectable, RendererFactory2} from '@angular/core';
 import {DOCUMENT} from '@angular/common';
 import {WINDOW} from '../application-providers/window_provider';
-
-export type Theme = 'dark-theme' | 'light-theme';
+import {Settings} from './settings';
+import {Theme} from './theme_types';
 
 // Keep class names in sync with _theme.scss and _global.scss
-const DARK_THEME_CLASS = 'dark-theme';
-const LIGHT_THEME_CLASS = 'light-theme';
+const THEME_CLASS_SUFFIX = 'theme';
+const DARK_THEME_CLASS = `dark-${THEME_CLASS_SUFFIX}`;
+const LIGHT_THEME_CLASS = `light-${THEME_CLASS_SUFFIX}`;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ThemeService {
-  private win = inject(WINDOW);
-  private doc = inject(DOCUMENT);
-  private renderer: Renderer2;
-  readonly currentTheme = signal<Theme>(LIGHT_THEME_CLASS);
+  private readonly win = inject(WINDOW);
+  private readonly doc = inject(DOCUMENT);
+  private readonly settings = inject(Settings);
+  private readonly rendererFactory = inject(RendererFactory2);
+  private readonly renderer = this.rendererFactory.createRenderer(null, null);
+  readonly currentTheme = this.settings.currentTheme;
 
-  constructor(private _rendererFactory: RendererFactory2) {
-    this.renderer = this._rendererFactory.createRenderer(null, null);
-    this.toggleDarkMode(this.prefersDarkMode);
+  constructor() {
+    effect(() => {
+      this.changeThemeClass(this.currentTheme());
+    });
   }
 
-  private get prefersDarkMode(): boolean {
+  get prefersDarkMode(): boolean {
     return this.win.matchMedia && this.win.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
   toggleDarkMode(isDark: boolean): void {
-    const removeClass = isDark ? LIGHT_THEME_CLASS : DARK_THEME_CLASS;
-    const addClass = !isDark ? LIGHT_THEME_CLASS : DARK_THEME_CLASS;
-    this.renderer.removeClass(this.doc.documentElement, removeClass);
-    this.renderer.addClass(this.doc.documentElement, addClass);
-    this.currentTheme.set(addClass);
+    this.currentTheme.set(isDark ? 'dark-theme' : 'light-theme');
   }
 
-  initializeThemeWatcher(): void {
-    this.win.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      this.toggleDarkMode(this.prefersDarkMode);
-    });
+  private changeThemeClass(theme: Theme) {
+    const el = this.doc.documentElement;
+
+    for (const themeClass of el.classList) {
+      if (themeClass.endsWith(THEME_CLASS_SUFFIX)) {
+        this.renderer.removeClass(el, themeClass);
+      }
+    }
+
+    switch (theme) {
+      case 'dark-theme':
+        this.renderer.addClass(el, DARK_THEME_CLASS);
+        break;
+      case 'light-theme':
+        this.renderer.addClass(el, LIGHT_THEME_CLASS);
+        break;
+    }
   }
 }

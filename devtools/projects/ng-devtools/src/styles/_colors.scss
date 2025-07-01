@@ -180,9 +180,22 @@ $colors: convert-to-rgb($_colors); /* Main color map */
 @mixin root-colors {
   :root {
     @include convert-color-map-to-vars($colors);
-    @include _light-colors();
+
+    &.#{theme.$light-theme-class} {
+      @include _light-colors();
+    }
 
     &.#{theme.$dark-theme-class} {
+      color-scheme: dark;
+      @include _dark-colors();
+    }
+
+    @media (prefers-color-scheme: light) {
+      @include _light-colors();
+    }
+
+    @media (prefers-color-scheme: dark) {
+      color-scheme: dark;
       @include _dark-colors();
     }
   }
