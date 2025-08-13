@@ -43,6 +43,7 @@ export class ChromeMessageBus extends MessageBus<Events> {
   }
 
   override on<E extends keyof Events>(topic: E, cb: Events[E]): () => void {
+    super.on(topic, cb);
     const listener = (msg: ChromeMessage<Events, keyof Events>): void => {
       if (msg.topic === topic) {
         (cb as any).apply(null, msg.args);
@@ -57,6 +58,7 @@ export class ChromeMessageBus extends MessageBus<Events> {
   }
 
   override once<E extends keyof Events>(topic: E, cb: Events[E]): void {
+    super.once(topic, cb);
     const listener = (msg: ChromeMessage<Events, keyof Events>) => {
       if (msg.topic === topic) {
         (cb as any).apply(null, msg.args);
@@ -67,6 +69,7 @@ export class ChromeMessageBus extends MessageBus<Events> {
   }
 
   override emit<E extends keyof Events>(topic: E, args?: Parameters<Events[E]>): boolean {
+    super.emit(topic, args);
     if (this._disconnected) {
       return false;
     }

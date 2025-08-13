@@ -61,6 +61,7 @@ export class PriorityAwareMessageBus extends MessageBus<Events> {
   }
 
   override on<E extends Topic>(topic: E, cb: Events[E]): () => void {
+    super.on(topic, cb);
     return this._bus.on(topic, (...args: any) => {
       (cb as any)(...args);
       this._afterMessage(topic);
@@ -68,6 +69,7 @@ export class PriorityAwareMessageBus extends MessageBus<Events> {
   }
 
   override once<E extends Topic>(topic: E, cb: Events[E]): void {
+    super.once(topic, cb);
     return this._bus.once(topic, (...args: any) => {
       (cb as any)(...args);
       this._afterMessage(topic);
@@ -75,6 +77,7 @@ export class PriorityAwareMessageBus extends MessageBus<Events> {
   }
 
   override emit<E extends Topic>(topic: E, args?: Parameters<Events[E]>): boolean {
+    super.emit(topic, args);
     if (this._throttled[topic]) {
       return false;
     }
