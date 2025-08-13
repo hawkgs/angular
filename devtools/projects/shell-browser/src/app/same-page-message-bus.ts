@@ -38,6 +38,7 @@ export class SamePageMessageBus extends MessageBus<Events> {
   }
 
   override on<E extends keyof Events>(topic: E, cb: Events[E]): () => void {
+    super.on(topic, cb);
     const listener: ListenerFn = (e) => {
       if (e.source !== window || !e.data || e.data.source !== this._destination || !e.data.topic) {
         return;
@@ -55,6 +56,7 @@ export class SamePageMessageBus extends MessageBus<Events> {
   }
 
   override once<E extends keyof Events>(topic: E, cb: Events[E]): void {
+    super.once(topic, cb);
     const listener: ListenerFn = (e) => {
       if (e.source !== window || !e.data || e.data.source !== this._destination || !e.data.topic) {
         return;
@@ -68,6 +70,7 @@ export class SamePageMessageBus extends MessageBus<Events> {
   }
 
   override emit<E extends keyof Events>(topic: E, args?: Parameters<Events[E]>): boolean {
+    super.emit(topic, args);
     window.postMessage(
       {
         source: this._source,

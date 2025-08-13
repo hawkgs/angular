@@ -20,6 +20,7 @@ export class IFrameMessageBus extends MessageBus<Events> {
   }
 
   override on<E extends keyof Events>(topic: E, cb: Events[E]): () => void {
+    super.on(topic, cb);
     const listener = (e: MessageEvent) => {
       if (!e.data || e.data.source !== this.destination || !e.data.topic) {
         return;
@@ -37,6 +38,7 @@ export class IFrameMessageBus extends MessageBus<Events> {
   }
 
   override once<E extends keyof Events>(topic: E, cb: Events[E]): void {
+    super.once(topic, cb);
     const listener = (e: MessageEvent) => {
       if (!e.data || e.data.source !== this.destination || !e.data.topic) {
         return;
@@ -50,6 +52,7 @@ export class IFrameMessageBus extends MessageBus<Events> {
   }
 
   override emit<E extends keyof Events>(topic: E, args?: Parameters<Events[E]>): boolean {
+    super.emit(topic, args);
     this.docWindow().postMessage(
       {
         source: this.source,
