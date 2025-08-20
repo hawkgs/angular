@@ -14,8 +14,20 @@ export class DebugLogger {
 
   log(msg: string) {
     const data = this.getData();
-    data.push(`[${new Date().toISOString()}]: ${msg}`);
-    localStorage.setItem(DEBUG_LOGGER_KEY, JSON.stringify(data));
+    const newEntry = `[${new Date().toISOString()}]: ${msg}`;
+    data.push(newEntry);
+
+    try {
+      localStorage.setItem(DEBUG_LOGGER_KEY, JSON.stringify(data));
+    } catch (er) {
+      console.log('An error occured while logging');
+      console.log(er);
+
+      this.dump();
+      localStorage.removeItem(DEBUG_LOGGER_KEY);
+
+      localStorage.setItem(DEBUG_LOGGER_KEY, JSON.stringify([newEntry]));
+    }
   }
 
   dump() {

@@ -11,6 +11,12 @@ import {DebugLogger} from './debug-logger';
 export type Parameters<F> = F extends (...args: infer T) => any ? T : never;
 
 export abstract class MessageBus<T> {
+  constructor() {
+    DebugLogger.getLogger().log(
+      `${this.constructor.name} is being initialized –––––––––––––––––––––––––––––––`,
+    );
+  }
+
   on<E extends keyof T>(topic: E, cb: T[E]): () => void {
     DebugLogger.getLogger().log(`${this.constructor.name}.on '${topic.toString()}'`);
     return () => {};
