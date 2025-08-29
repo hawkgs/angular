@@ -11,7 +11,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   ElementRef,
   inject,
   input,
@@ -28,7 +27,7 @@ import {
   SerializedProviderRecord,
 } from '../../../../../protocol';
 
-import {TreeD3Node, TreeVisualizer} from '../../shared/tree-visualizer-host/tree-visualizer';
+import {TreeD3Node} from '../../shared/tree-visualizer-host/tree-visualizer';
 import {TreeVisualizerHostComponent} from '../../shared/tree-visualizer-host/tree-visualizer-host.component';
 import {InjectorProvidersComponent} from './injector-providers/injector-providers.component';
 import {
@@ -79,8 +78,10 @@ const SNAP_ZOOM_SCALE = 0.8;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InjectorTreeComponent {
-  private readonly environmentTree = viewChild<TreeVisualizerHostComponent>('environmentTree');
-  private readonly elementTree = viewChild<TreeVisualizerHostComponent>('elementTree');
+  private readonly elementTree =
+    viewChild<TreeVisualizerHostComponent<InjectorTreeNode>>('elementTree');
+  private readonly environmentTree =
+    viewChild<TreeVisualizerHostComponent<InjectorTreeNode>>('environmentTree');
 
   private readonly messageBus = inject<MessageBus<Events>>(MessageBus);
 
@@ -97,12 +98,13 @@ export class InjectorTreeComponent {
 
   private firstRender = true;
   private rawDirectiveForest: DevToolsNode[] = [];
-  private injectorTreeGraph!: InjectorTreeVisualizer;
-  private elementInjectorTreeGraph!: InjectorTreeVisualizer;
   private elementToEnvironmentPath: Map<string, SerializedInjector[]> = new Map();
 
   private hideInjectorsWithNoProviders = false;
   private hideFrameworkInjectors = false;
+
+  protected readonly elementInjectorTree = signal<InjectorTreeNode | null>(null);
+  protected readonly environmentInjectorTree = signal<InjectorTreeNode | null>(null);
 
   protected readonly responsiveSplitConfig: ResponsiveSplitConfig = {
     defaultDirection: 'vertical',
@@ -113,6 +115,17 @@ export class InjectorTreeComponent {
   protected readonly envHierarchySize = signal<number>(0);
   protected readonly elHierarchySize = signal<number>(0);
 
+  environmentTreeConfig = {
+    d3NodeModifier: d3InjectorTreeNodeModifier,
+    d3LinkModifier: d3InjectorTreeLinkModifier,
+  };
+
+  elementTreeConfig = {
+    nodeSeparation: () => 1,
+    d3NodeModifier: d3InjectorTreeNodeModifier,
+    d3LinkModifier: d3InjectorTreeLinkModifier,
+  };
+
   constructor() {
     afterRenderEffect({
       write: () => {
@@ -121,37 +134,26 @@ export class InjectorTreeComponent {
           return;
         }
 
-        if (!this.isInitialized) {
-          this.init();
-        }
-
+        this.init();
         this.rawDirectiveForest = view.forest;
         untracked(() => this.updateInjectorTreeVisualization(view.forest));
       },
     });
-
-    inject(DestroyRef).onDestroy(() => {
-      this.injectorTreeGraph.dispose();
-      this.elementInjectorTreeGraph.dispose();
-    });
-  }
-
-  private get isInitialized(): boolean {
-    return !!(this.injectorTreeGraph && this.elementInjectorTreeGraph);
   }
 
   private init() {
     this.messageBus.on('highlightComponent', (id: number) => {
-      const injectorNode = this.getNodeByComponentId(this.elementInjectorTreeGraph, id);
+      const elementTree = this.elementTree();
+      if (!elementTree) {
+        return;
+      }
+      const injectorNode = this.getNodeByComponentId(elementTree, id);
       if (injectorNode === null) {
         return;
       }
 
       this.selectInjectorByNode(injectorNode);
     });
-
-    this.setUpEnvironmentInjectorVisualizer();
-    this.setUpElementInjectorVisualizer();
   }
 
   toggleHideInjectorsWithNoProviders(): void {
@@ -168,7 +170,7 @@ export class InjectorTreeComponent {
     this.updateInjectorTreeVisualization(this.rawDirectiveForest);
 
     if (this.selectedNode()?.data?.injector?.type === 'environment') {
-      this.snapToRoot(this.elementInjectorTreeGraph);
+      this.snapToRoot(this.environmentTree());
     }
 
     if (this.selectedNode()) {
@@ -210,31 +212,26 @@ export class InjectorTreeComponent {
     const elementInjectorTree = transformInjectorResolutionPathsIntoTree(elementPaths);
     const environmentInjectorTree = transformInjectorResolutionPathsIntoTree(environmentPaths);
 
-    this.elementInjectorTreeGraph.render(elementInjectorTree);
-    this.elementInjectorTreeGraph.onNodeClick((_, node) => {
-      this.selectInjectorByNode(node);
-    });
-
-    this.injectorTreeGraph.render(environmentInjectorTree);
-    this.injectorTreeGraph.onNodeClick((_, node) => {
-      this.selectInjectorByNode(node);
-    });
+    this.elementInjectorTree.set(elementInjectorTree);
+    this.environmentInjectorTree.set(environmentInjectorTree);
 
     if (this.firstRender) {
-      this.snapToRoot(this.injectorTreeGraph);
-      this.snapToRoot(this.elementInjectorTreeGraph);
+      this.snapToRoot(this.elementTree());
+      this.snapToRoot(this.environmentTree());
     }
 
     this.highlightPathFromSelectedInjector();
     this.firstRender = false;
   }
 
-  snapToRoot(graph: InjectorTreeVisualizer) {
+  snapToRoot(tree: TreeVisualizerHostComponent<InjectorTreeNode> | undefined) {
+    if (!tree) {
+      return;
+    }
+
     // wait for CD to run before snapping to root so that svg container can change size.
     setTimeout(() => {
-      if (graph.root?.children) {
-        graph.snapToNode(graph.root.children[0], INIT_SNAP_ZOOM_SCALE);
-      }
+      tree.snapToRoot(INIT_SNAP_ZOOM_SCALE);
     });
   }
 
@@ -248,9 +245,9 @@ export class InjectorTreeComponent {
       const {type} = node.data.injector;
 
       if (type === 'element') {
-        this.elementInjectorTreeGraph.snapToNode(node, SNAP_ZOOM_SCALE);
+        this.elementTree()?.snapToNode(node, SNAP_ZOOM_SCALE);
       } else if (type === 'environment') {
-        this.injectorTreeGraph.snapToNode(node, SNAP_ZOOM_SCALE);
+        this.environmentTree()?.snapToNode(node, SNAP_ZOOM_SCALE);
       }
     });
   }
@@ -265,23 +262,25 @@ export class InjectorTreeComponent {
     let newNode: TreeD3Node<InjectorTreeNode> | null = null;
 
     if (injector.type === 'element') {
-      newNode = this.elementInjectorTreeGraph.getNodeById(injector.id);
+      newNode = this.elementTree()?.getNodeById(injector.id) ?? null;
     } else if (injector.type === 'environment') {
-      newNode = this.injectorTreeGraph.getNodeById(injector.id);
+      newNode = this.environmentTree()?.getNodeById(injector.id) ?? null;
     }
 
     if (newNode) {
       this.selectedNode.set(newNode);
     } else {
       this.selectedNode.set(null);
-      this.snapToRoot(this.injectorTreeGraph);
-      this.snapToRoot(this.elementInjectorTreeGraph);
+      this.snapToRoot(this.environmentTree());
+      this.snapToRoot(this.elementTree());
     }
   }
 
-  getNodeByComponentId(graph: InjectorTreeVisualizer, id: number): InjectorTreeD3Node | null {
-    const graphElement = graph.graphElement;
-    const element = graphElement.querySelector(`.node[data-component-id="${id}"]`);
+  getNodeByComponentId(
+    tree: TreeVisualizerHostComponent<InjectorTreeNode>,
+    id: number,
+  ): InjectorTreeD3Node | null {
+    const element = tree.svg.querySelector(`.node[data-component-id="${id}"]`);
     if (element === null) {
       return null;
     }
@@ -291,40 +290,7 @@ export class InjectorTreeComponent {
       return null;
     }
 
-    return graph.getNodeById(injectorId);
-  }
-
-  setUpEnvironmentInjectorVisualizer(): void {
-    const environmentTree = this.environmentTree();
-    if (!environmentTree) {
-      return;
-    }
-
-    const svg = environmentTree.container().nativeElement;
-    const g = environmentTree.group().nativeElement;
-
-    this.injectorTreeGraph?.cleanup?.();
-    this.injectorTreeGraph = new TreeVisualizer(svg, g, {
-      d3NodeModifier: d3InjectorTreeNodeModifier,
-      d3LinkModifier: d3InjectorTreeLinkModifier,
-    });
-  }
-
-  setUpElementInjectorVisualizer(): void {
-    const elementTree = this.elementTree();
-    if (!elementTree) {
-      return;
-    }
-
-    const svg = elementTree.container().nativeElement;
-    const g = elementTree.group().nativeElement;
-
-    this.elementInjectorTreeGraph?.cleanup?.();
-    this.elementInjectorTreeGraph = new TreeVisualizer(svg, g, {
-      nodeSeparation: () => 1,
-      d3NodeModifier: d3InjectorTreeNodeModifier,
-      d3LinkModifier: d3InjectorTreeLinkModifier,
-    });
+    return tree.getNodeById(injectorId) ?? null;
   }
 
   highlightPathFromSelectedInjector(): void {
@@ -334,13 +300,10 @@ export class InjectorTreeComponent {
       return;
     }
 
-    const envGroup = environmentTree.group();
-    const elementGroup = elementTree.group();
-
-    this.unhighlightAllEdges(elementGroup);
-    this.unhighlightAllNodes(elementGroup);
-    this.unhighlightAllEdges(envGroup);
-    this.unhighlightAllNodes(envGroup);
+    this.unhighlightAllEdges(elementTree);
+    this.unhighlightAllNodes(elementTree);
+    this.unhighlightAllEdges(environmentTree);
+    this.unhighlightAllNodes(environmentTree);
 
     this.reselectSelectedNode();
 
@@ -350,27 +313,27 @@ export class InjectorTreeComponent {
 
     if (this.selectedNode()!.data.injector.type === 'element') {
       const idsToRoot = getInjectorIdsToRootFromNode(this.selectedNode()!);
-      idsToRoot.forEach((id) => this.highlightNodeById(elementGroup, id));
+      idsToRoot.forEach((id) => this.highlightNodeById(elementTree, id));
       const edgeIds = generateEdgeIdsFromNodeIds(idsToRoot);
-      edgeIds.forEach((edgeId) => this.highlightEdgeById(elementGroup, edgeId));
+      edgeIds.forEach((edgeId) => this.highlightEdgeById(elementTree, edgeId));
 
       const environmentPath =
         this.elementToEnvironmentPath.get(this.selectedNode()!.data.injector.id) ?? [];
-      environmentPath.forEach((injector) => this.highlightNodeById(envGroup, injector.id));
+      environmentPath.forEach((injector) => this.highlightNodeById(environmentTree, injector.id));
       const environmentEdgeIds = generateEdgeIdsFromNodeIds(
         environmentPath.map((injector) => injector.id),
       );
-      environmentEdgeIds.forEach((edgeId) => this.highlightEdgeById(envGroup, edgeId));
+      environmentEdgeIds.forEach((edgeId) => this.highlightEdgeById(environmentTree, edgeId));
     } else {
       const idsToRoot = getInjectorIdsToRootFromNode(this.selectedNode()!);
-      idsToRoot.forEach((id) => this.highlightNodeById(envGroup, id));
+      idsToRoot.forEach((id) => this.highlightNodeById(environmentTree, id));
       const edgeIds = generateEdgeIdsFromNodeIds(idsToRoot);
-      edgeIds.forEach((edgeId) => this.highlightEdgeById(envGroup, edgeId));
+      edgeIds.forEach((edgeId) => this.highlightEdgeById(environmentTree, edgeId));
     }
   }
 
-  highlightNodeById(graphElement: ElementRef, id: string): void {
-    const node = graphElement.nativeElement.querySelector(`.node[data-id="${id}"]`);
+  highlightNodeById(tree: TreeVisualizerHostComponent<InjectorTreeNode>, id: string): void {
+    const node = tree.svg.querySelector(`.node[data-id="${id}"]`);
     if (!node) {
       return;
     }
@@ -380,8 +343,8 @@ export class InjectorTreeComponent {
     node.classList.add('highlighted');
   }
 
-  highlightEdgeById(graphElement: ElementRef, id: string): void {
-    const edge = graphElement.nativeElement.querySelector(`.link[data-id="${id}"]`);
+  highlightEdgeById(tree: TreeVisualizerHostComponent<InjectorTreeNode>, id: string): void {
+    const edge = tree.svg.querySelector(`.link[data-id="${id}"]`);
     if (!edge) {
       return;
     }
@@ -389,15 +352,15 @@ export class InjectorTreeComponent {
     edge.classList.add('highlighted');
   }
 
-  unhighlightAllEdges(graphElement: ElementRef): void {
-    const edges = graphElement.nativeElement.querySelectorAll('.link');
+  unhighlightAllEdges(tree: TreeVisualizerHostComponent<InjectorTreeNode>): void {
+    const edges = tree.svg.querySelectorAll('.link');
     for (const edge of edges) {
       edge.classList.remove('highlighted');
     }
   }
 
-  unhighlightAllNodes(graphElement: ElementRef): void {
-    const nodes = graphElement.nativeElement.querySelectorAll('.node');
+  unhighlightAllNodes(tree: TreeVisualizerHostComponent<InjectorTreeNode>): void {
+    const nodes = tree.svg.querySelectorAll('.node');
     for (const node of nodes) {
       node.classList.remove('selected');
       node.classList.remove('highlighted');

@@ -73,7 +73,7 @@ export class TreeVisualizer<T extends TreeNode = TreeNode> extends GraphRenderer
 
   constructor(
     private readonly containerElement: HTMLElement,
-    public readonly graphElement: HTMLElement,
+    private readonly graphElement: HTMLElement,
     config: Partial<TreeVisualizerConfig<T>> = {},
   ) {
     super();

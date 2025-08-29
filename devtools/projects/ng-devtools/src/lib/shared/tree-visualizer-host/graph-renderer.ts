@@ -13,7 +13,6 @@ export abstract class GraphRenderer<T, U> {
   abstract snapToRoot(): void;
   abstract zoomScale(scale: number): void;
   abstract root: U | null;
-  abstract get graphElement(): HTMLElement;
 
   protected nodeClickListeners: ((pointerEvent: PointerEvent, node: U) => void)[] = [];
   protected nodeMouseoverListeners: ((pointerEvent: PointerEvent, node: U) => void)[] = [];

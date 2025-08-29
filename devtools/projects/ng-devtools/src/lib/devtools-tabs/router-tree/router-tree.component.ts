@@ -8,12 +8,10 @@
 
 import {JsonPipe} from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
@@ -26,9 +24,8 @@ import {ApplicationOperations} from '../../application-operations/index';
 import {RouteDetailsRowComponent} from './route-details-row.component';
 import {FrameManager} from '../../application-services/frame_manager';
 import {Events, MessageBus, Route} from '../../../../../protocol';
-import {SvgD3Node, TreeVisualizer} from '../../shared/tree-visualizer-host/tree-visualizer';
+import {SvgD3Node, TreeVisualizerConfig} from '../../shared/tree-visualizer-host/tree-visualizer';
 import {
-  RouterTreeVisualizer,
   RouterTreeD3Node,
   transformRoutesIntoVisTree,
   RouterTreeNode,
@@ -58,8 +55,8 @@ const SEARCH_DEBOUNCE = 250;
 })
 export class RouterTreeComponent {
   private readonly searchInput = viewChild.required<ElementRef>('searchInput');
-  private readonly routerTree = viewChild.required<TreeVisualizerHostComponent>('routerTree');
-  private routerTreeVisualizer!: RouterTreeVisualizer;
+  private readonly routerTree =
+    viewChild.required<TreeVisualizerHostComponent<RouterTreeNode>>('routerTree');
 
   private readonly messageBus = inject(MessageBus) as MessageBus<Events>;
   private readonly appOperations = inject(ApplicationOperations);
@@ -71,8 +68,7 @@ export class RouterTreeComponent {
   snapToRoot = input(false);
 
   private readonly showFullPath = signal(false);
-  private readonly visualizerReady = signal<boolean>(false);
-  private readonly d3RootNode = computed(() =>
+  protected readonly d3RootNode = computed(() =>
     transformRoutesIntoVisTree(this.routes()[0], this.showFullPath()),
   );
 
@@ -82,30 +78,16 @@ export class RouterTreeComponent {
 
   protected readonly searchRoutes = this.searchDebouncer.debounce((inputValue: string) => {
     this.searchMatches = findNodesByLabel(this.d3RootNode(), inputValue.toLowerCase());
-    this.renderGraph(this.d3RootNode());
+    // this.renderGraph(this.d3RootNode());
   }, SEARCH_DEBOUNCE);
 
+  protected readonly routerTreeConfig: Partial<TreeVisualizerConfig<RouterTreeNode>> = {
+    nodeSeparation: () => 1,
+    d3NodeModifier: (n) => this.d3NodeModifier(n),
+  };
+
   constructor() {
-    effect(() => {
-      if (this.visualizerReady()) {
-        this.renderGraph(this.d3RootNode());
-      }
-    });
-
-    effect(() => {
-      if (this.visualizerReady() && this.snapToRoot()) {
-        this.routerTreeVisualizer.snapToRoot(0.6);
-      }
-    });
-
-    afterNextRender({
-      write: () => {
-        this.setUpRouterVisualizer();
-      },
-    });
-
     inject(DestroyRef).onDestroy(() => {
-      this.routerTreeVisualizer.dispose();
       this.searchDebouncer.cancel();
     });
   }
@@ -132,27 +114,17 @@ export class RouterTreeComponent {
     this.messageBus.emit('navigateRoute', [route.data.path]);
   }
 
-  private renderGraph(root: RouterTreeNode): void {
-    this.routerTreeVisualizer?.render(root);
-    this.routerTreeVisualizer?.onNodeClick((_, node) => {
-      this.selectedRoute.set(node);
-      setTimeout(() => {
-        this.routerTreeVisualizer?.snapToNode(node, 0.7);
-      });
-    });
+  routerTreeReady() {
+    if (this.snapToRoot()) {
+      this.routerTree().snapToRoot(0.6);
+    }
   }
 
-  private setUpRouterVisualizer(): void {
-    const container = this.routerTree().container().nativeElement;
-    const group = this.routerTree().group().nativeElement;
-
-    this.routerTreeVisualizer?.cleanup?.();
-    this.routerTreeVisualizer = new TreeVisualizer(container, group, {
-      nodeSeparation: () => 1,
-      d3NodeModifier: (n) => this.d3NodeModifier(n),
+  nodeClick(node: RouterTreeD3Node) {
+    this.selectedRoute.set(node);
+    setTimeout(() => {
+      this.routerTree().snapToNode(node, 0.7);
     });
-
-    this.visualizerReady.set(true);
   }
 
   private d3NodeModifier(d3Node: SvgD3Node<RouterTreeNode>) {
