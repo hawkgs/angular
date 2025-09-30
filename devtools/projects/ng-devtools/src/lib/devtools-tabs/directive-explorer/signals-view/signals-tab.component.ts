@@ -20,28 +20,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import {SignalsGraphVisualizer} from './signals-visualizer';
-import {
-  DebugSignalGraph,
-  DebugSignalGraphNode,
-  Events,
-  MessageBus,
-  PropType,
-} from '../../../../../../protocol';
-import {
-  FlatNode,
-  Property,
-} from './signals-details/signals-value-tree/signals-value-tree.component';
-import {FlatTreeControl} from '@angular/cdk/tree';
-import {arrayifyProps, SignalDataSource} from './signal-data-source';
-import {DataSource} from '@angular/cdk/collections';
-import {MatTreeFlattener} from '@angular/material/tree';
 import {MatIcon} from '@angular/material/icon';
+
+import {SignalsGraphVisualizer} from './signals-visualizer';
+import {Events, MessageBus} from '../../../../../../protocol';
 import {ApplicationOperations} from '../../../application-operations/index';
 import {FrameManager} from '../../../application-services/frame_manager';
 import {SignalsDetailsComponent} from './signals-details/signals-details.component';
 import {ButtonComponent} from '../../../shared/button/button.component';
 import {SignalGraphManager} from '../signal-graph/signal-graph-manager';
+import {DevtoolsSignalGraph, DevtoolsSignalGraphNode} from '../signal-graph';
 
 @Component({
   templateUrl: './signals-tab.component.html',
@@ -58,7 +46,7 @@ export class SignalsTabComponent implements OnDestroy {
   protected readonly preselectedNodeId = input<string | null>(null);
 
   // selected is automatically reset to null whenever `graph` changes
-  private selected = linkedSignal<DebugSignalGraph | null, string | null>({
+  private selected = linkedSignal<DevtoolsSignalGraph | null, string | null>({
     source: this.signalGraph.graph,
     computation: () => this.preselectedNodeId(),
   });
@@ -84,44 +72,7 @@ export class SignalsTabComponent implements OnDestroy {
     return signalGraph.nodes.find((node) => node.id === selected);
   });
 
-  protected dataSource = computed<DataSource<FlatNode> | null>(() => {
-    const selectedNode = this.selectedNode();
-    if (!selectedNode) {
-      return null;
-    }
-
-    return new SignalDataSource(
-      selectedNode.preview,
-      new MatTreeFlattener<Property, FlatNode, FlatNode>(
-        (node, level) => ({
-          expandable: node.descriptor.expandable,
-          prop: node,
-          level,
-        }),
-        (node) => node.level,
-        (node) => node.expandable,
-        (prop) => {
-          const descriptor = prop.descriptor;
-          if (descriptor.type === PropType.Object || descriptor.type === PropType.Array) {
-            return arrayifyProps(descriptor.value || {}, prop);
-          }
-          return;
-        },
-      ),
-      this.treeControl(),
-      {element: this.signalGraph.element()!, signalId: selectedNode.id},
-      this.messageBus,
-    );
-  });
-
   protected readonly detailsVisible = signal(false);
-
-  protected treeControl = computed<FlatTreeControl<FlatNode>>(() => {
-    return new FlatTreeControl(
-      (node) => node.level,
-      (node) => node.expandable,
-    );
-  });
 
   protected empty = computed(() => !(this.signalGraph.graph()?.nodes.length! > 0));
 
@@ -171,7 +122,7 @@ export class SignalsTabComponent implements OnDestroy {
     this.signalsVisualizer?.cleanup();
   }
 
-  gotoSource(node: DebugSignalGraphNode) {
+  gotoSource(node: DevtoolsSignalGraphNode) {
     const frame = this.frameManager.selectedFrame();
     this.appOperations.inspectSignal(
       {

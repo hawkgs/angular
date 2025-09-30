@@ -24,7 +24,6 @@ import {
 import {
   ComponentExplorerView,
   ComponentExplorerViewQuery,
-  DebugSignalGraphNode,
   DevToolsNode,
   DirectivePosition,
   ElementPosition,
@@ -60,6 +59,7 @@ import {SplitAreaDirective} from '../../shared/split/splitArea.directive';
 import {SplitComponent} from '../../shared/split/split.component';
 import {Direction} from '../../shared/split/interface';
 import {SignalGraphManager} from './signal-graph/signal-graph-manager';
+import {DevtoolsSignalGraphNode} from './signal-graph';
 
 const FOREST_VER_SPLIT_SIZE = 30;
 const SIGNAL_GRAPH_VER_SPLIT_SIZE = 70;
@@ -384,7 +384,7 @@ export class DirectiveExplorerComponent {
     }
   }
 
-  showSignalGraph(node: DebugSignalGraphNode | null) {
+  showSignalGraph(node: DevtoolsSignalGraphNode | null) {
     if (node) {
       this.preselectedSignalNodeId.set(node.id);
     }
