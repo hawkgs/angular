@@ -97,6 +97,14 @@
           background-color: var(--red-03);
         }
       }
+
+      .kind-resource {
+        background-color: goldenrod;
+
+        .header {
+          background-color: darkgoldenrod;
+        }
+      }
     }
   }
 

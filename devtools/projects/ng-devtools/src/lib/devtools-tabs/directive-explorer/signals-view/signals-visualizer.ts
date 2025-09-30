@@ -6,11 +6,17 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DebugSignalGraph, DebugSignalGraphNode} from '../../../../../../protocol';
 import * as d3 from 'd3';
 import {graphlib, render as dagreRender} from 'dagre-d3-es';
+import {
+  isGroupNode,
+  isSignalNode,
+  DevtoolsSignalGraph,
+  DevtoolsSignalGraphNode,
+} from '../signal-graph';
+import {DebugSignalGraphNode} from '../../../../../../protocol';
 
-const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
+const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
   'signal': 'kind-signal',
   'computed': 'kind-computed',
   'effect': 'kind-effect',
@@ -18,6 +24,7 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
   'template': 'kind-template',
   'linkedSignal': 'kind-linked-signal',
   'unknown': 'kind-unknown',
+  'resource': 'kind-resource',
 };
 
 export class SignalsGraphVisualizer {
@@ -28,7 +35,7 @@ export class SignalsGraphVisualizer {
 
   private animationMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
-  private nodeClickListeners: ((node: DebugSignalGraphNode) => void)[] = [];
+  private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
 
   constructor(private svg: SVGSVGElement) {
     this.graph = new graphlib.Graph({directed: true});
@@ -102,11 +109,11 @@ export class SignalsGraphVisualizer {
     this.timeouts.clear();
   }
 
-  render(injectorGraph: DebugSignalGraph): void {
+  render(signalGraph: DevtoolsSignalGraph): void {
     const updatedNodes: string[] = [];
     let matchedNodeId = false;
     for (const oldNode of this.graph.nodes()) {
-      if (!injectorGraph.nodes.find((n) => n.id == oldNode)) {
+      if (!signalGraph.nodes.find((n) => n.id === oldNode)) {
         this.graph.removeNode(oldNode);
         this.animationMap.delete(oldNode);
       } else {
@@ -114,36 +121,10 @@ export class SignalsGraphVisualizer {
       }
     }
 
-    const createNode = (node: DebugSignalGraphNode) => {
-      const outer = document.createElement('div');
-      outer.onclick = () => {
-        for (const cb of this.nodeClickListeners) {
-          cb(node);
-        }
-      };
-      outer.className = `node-label ${KIND_CLASS_MAP[node.kind]}`;
-      const header = document.createElement('div');
-      let label = node.label;
-      if (node.kind === 'effect') {
-        label = 'Effect';
-        header.classList.add('special');
-      }
-      if (!label) {
-        label = 'Unnamed';
-        header.classList.add('special');
-      }
-      header.classList.add('header');
-      header.textContent = label;
-      const body = document.createElement('div');
-      body.className = 'body';
-      body.textContent = getBodyText(node);
-      outer.appendChild(header);
-      outer.appendChild(body);
-      return outer;
-    };
-    for (const n of injectorGraph.nodes) {
+    for (const n of signalGraph.nodes) {
       const prev = this.graph.node(n.id);
-      if (prev) {
+      const isSignal = isSignalNode(n);
+      if (prev && isSignal) {
         if (n.epoch !== prev.epoch) {
           updatedNodes.push(n.id);
           const count = this.animationMap.get(n.id) ?? 0;
@@ -155,12 +136,12 @@ export class SignalsGraphVisualizer {
         }
       } else {
         this.graph.setNode(n.id, {
-          label: createNode(n),
+          label: this.createNode(n),
           labelType: 'html',
           shape: 'rect',
           padding: 0,
           style: 'fill: none;',
-          epoch: n.epoch,
+          epoch: isSignal ? n.epoch : undefined,
           rx: 8,
           ry: 8,
         });
@@ -173,9 +154,9 @@ export class SignalsGraphVisualizer {
     this.timeouts.add(timeout);
 
     const newEdgeIds = new Set();
-    for (const edge of injectorGraph.edges) {
-      const producerId = injectorGraph.nodes[edge.producer].id;
-      const consumerId = injectorGraph.nodes[edge.consumer].id;
+    for (const edge of signalGraph.edges) {
+      const producerId = signalGraph.nodes[edge.producer].id;
+      const consumerId = signalGraph.nodes[edge.consumer].id;
 
       const edgeId = `${btoa(producerId)}-${btoa(consumerId)}`;
       newEdgeIds.add(edgeId);
@@ -229,7 +210,7 @@ export class SignalsGraphVisualizer {
    * @param cb Callback/listener
    * @returns An unlisten function
    */
-  onNodeClick(cb: (node: DebugSignalGraphNode) => void): () => void {
+  onNodeClick(cb: (node: DevtoolsSignalGraphNode) => void): () => void {
     this.nodeClickListeners.push(cb);
 
     return () => {
@@ -239,9 +220,41 @@ export class SignalsGraphVisualizer {
       }
     };
   }
+
+  private createNode(node: DevtoolsSignalGraphNode): HTMLDivElement {
+    const outer = document.createElement('div');
+    outer.onclick = () => {
+      for (const cb of this.nodeClickListeners) {
+        cb(node);
+      }
+    };
+    outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.groupType]}`;
+
+    const header = document.createElement('div');
+    let label = node.label ?? null;
+    if (isSignalNode(node) && !label) {
+      label = node.kind === 'effect' ? 'Effect' : 'Unnamed';
+      header.classList.add('special');
+    }
+    header.classList.add('header');
+    header.textContent = label;
+
+    const body = document.createElement('div');
+    body.className = 'body';
+    body.textContent = getBodyText(node);
+
+    outer.appendChild(header);
+    outer.appendChild(body);
+
+    return outer;
+  }
 }
 
-function getBodyText(node: DebugSignalGraphNode): string {
+function getBodyText(node: DevtoolsSignalGraphNode): string {
+  if (isGroupNode(node)) {
+    return '[nodes]';
+  }
+
   if (node.kind === 'signal' || node.kind === 'computed') {
     return node.preview.preview;
   }

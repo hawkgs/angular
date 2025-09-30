@@ -1,16 +1,20 @@
 @let node = this.node();
+@let isSignalNode = this.isSignalNode(node);
+@let isGroupNode = this.isGroupNode(node);
 
 <div class="header">
-  <button
-    ng-button
-    size="compact"
-    class="action-btn"
-    (click)="gotoSource.emit(node)"
-    [disabled]="!node.debuggable"
-  >
-    <mat-icon> arrow_outward </mat-icon>
-    View Source
-  </button>
+  @if (isSignalNode) {
+    <button
+      ng-button
+      size="compact"
+      class="action-btn"
+      (click)="gotoSource.emit(node)"
+      [disabled]="!node.debuggable"
+    >
+      <mat-icon> arrow_outward </mat-icon>
+      View Source
+    </button>
+  }
   <button
     ng-button
     btnType="icon"
@@ -29,16 +33,26 @@
   }
   <dt>Type:</dt>
   <dd>
-    <span [class]="TYPE_CLASS_MAP[node.kind]" [class.type]="true">{{node.kind}}</span>
+    @if (isSignalNode) {
+      <span [class]="TYPE_CLASS_MAP[node.kind]" class="type">{{node.kind}}</span>
+    } @else if (isGroupNode) {
+      <span [class]="TYPE_CLASS_MAP[node.groupType]" class="type"
+        >{{ node.groupType }} (group)</span
+      >
+    }
   </dd>
-  <dt>Epoch:</dt>
-  <dd>{{node.epoch}}</dd>
+  @if (isSignalNode) {
+    <dt>Epoch:</dt>
+    <dd>{{node.epoch}}</dd>
+  }
 </dl>
 
-@if (node.kind === 'signal' || node.kind === 'computed') {
-  @if (node.preview.preview === 'undefined') {
+@if (isSignalNode && (node.kind === 'signal' || node.kind === 'computed')) {
+  @let dataSource = this.dataSource();
+
+  @if (node.preview.preview === 'undefined' || !dataSource) {
     <div class="value">undefined</div>
   } @else {
-    <ng-signals-value-tree [dataSource]="dataSource()" [treeControl]="treeControl()" />
+    <ng-signals-value-tree [dataSource]="dataSource" [treeControl]="treeControl()" />
   }
 }
