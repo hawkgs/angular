@@ -82,6 +82,11 @@
         &.type-linked-signal {
           background-color: var(--red-03);
         }
+
+        &.type-resource {
+          background-color: goldenrod;
+          color: black;
+        }
       }
     }
   }

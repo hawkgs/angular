@@ -18,9 +18,8 @@ import {PropertyEditorComponent} from './property-editor/property-editor.compone
 import {PropertyPreviewComponent} from './property-preview/property-preview.component';
 import {MatTree, MatTreeNode, MatTreeNodeDef, MatTreeNodePadding} from '@angular/material/tree';
 import {SUPPORTED_APIS} from '../../../../../../application-providers/supported_apis';
-import {SignalGraphManager} from '../../../../signal-graph/signal-graph-manager';
-import {DebugSignalGraphNode} from '../../../../../../../../../protocol';
 import {Settings} from '../../../../../../application-services/settings';
+import {DevtoolsSignalGraphNode, SignalGraphManager} from '../../../../signal-graph';
 
 @Component({
   selector: 'ng-property-view-tree',
@@ -48,7 +47,7 @@ export class PropertyViewTreeComponent {
   readonly treeControl = input.required<FlatTreeControl<FlatNode>>();
   readonly updateValue = output<any>();
   readonly inspect = output<any>();
-  readonly showSignalGraph = output<DebugSignalGraphNode>();
+  readonly showSignalGraph = output<DevtoolsSignalGraphNode>();
 
   protected readonly signalGraphEnabled = this.settings.signalGraphEnabled;
 
@@ -77,14 +76,14 @@ export class PropertyViewTreeComponent {
     });
   }
 
-  getSignalNode(node: FlatNode): DebugSignalGraphNode | null {
+  getSignalNode(node: FlatNode): DevtoolsSignalGraphNode | null {
     if (node.prop.descriptor.containerType?.includes('Signal')) {
       return this.signalGraph.graph()?.nodes.find((sn) => sn.label === node.prop.name) ?? null;
     }
     return null;
   }
 
-  showGraph(event: Event, node: DebugSignalGraphNode) {
+  showGraph(event: Event, node: DevtoolsSignalGraphNode) {
     event.stopPropagation();
     this.showSignalGraph.emit(node);
   }
