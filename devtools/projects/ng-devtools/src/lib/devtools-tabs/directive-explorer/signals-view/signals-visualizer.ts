@@ -16,6 +16,33 @@ import {
 } from '../signal-graph';
 import {DebugSignalGraphNode} from '../../../../../../protocol';
 
+// Non-exhaustive; Alter based on Dagre D3 docs if required
+interface DagreGraphNode {
+  label: HTMLDivElement;
+  labelType: string;
+  shape: string;
+  padding: number;
+  style: string;
+  epoch?: number;
+  rx: number;
+  ry: number;
+}
+
+// Non-exhaustive; Alter based on Dagre D3 docs if required
+interface DagreGraphEdge {
+  curve: any;
+  style: string;
+  arrowheadStyle: string;
+}
+
+// Improve Graphlib types
+declare class DagreGraph extends graphlib.Graph {
+  override setNode(id: string, value: DagreGraphNode, ...args: any[]): this;
+  override setEdge(producerId: string, consumerId: string, value: DagreGraphEdge): this;
+  override node(id: string): DagreGraphNode;
+  override edges(): {v: string; w: string}[];
+}
+
 const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
   'signal': 'kind-signal',
   'computed': 'kind-computed',
@@ -27,8 +54,24 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'resource': 'kind-resource',
 };
 
+function getEdgeId(producerId: string, consumerId: string): string;
+function getEdgeId(edge: {v: string; w: string}): string;
+function getEdgeId(...args: any[]): string {
+  let producerId: string;
+  let consumerId: string;
+  if (typeof args[0] === 'object') {
+    producerId = args[0].v;
+    consumerId = args[0].w;
+  } else {
+    producerId = args[0];
+    consumerId = args[1];
+  }
+
+  return `${btoa(producerId)}-${btoa(consumerId)}`;
+}
+
 export class SignalsGraphVisualizer {
-  private graph: graphlib.Graph;
+  private graph: DagreGraph;
   private drender: ReturnType<typeof dagreRender>;
 
   zoomController: d3.ZoomBehavior<SVGSVGElement, unknown>;
@@ -36,6 +79,7 @@ export class SignalsGraphVisualizer {
   private animationMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
+  private visibleGroups: Map<string, boolean> = new Map();
 
   constructor(private svg: SVGSVGElement) {
     this.graph = new graphlib.Graph({directed: true});
@@ -104,84 +148,19 @@ export class SignalsGraphVisualizer {
     for (const node of this.graph.nodes()) {
       this.graph.removeNode(node);
     }
+    for (const {v, w} of this.graph.edges()) {
+      this.graph.removeEdge(v, w, null);
+    }
     this.animationMap.clear();
+    this.visibleGroups.clear();
     this.cleanup();
     this.timeouts.clear();
   }
 
   render(signalGraph: DevtoolsSignalGraph): void {
-    const updatedNodes: string[] = [];
-    let matchedNodeId = false;
-    for (const oldNode of this.graph.nodes()) {
-      if (!signalGraph.nodes.find((n) => n.id === oldNode)) {
-        this.graph.removeNode(oldNode);
-        this.animationMap.delete(oldNode);
-      } else {
-        matchedNodeId = true;
-      }
-    }
-
-    for (const n of signalGraph.nodes) {
-      const prev = this.graph.node(n.id);
-      const isSignal = isSignalNode(n);
-      if (prev && isSignal) {
-        if (n.epoch !== prev.epoch) {
-          updatedNodes.push(n.id);
-          const count = this.animationMap.get(n.id) ?? 0;
-          this.animationMap.set(n.id, count + 1);
-          prev.epoch = n.epoch;
-          d3.select(prev.label).classed('animating', true);
-          const body = prev.label.querySelector('.body');
-          body.textContent = getBodyText(n);
-        }
-      } else {
-        this.graph.setNode(n.id, {
-          label: this.createNode(n),
-          labelType: 'html',
-          shape: 'rect',
-          padding: 0,
-          style: 'fill: none;',
-          epoch: isSignal ? n.epoch : undefined,
-          rx: 8,
-          ry: 8,
-        });
-      }
-    }
-
-    const timeout = setTimeout(() => {
-      this.updateNodeAnimations(updatedNodes, timeout);
-    }, 250);
-    this.timeouts.add(timeout);
-
-    const newEdgeIds = new Set();
-    for (const edge of signalGraph.edges) {
-      const producerId = signalGraph.nodes[edge.producer].id;
-      const consumerId = signalGraph.nodes[edge.consumer].id;
-
-      const edgeId = `${btoa(producerId)}-${btoa(consumerId)}`;
-      newEdgeIds.add(edgeId);
-
-      if (!this.graph.hasEdge(producerId, consumerId, undefined)) {
-        this.graph.setEdge(producerId, consumerId, {
-          curve: d3.curveBasis,
-          style: 'stroke: gray; fill:none; stroke-width: 1px; stroke-dasharray: 5, 5;',
-          arrowheadStyle: 'fill: gray',
-        });
-      }
-    }
-    for (const edge of this.graph.edges()) {
-      if (!newEdgeIds.has(`${btoa(edge.v)}-${btoa(edge.w)}`)) {
-        this.graph.removeEdge(edge.v, edge.w, undefined);
-      }
-    }
-
-    if (matchedNodeId) {
-      this.graph.graph().transition = (selection: any) => {
-        return selection.transition().duration(500);
-      };
-    } else {
-      this.graph.graph().transition = undefined;
-    }
+    this.updateGroups(signalGraph);
+    this.updateNodes(signalGraph);
+    this.updateEdges(signalGraph);
 
     const g = d3.select(this.svg).select('g');
 
@@ -221,21 +200,158 @@ export class SignalsGraphVisualizer {
     };
   }
 
+  private isNodeVisible(node: DevtoolsSignalGraphNode): boolean {
+    // Checks whether it's a:
+    // 1. Standard node that's not part of a group
+    // 2. Standard node that's part of a visible group
+    // 3. Group node that represents a currently hidden group
+    return (
+      (isSignalNode(node) && (!node.groupId || this.visibleGroups.get(node.groupId))) ||
+      (isGroupNode(node) && !this.visibleGroups.get(node.id))
+    );
+  }
+
+  private updateGroups(signalGraph: DevtoolsSignalGraph) {
+    const newGroupIds = new Set();
+
+    for (const groupId of signalGraph.groups) {
+      if (!this.visibleGroups.has(groupId)) {
+        this.visibleGroups.set(groupId, false);
+      }
+      newGroupIds.add(groupId);
+    }
+
+    for (const groupId of this.visibleGroups.keys()) {
+      if (!newGroupIds.has(groupId)) {
+        this.visibleGroups.delete(groupId);
+      }
+    }
+  }
+
+  private updateNodes(signalGraph: DevtoolsSignalGraph) {
+    let matchedNodeId = false;
+    for (const oldNodeId of this.graph.nodes()) {
+      const node = signalGraph.nodes.find((n) => n.id === oldNodeId);
+
+      if (!node || !this.isNodeVisible(node)) {
+        this.graph.removeNode(oldNodeId);
+        this.animationMap.delete(oldNodeId);
+      } else {
+        matchedNodeId = true;
+      }
+    }
+
+    const updatedNodes: string[] = [];
+
+    for (const n of signalGraph.nodes) {
+      const isSignal = isSignalNode(n);
+      const existingNode = this.graph.node(n.id);
+
+      if (existingNode && isSignal) {
+        if (n.epoch !== existingNode.epoch) {
+          updatedNodes.push(n.id);
+          const count = this.animationMap.get(n.id) ?? 0;
+          this.animationMap.set(n.id, count + 1);
+          existingNode.epoch = n.epoch;
+          d3.select(existingNode.label).classed('animating', true);
+          const body = existingNode.label.getElementsByClassName('body').item(0);
+          if (body) {
+            body.textContent = getBodyText(n);
+          }
+        }
+      } else if (this.isNodeVisible(n)) {
+        this.graph.setNode(n.id, {
+          label: this.createNode(n),
+          labelType: 'html',
+          shape: 'rect',
+          padding: 0,
+          style: 'fill: none;',
+          epoch: isSignal ? n.epoch : undefined,
+          rx: 8,
+          ry: 8,
+        });
+      }
+    }
+
+    const timeout = setTimeout(() => {
+      this.updateNodeAnimations(updatedNodes, timeout);
+    }, 250);
+    this.timeouts.add(timeout);
+
+    if (matchedNodeId) {
+      this.graph.graph().transition = (selection: any) => {
+        return selection.transition().duration(500);
+      };
+    } else {
+      this.graph.graph().transition = undefined;
+    }
+  }
+
+  private updateEdges(signalGraph: DevtoolsSignalGraph) {
+    const newEdgeIds = new Set();
+
+    for (const edge of signalGraph.edges) {
+      const producerNode = signalGraph.nodes[edge.producer];
+      const producerId = producerNode.id;
+      const consumerId = signalGraph.nodes[edge.consumer].id;
+
+      const edgeId = getEdgeId(producerId, consumerId);
+      newEdgeIds.add(edgeId);
+
+      if (
+        !this.graph.hasEdge(producerId, consumerId, undefined) &&
+        this.isNodeVisible(producerNode)
+      ) {
+        this.graph.setEdge(producerId, consumerId, {
+          curve: d3.curveBasis,
+          style: 'stroke: gray; fill:none; stroke-width: 1px; stroke-dasharray: 5, 5;',
+          arrowheadStyle: 'fill: gray',
+        });
+      }
+    }
+
+    for (const edge of this.graph.edges()) {
+      if (!newEdgeIds.has(getEdgeId(edge))) {
+        this.graph.removeEdge(edge.v, edge.w, undefined);
+      }
+    }
+  }
+
   private createNode(node: DevtoolsSignalGraphNode): HTMLDivElement {
     const outer = document.createElement('div');
-    outer.onclick = () => {
-      for (const cb of this.nodeClickListeners) {
-        cb(node);
-      }
-    };
+    if (isSignalNode(node)) {
+      outer.onclick = () => {
+        for (const cb of this.nodeClickListeners) {
+          cb(node);
+        }
+      };
+    } else if (isGroupNode(node)) {
+      outer.onclick = () => {
+        // TBD
+        console.log('Expand group: ' + node.id);
+      };
+    }
     outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.groupType]}`;
 
     const header = document.createElement('div');
+
     let label = node.label ?? null;
-    if (isSignalNode(node) && !label) {
-      label = node.kind === 'effect' ? 'Effect' : 'Unnamed';
-      header.classList.add('special');
+    if (isSignalNode(node)) {
+      if (!label) {
+        label = node.kind === 'effect' ? 'Effect' : 'Unnamed';
+        header.classList.add('special');
+      } else {
+        const hashIdx = label.indexOf('#');
+        if (hashIdx > -1) {
+          label = label.substring(hashIdx + 1, label.length);
+        }
+      }
+
+      if (node.groupId) {
+        label = '(G) ' + label;
+      }
     }
+
     header.classList.add('header');
     header.textContent = label;
 
