@@ -45,9 +45,11 @@ export type DevtoolsSignalGraphNode = DevtoolsSignalNode | DevtoolsGroupNode;
 export interface DevtoolsSignalGraphEdge extends DebugSignalGraphEdge {}
 
 /**
- * Represents a DevTools-specific signal graph.
+ * Represents a DevTools-FE-specific signal graph that extends
+ * the `DebugSignalGraph` with synthetic group nodes.
  */
 export interface DevtoolsSignalGraph {
   nodes: DevtoolsSignalGraphNode[];
   edges: DevtoolsSignalGraphEdge[];
+  groups: string[];
 }
