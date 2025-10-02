@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DebugSignalGraph} from '../../../../../../protocol';
+import {DebugSignalGraph, DebugSignalGraphNode} from '../../../../../../protocol';
 import {DevtoolsGroupNodeType, DevtoolsSignalGraph} from './signal-graph-types';
 
 let GROUP_IDX = 0;
@@ -15,6 +15,7 @@ interface Group {
   id: string;
   type: DevtoolsGroupNodeType;
   nodes: Set<string>;
+  producers: Set<number>;
   consumers: Set<number>;
   name: string;
 }
@@ -24,9 +25,16 @@ type GroupIdentifier = (nodes: DebugSignalGraph) => Group[];
 const resourceGroupIdentifier: GroupIdentifier = (graph) => {
   const groups: Map<string, Group> = new Map();
 
+  const checkResourceGroupMatch = (n: DebugSignalGraphNode) =>
+    n.label?.match(/Resource#([\w]+).[\w]+/);
+  const isNodePartOfGroup = (n: DebugSignalGraphNode, name: string) => {
+    const match = checkResourceGroupMatch(n);
+    return match && match[1] === name;
+  };
+
   for (let i = 0; i < graph.nodes.length; i++) {
     const node = graph.nodes[i];
-    const match = node.label?.match(/Resource#([\w]+).[\w]+/);
+    const match = checkResourceGroupMatch(node);
     if (!match) {
       continue;
     }
@@ -39,15 +47,24 @@ const resourceGroupIdentifier: GroupIdentifier = (graph) => {
         type: 'resource',
         name,
         consumers: new Set(),
+        producers: new Set(),
         nodes: new Set(),
       };
       groups.set(name, group);
     }
 
     group.nodes.add(node.id);
+
     for (const edge of graph.edges) {
-      if (edge.producer === i) {
+      // Note that we have to make sure that the consumer is not part of the
+      // same group since we'll end up with a circular dependency.
+      if (edge.producer === i && !isNodePartOfGroup(graph.nodes[edge.consumer], name)) {
         group.consumers.add(edge.consumer);
+      }
+
+      // Same for producers
+      if (edge.consumer === i && !isNodePartOfGroup(graph.nodes[edge.producer], name)) {
+        group.producers.add(edge.producer);
       }
     }
   }
@@ -57,12 +74,16 @@ const resourceGroupIdentifier: GroupIdentifier = (graph) => {
 
 const GROUP_IDENTIFIERS: GroupIdentifier[] = [resourceGroupIdentifier];
 
+/**
+ * Convert a `DebugSignalGraph` to a DevTools-FE specific `DevtoolsSignalGraph`.
+ */
 export function convertToDevtoolsSignalGraph(
   debugSignalGraph: DebugSignalGraph,
 ): DevtoolsSignalGraph {
   const signalGraph: DevtoolsSignalGraph = {
     nodes: [],
     edges: [],
+    groups: [],
   };
 
   // Identify groups
@@ -71,7 +92,8 @@ export function convertToDevtoolsSignalGraph(
     groups = groups.concat(identifier(debugSignalGraph));
   }
 
-  console.log('groups', groups);
+  // Add group IDs
+  signalGraph.groups = groups.map((g) => g.id);
 
   // Map nodes
   signalGraph.nodes = debugSignalGraph.nodes.map((n) => {
@@ -96,12 +118,20 @@ export function convertToDevtoolsSignalGraph(
       label: group.name,
     });
 
-    const groupIdx = groups.length - 1;
+    // Start from the last node index
+    const groupIdx = signalGraph.nodes.length - 1;
 
     for (const consumerIdx of group.consumers) {
       signalGraph.edges.push({
         producer: groupIdx,
         consumer: consumerIdx,
+      });
+    }
+
+    for (const producerIdx of group.producers) {
+      signalGraph.edges.push({
+        producer: producerIdx,
+        consumer: groupIdx,
       });
     }
   }
