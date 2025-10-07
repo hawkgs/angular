@@ -1,4 +1,9 @@
-<svg #component></svg>
+<ng-signals-visualizer
+  [graph]="signalGraph.graph()"
+  [selectedNodeId]="selectedNodeId()"
+  [element]="signalGraph.element()"
+  (nodeClick)="onNodeClick($event)"
+/>
 
 @let node = selectedNode();
 @if (node && detailsVisible()) {
