@@ -16,6 +16,7 @@ import {
   inject,
   input,
   output,
+  resource,
   signal,
   TemplateRef,
   viewChild,
@@ -76,6 +77,12 @@ export class DemoAppComponent {
   objectComputed = computed(() => {
     const original = this.objectSignal();
     return {...original, age: original.age + 1};
+  });
+
+  myRsrc = resource({
+    defaultValue: 'def_val',
+    loader: () => Promise.resolve('next_val'),
+    debugName: 'myRsrc',
   });
 
   getTitle(): '► Click to expand' | '▼ Click to collapse' {

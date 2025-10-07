@@ -1,0 +1,13 @@
+<svg #host></svg>
+
+@if (visibleGroups().length) {
+  <div class="visible-groups">
+    <p>Visible groups</p>
+    @for (group of visibleGroups(); track group.id) {
+      <button ng-button size="compact" (click)="hideGroup(group.id)">
+        <mat-icon>close</mat-icon>
+        Hide "{{group.name}}"
+      </button>
+    }
+  </div>
+}

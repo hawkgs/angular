@@ -13,8 +13,8 @@ import {
   isSignalNode,
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
-} from '../signal-graph';
-import {DebugSignalGraphNode} from '../../../../../../protocol';
+} from '../../signal-graph';
+import {DebugSignalGraphNode} from '../../../../../../../protocol';
 
 // Non-exhaustive; Alter based on Dagre D3 docs if required
 interface DagreGraphNode {
@@ -54,22 +54,6 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'resource': 'kind-resource',
 };
 
-function getEdgeId(producerId: string, consumerId: string): string;
-function getEdgeId(edge: {v: string; w: string}): string;
-function getEdgeId(...args: any[]): string {
-  let producerId: string;
-  let consumerId: string;
-  if (typeof args[0] === 'object') {
-    producerId = args[0].v;
-    consumerId = args[0].w;
-  } else {
-    producerId = args[0];
-    consumerId = args[1];
-  }
-
-  return `${btoa(producerId)}-${btoa(consumerId)}`;
-}
-
 export class SignalsGraphVisualizer {
   private graph: DagreGraph;
   private drender: ReturnType<typeof dagreRender>;
@@ -79,7 +63,9 @@ export class SignalsGraphVisualizer {
   private animationMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
-  private visibleGroups: Map<string, boolean> = new Map();
+  private groupsVisibilityChangeListeners: ((visibleGroupsIds: Set<string>) => void)[] = [];
+  private visibleGroupsIds = new Set<string>();
+  private inputGraph: DevtoolsSignalGraph | null = null;
 
   constructor(private svg: SVGSVGElement) {
     this.graph = new graphlib.Graph({directed: true});
@@ -152,7 +138,8 @@ export class SignalsGraphVisualizer {
       this.graph.removeEdge(v, w, null);
     }
     this.animationMap.clear();
-    this.visibleGroups.clear();
+    this.visibleGroupsIds.clear();
+    this.notifyForGroupVisibilityUpdate();
     this.cleanup();
     this.timeouts.clear();
   }
@@ -171,6 +158,8 @@ export class SignalsGraphVisualizer {
     const xTransform = isFinite(width) ? -width / 2 : 0;
     const yTransform = isFinite(height) ? -height / 2 : 0;
     g.select('.output').attr('transform', `translate(${xTransform}, ${yTransform})`);
+
+    this.inputGraph = signalGraph;
   }
 
   resize() {
@@ -181,6 +170,21 @@ export class SignalsGraphVisualizer {
       this.svg.clientWidth,
       this.svg.clientHeight,
     ]);
+  }
+
+  setGroupVisibility(groupId: string, visible: boolean) {
+    if (!this.inputGraph) {
+      return;
+    }
+
+    if (visible) {
+      this.visibleGroupsIds.add(groupId);
+    } else {
+      this.visibleGroupsIds.delete(groupId);
+    }
+
+    this.notifyForGroupVisibilityUpdate();
+    this.render(this.inputGraph);
   }
 
   /**
@@ -200,31 +204,52 @@ export class SignalsGraphVisualizer {
     };
   }
 
+  /**
+   * Listen for group visibility changes.
+   *
+   * @param cb Callback/listener
+   * @returns An unlisten function
+   */
+  onGroupVisibilityChange(cb: (visibleGroupsIds: Set<string>) => void): () => void {
+    this.groupsVisibilityChangeListeners.push(cb);
+
+    return () => {
+      const idx = this.groupsVisibilityChangeListeners.indexOf(cb);
+      if (idx > -1) {
+        this.groupsVisibilityChangeListeners.splice(idx, 1);
+      }
+    };
+  }
+
   private isNodeVisible(node: DevtoolsSignalGraphNode): boolean {
     // Checks whether it's a:
     // 1. Standard node that's not part of a group
     // 2. Standard node that's part of a visible group
     // 3. Group node that represents a currently hidden group
     return (
-      (isSignalNode(node) && (!node.groupId || this.visibleGroups.get(node.groupId))) ||
-      (isGroupNode(node) && !this.visibleGroups.get(node.id))
+      (isSignalNode(node) && (!node.groupId || this.visibleGroupsIds.has(node.groupId))) ||
+      (isGroupNode(node) && !this.visibleGroupsIds.has(node.id))
     );
   }
 
   private updateGroups(signalGraph: DevtoolsSignalGraph) {
-    const newGroupIds = new Set();
+    const newGroupIds = new Set<string>();
 
-    for (const groupId of signalGraph.groups) {
-      if (!this.visibleGroups.has(groupId)) {
-        this.visibleGroups.set(groupId, false);
-      }
-      newGroupIds.add(groupId);
+    for (const group of signalGraph.groups) {
+      newGroupIds.add(group.id);
     }
 
-    for (const groupId of this.visibleGroups.keys()) {
+    let groupsUpdated = false;
+
+    for (const groupId of this.visibleGroupsIds) {
       if (!newGroupIds.has(groupId)) {
-        this.visibleGroups.delete(groupId);
+        this.visibleGroupsIds.delete(groupId);
+        groupsUpdated = true;
       }
+    }
+
+    if (groupsUpdated) {
+      this.notifyForGroupVisibilityUpdate();
     }
   }
 
@@ -311,9 +336,15 @@ export class SignalsGraphVisualizer {
     }
 
     for (const edge of this.graph.edges()) {
-      if (!newEdgeIds.has(getEdgeId(edge))) {
+      if (!newEdgeIds.has(getEdgeId(edge.v, edge.w))) {
         this.graph.removeEdge(edge.v, edge.w, undefined);
       }
+    }
+  }
+
+  private notifyForGroupVisibilityUpdate() {
+    for (const cb of this.groupsVisibilityChangeListeners) {
+      cb(new Set(this.visibleGroupsIds));
     }
   }
 
@@ -326,10 +357,7 @@ export class SignalsGraphVisualizer {
         }
       };
     } else if (isGroupNode(node)) {
-      outer.onclick = () => {
-        // TBD
-        console.log('Expand group: ' + node.id);
-      };
+      outer.onclick = () => this.setGroupVisibility(node.id, true);
     }
     outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.groupType]}`;
 
@@ -348,7 +376,7 @@ export class SignalsGraphVisualizer {
       }
 
       if (node.groupId) {
-        label = '(G) ' + label;
+        outer.classList.add('group-child');
       }
     }
 
@@ -384,4 +412,8 @@ function getBodyText(node: DevtoolsSignalGraphNode): string {
   }
 
   return '';
+}
+
+function getEdgeId(producerId: string, consumerId: string): string {
+  return `${btoa(producerId)}-${btoa(consumerId)}`;
 }

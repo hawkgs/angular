@@ -92,8 +92,8 @@ export function convertToDevtoolsSignalGraph(
     groups = groups.concat(identifier(debugSignalGraph));
   }
 
-  // Add group IDs
-  signalGraph.groups = groups.map((g) => g.id);
+  // Add groups
+  signalGraph.groups = groups.map((g) => ({id: g.id, name: g.name}));
 
   // Map nodes
   signalGraph.nodes = debugSignalGraph.nodes.map((n) => {
