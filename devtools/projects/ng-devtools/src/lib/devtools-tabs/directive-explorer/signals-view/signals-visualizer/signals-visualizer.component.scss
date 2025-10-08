@@ -13,6 +13,10 @@
     color: white;
 
     ::ng-deep {
+      foreignObject {
+        overflow: visible;
+      }
+
       .node-label {
         position: relative;
         box-sizing: border-box;
@@ -43,12 +47,26 @@
           }
         }
 
-        &.group-child > .header::before {
-          content: 'G';
-          border-radius: 50%;
-          width: 10px;
-          height: 10px;
-          background-color: red;
+        &.group-node {
+          &::before {
+            position: absolute;
+            border-radius: 50%;
+            width: 13px;
+            height: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 11px;
+            bottom: 4px;
+            right: 4px;
+          }
+
+          &.resource-child::before {
+            content: 'R';
+            background-color: var(--yellow-02);
+            color: black;
+          }
         }
 
         .body {
@@ -108,10 +126,13 @@
       }
 
       .kind-resource {
-        background-color: goldenrod;
+        background-color: var(--yellow-02);
+        color: black;
+        outline: 1.5px solid var(--yellow-01);
+        outline-offset: 3px;
 
         .header {
-          background-color: darkgoldenrod;
+          background-color: var(--yellow-01);
         }
       }
     }
@@ -134,12 +155,20 @@
       align-items: center;
       gap: 0.1rem;
       margin-bottom: 0.375rem;
-      background-color: goldenrod;
+      background-color: var(--yellow-02);
+      max-width: 100px;
 
       mat-icon {
         width: 16px;
         height: 16px;
         font-size: 16px;
+      }
+
+      span {
+        flex: 1;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
   }

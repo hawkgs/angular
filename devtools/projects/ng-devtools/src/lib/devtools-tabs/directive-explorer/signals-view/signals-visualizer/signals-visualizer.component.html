@@ -2,11 +2,16 @@
 
 @if (visibleGroups().length) {
   <div class="visible-groups">
-    <p>Visible groups</p>
+    <p>Expanded groups</p>
     @for (group of visibleGroups(); track group.id) {
-      <button ng-button size="compact" (click)="hideGroup(group.id)">
+      <button
+        ng-button
+        size="compact"
+        (click)="hideGroup(group.id)"
+        [attr.title]="'Collapse ' + group.name"
+      >
         <mat-icon>close</mat-icon>
-        Hide "{{group.name}}"
+        <span>{{group.name}}</span>
       </button>
     }
   </div>

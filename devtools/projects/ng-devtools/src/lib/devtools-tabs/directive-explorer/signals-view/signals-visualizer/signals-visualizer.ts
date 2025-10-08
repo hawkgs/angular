@@ -13,6 +13,7 @@ import {
   isSignalNode,
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
+  DevtoolsGroupNodeType,
 } from '../../signal-graph';
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
 
@@ -54,6 +55,10 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'resource': 'kind-resource',
 };
 
+const GROUP_TYPE_CLASS_MAP: {[key in DevtoolsGroupNodeType]: string} = {
+  'resource': 'resource-child',
+};
+
 export class SignalsGraphVisualizer {
   private graph: DagreGraph;
   private drender: ReturnType<typeof dagreRender>;
@@ -68,7 +73,7 @@ export class SignalsGraphVisualizer {
   private inputGraph: DevtoolsSignalGraph | null = null;
 
   constructor(private svg: SVGSVGElement) {
-    this.graph = new graphlib.Graph({directed: true});
+    this.graph = new graphlib.Graph({directed: true, compound: true});
     this.graph.setGraph({});
     this.graph.graph().rankdir = 'TB';
     this.graph.graph().ranksep = 50;
@@ -235,8 +240,8 @@ export class SignalsGraphVisualizer {
   private updateGroups(signalGraph: DevtoolsSignalGraph) {
     const newGroupIds = new Set<string>();
 
-    for (const group of signalGraph.groups) {
-      newGroupIds.add(group.id);
+    for (const groupId of Object.keys(signalGraph.groups)) {
+      newGroupIds.add(groupId);
     }
 
     let groupsUpdated = false;
@@ -286,7 +291,7 @@ export class SignalsGraphVisualizer {
         }
       } else if (this.isNodeVisible(n)) {
         this.graph.setNode(n.id, {
-          label: this.createNode(n),
+          label: this.createNode(n, signalGraph),
           labelType: 'html',
           shape: 'rect',
           padding: 0,
@@ -348,7 +353,7 @@ export class SignalsGraphVisualizer {
     }
   }
 
-  private createNode(node: DevtoolsSignalGraphNode): HTMLDivElement {
+  private createNode(node: DevtoolsSignalGraphNode, graph: DevtoolsSignalGraph): HTMLDivElement {
     const outer = document.createElement('div');
     if (isSignalNode(node)) {
       outer.onclick = () => {
@@ -376,7 +381,9 @@ export class SignalsGraphVisualizer {
       }
 
       if (node.groupId) {
-        outer.classList.add('group-child');
+        outer.classList.add('group-node');
+        const groupType = graph.groups[node.groupId].type;
+        outer.classList.add(GROUP_TYPE_CLASS_MAP[groupType]);
       }
     }
 
@@ -399,7 +406,7 @@ function getBodyText(node: DevtoolsSignalGraphNode): string {
     return '[nodes]';
   }
 
-  if (node.kind === 'signal' || node.kind === 'computed') {
+  if (node.kind === 'signal' || node.kind === 'computed' || node.kind === 'linkedSignal') {
     return node.preview.preview;
   }
 

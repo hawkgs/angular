@@ -48,6 +48,7 @@ export class SignalsVisualizerComponent {
   protected readonly selectedNodeId = input.required<string | null>();
   protected readonly element = input.required<ElementPosition | undefined>();
   protected readonly nodeClick = output<DevtoolsSignalGraphNode>();
+  protected readonly groupHide = output<string>();
 
   private readonly visibleGroupsIds = signal<Set<string>>(new Set());
   protected readonly visibleGroups = computed<DevtoolsSignalGraphGroup[]>(() => {
@@ -56,7 +57,7 @@ export class SignalsVisualizerComponent {
     if (!groupIds || !graph) {
       return [];
     }
-    return Array.from(groupIds).map((id) => graph.groups.find((g) => g.id === id)!);
+    return Array.from(groupIds).map((id) => graph.groups[id]);
   });
 
   private onResize = () => this.signalsVisualizer?.resize();
@@ -112,5 +113,6 @@ export class SignalsVisualizerComponent {
 
   hideGroup(id: string) {
     this.signalsVisualizer?.setGroupVisibility(id, false);
+    this.groupHide.emit(id);
   }
 }

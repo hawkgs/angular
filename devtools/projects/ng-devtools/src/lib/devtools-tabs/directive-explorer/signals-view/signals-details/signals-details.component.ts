@@ -24,6 +24,7 @@ import {
   isSignalNode,
   DevtoolsSignalGraphNode,
   SignalGraphManager,
+  checkResourceGroupMatch,
 } from '../../signal-graph';
 import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
@@ -57,7 +58,25 @@ export class SignalsDetailsComponent {
   protected readonly TYPE_CLASS_MAP = TYPE_CLASS_MAP;
 
   protected readonly isSignalNode = isSignalNode;
-  protected readonly isGroupNode = isGroupNode;
+
+  protected readonly name = computed(() => {
+    const node = this.node();
+    if (isSignalNode(node) && node.groupId) {
+      const match = checkResourceGroupMatch(node);
+      if (match) {
+        return match.signalName;
+      }
+    }
+    return node.label;
+  });
+
+  protected readonly group = computed(() => {
+    const node = this.node();
+    if (isSignalNode(node) && node.groupId) {
+      return this.signalGraph.graph()?.groups[node.groupId] || null;
+    }
+    return null;
+  });
 
   protected treeControl = computed<FlatTreeControl<FlatNode>>(() => {
     return new FlatTreeControl(
