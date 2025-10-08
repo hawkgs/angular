@@ -20,11 +20,11 @@ import {
 } from './signals-value-tree/signals-value-tree.component';
 import {ButtonComponent} from '../../../../shared/button/button.component';
 import {
-  isGroupNode,
+  isClusterNode,
   isSignalNode,
   DevtoolsSignalGraphNode,
   SignalGraphManager,
-  checkResourceGroupMatch,
+  checkResourceClusterMatch,
 } from '../../signal-graph';
 import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
@@ -60,8 +60,8 @@ export class SignalsDetailsComponent {
 
   protected readonly name = computed(() => {
     const node = this.node();
-    if (isSignalNode(node) && node.groupId) {
-      const match = checkResourceGroupMatch(node);
+    if (isSignalNode(node) && node.clusterId) {
+      const match = checkResourceClusterMatch(node);
       if (match) {
         return match.signalName;
       }
@@ -69,10 +69,10 @@ export class SignalsDetailsComponent {
     return node.label;
   });
 
-  protected readonly group = computed(() => {
+  protected readonly cluster = computed(() => {
     const node = this.node();
-    if (isSignalNode(node) && node.groupId) {
-      return this.signalGraph.graph()?.groups[node.groupId] || null;
+    if (isSignalNode(node) && node.clusterId) {
+      return this.signalGraph.graph()?.clusters[node.clusterId] || null;
     }
     return null;
   });
@@ -86,7 +86,7 @@ export class SignalsDetailsComponent {
 
   protected dataSource = computed<DataSource<FlatNode> | null>(() => {
     const selectedNode = this.node();
-    if (!selectedNode || isGroupNode(selectedNode)) {
+    if (!selectedNode || isClusterNode(selectedNode)) {
       return null;
     }
 

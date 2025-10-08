@@ -25,7 +25,7 @@ import {MatIcon} from '@angular/material/icon';
 
 import {
   DevtoolsSignalGraph,
-  DevtoolsSignalGraphGroup,
+  DevtoolsSignalGraphCluster,
   DevtoolsSignalGraphNode,
 } from '../../signal-graph';
 import {SignalsGraphVisualizer} from './signals-visualizer';
@@ -48,16 +48,16 @@ export class SignalsVisualizerComponent {
   protected readonly selectedNodeId = input.required<string | null>();
   protected readonly element = input.required<ElementPosition | undefined>();
   protected readonly nodeClick = output<DevtoolsSignalGraphNode>();
-  protected readonly groupHide = output<string>();
+  protected readonly clusterHide = output<string>();
 
-  private readonly visibleGroupsIds = signal<Set<string>>(new Set());
-  protected readonly visibleGroups = computed<DevtoolsSignalGraphGroup[]>(() => {
-    const groupIds = this.visibleGroupsIds();
+  private readonly visibleClustersIds = signal<Set<string>>(new Set());
+  protected readonly visibleClusters = computed<DevtoolsSignalGraphCluster[]>(() => {
+    const clusterIds = this.visibleClustersIds();
     const graph = untracked(this.graph);
-    if (!groupIds || !graph) {
+    if (!clusterIds || !graph) {
       return [];
     }
-    return Array.from(groupIds).map((id) => graph.groups[id]);
+    return Array.from(clusterIds).map((id) => graph.clusters[id]);
   });
 
   private onResize = () => this.signalsVisualizer?.resize();
@@ -106,13 +106,13 @@ export class SignalsVisualizerComponent {
     this.signalsVisualizer.onNodeClick((node) => {
       this.nodeClick.emit(node);
     });
-    this.signalsVisualizer.onGroupVisibilityChange((visibleGroups) => {
-      this.visibleGroupsIds.set(visibleGroups);
+    this.signalsVisualizer.onClustersVisibilityChange((visibleClusters) => {
+      this.visibleClustersIds.set(visibleClusters);
     });
   }
 
-  hideGroup(id: string) {
-    this.signalsVisualizer?.setGroupVisibility(id, false);
-    this.groupHide.emit(id);
+  hideCluster(id: string) {
+    this.signalsVisualizer?.setClusterVisibility(id, false);
+    this.clusterHide.emit(id);
   }
 }

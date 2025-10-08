@@ -1,17 +1,17 @@
 <svg #host></svg>
 
-@if (visibleGroups().length) {
-  <div class="visible-groups">
-    <p>Expanded groups</p>
-    @for (group of visibleGroups(); track group.id) {
+@if (visibleClusters().length) {
+  <div class="visible-clusters">
+    <p>Expanded clusters</p>
+    @for (cluster of visibleClusters(); track cluster.id) {
       <button
         ng-button
         size="compact"
-        (click)="hideGroup(group.id)"
-        [attr.title]="'Collapse ' + group.name"
+        (click)="hideCluster(cluster.id)"
+        [attr.title]="'Collapse ' + cluster.name"
       >
         <mat-icon>close</mat-icon>
-        <span>{{group.name}}</span>
+        <span>{{cluster.name}}</span>
       </button>
     }
   </div>

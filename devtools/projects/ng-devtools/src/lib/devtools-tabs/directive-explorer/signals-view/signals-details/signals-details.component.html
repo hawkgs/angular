@@ -37,12 +37,12 @@
     </dd>
   }
 
-  @if (group(); as group) {
+  @if (cluster(); as cluster) {
     <dt>Part of:</dt>
-    <dd>{{group.name}}</dd>
-    <dt>Group type:</dt>
+    <dd>{{cluster.name}}</dd>
+    <dt>Cluster type:</dt>
     <dd>
-      <span [class]="TYPE_CLASS_MAP[group.type]" class="type">{{ group.type }}</span>
+      <span [class]="TYPE_CLASS_MAP[cluster.type]" class="type">{{ cluster.type }}</span>
     </dd>
   }
   @if (isSignalNode) {
