@@ -9,11 +9,11 @@
 import * as d3 from 'd3';
 import {graphlib, render as dagreRender} from 'dagre-d3-es';
 import {
-  isGroupNode,
+  isClusterNode,
   isSignalNode,
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
-  DevtoolsGroupNodeType,
+  DevtoolsClusterNodeType,
 } from '../../signal-graph';
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
 
@@ -55,7 +55,7 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'resource': 'kind-resource',
 };
 
-const GROUP_TYPE_CLASS_MAP: {[key in DevtoolsGroupNodeType]: string} = {
+const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'resource-child',
 };
 
@@ -68,8 +68,8 @@ export class SignalsGraphVisualizer {
   private animationMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
-  private groupsVisibilityChangeListeners: ((visibleGroupsIds: Set<string>) => void)[] = [];
-  private visibleGroupsIds = new Set<string>();
+  private clustersVisibilityChangeListeners: ((visibleClustersIds: Set<string>) => void)[] = [];
+  private visibleClustersIds = new Set<string>();
   private inputGraph: DevtoolsSignalGraph | null = null;
 
   constructor(private svg: SVGSVGElement) {
@@ -143,14 +143,14 @@ export class SignalsGraphVisualizer {
       this.graph.removeEdge(v, w, null);
     }
     this.animationMap.clear();
-    this.visibleGroupsIds.clear();
-    this.notifyForGroupVisibilityUpdate();
+    this.visibleClustersIds.clear();
+    this.notifyForClusterVisibilityUpdate();
     this.cleanup();
     this.timeouts.clear();
   }
 
   render(signalGraph: DevtoolsSignalGraph): void {
-    this.updateGroups(signalGraph);
+    this.updateClusters(signalGraph);
     this.updateNodes(signalGraph);
     this.updateEdges(signalGraph);
 
@@ -177,18 +177,18 @@ export class SignalsGraphVisualizer {
     ]);
   }
 
-  setGroupVisibility(groupId: string, visible: boolean) {
+  setClusterVisibility(clusterId: string, visible: boolean) {
     if (!this.inputGraph) {
       return;
     }
 
     if (visible) {
-      this.visibleGroupsIds.add(groupId);
+      this.visibleClustersIds.add(clusterId);
     } else {
-      this.visibleGroupsIds.delete(groupId);
+      this.visibleClustersIds.delete(clusterId);
     }
 
-    this.notifyForGroupVisibilityUpdate();
+    this.notifyForClusterVisibilityUpdate();
     this.render(this.inputGraph);
   }
 
@@ -210,51 +210,51 @@ export class SignalsGraphVisualizer {
   }
 
   /**
-   * Listen for group visibility changes.
+   * Listen for cluster visibility changes.
    *
    * @param cb Callback/listener
    * @returns An unlisten function
    */
-  onGroupVisibilityChange(cb: (visibleGroupsIds: Set<string>) => void): () => void {
-    this.groupsVisibilityChangeListeners.push(cb);
+  onClustersVisibilityChange(cb: (visibleClustersIds: Set<string>) => void): () => void {
+    this.clustersVisibilityChangeListeners.push(cb);
 
     return () => {
-      const idx = this.groupsVisibilityChangeListeners.indexOf(cb);
+      const idx = this.clustersVisibilityChangeListeners.indexOf(cb);
       if (idx > -1) {
-        this.groupsVisibilityChangeListeners.splice(idx, 1);
+        this.clustersVisibilityChangeListeners.splice(idx, 1);
       }
     };
   }
 
   private isNodeVisible(node: DevtoolsSignalGraphNode): boolean {
     // Checks whether it's a:
-    // 1. Standard node that's not part of a group
-    // 2. Standard node that's part of a visible group
-    // 3. Group node that represents a currently hidden group
+    // 1. Standard node that's not part of a cluster
+    // 2. Standard node that's part of a visible cluster
+    // 3. Cluster node that represents a currently hidden cluster
     return (
-      (isSignalNode(node) && (!node.groupId || this.visibleGroupsIds.has(node.groupId))) ||
-      (isGroupNode(node) && !this.visibleGroupsIds.has(node.id))
+      (isSignalNode(node) && (!node.clusterId || this.visibleClustersIds.has(node.clusterId))) ||
+      (isClusterNode(node) && !this.visibleClustersIds.has(node.id))
     );
   }
 
-  private updateGroups(signalGraph: DevtoolsSignalGraph) {
-    const newGroupIds = new Set<string>();
+  private updateClusters(signalGraph: DevtoolsSignalGraph) {
+    const newClusterIds = new Set<string>();
 
-    for (const groupId of Object.keys(signalGraph.groups)) {
-      newGroupIds.add(groupId);
+    for (const clusterId of Object.keys(signalGraph.clusters)) {
+      newClusterIds.add(clusterId);
     }
 
-    let groupsUpdated = false;
+    let clustersUpdated = false;
 
-    for (const groupId of this.visibleGroupsIds) {
-      if (!newGroupIds.has(groupId)) {
-        this.visibleGroupsIds.delete(groupId);
-        groupsUpdated = true;
+    for (const clusterId of this.visibleClustersIds) {
+      if (!newClusterIds.has(clusterId)) {
+        this.visibleClustersIds.delete(clusterId);
+        clustersUpdated = true;
       }
     }
 
-    if (groupsUpdated) {
-      this.notifyForGroupVisibilityUpdate();
+    if (clustersUpdated) {
+      this.notifyForClusterVisibilityUpdate();
     }
   }
 
@@ -347,9 +347,9 @@ export class SignalsGraphVisualizer {
     }
   }
 
-  private notifyForGroupVisibilityUpdate() {
-    for (const cb of this.groupsVisibilityChangeListeners) {
-      cb(new Set(this.visibleGroupsIds));
+  private notifyForClusterVisibilityUpdate() {
+    for (const cb of this.clustersVisibilityChangeListeners) {
+      cb(new Set(this.visibleClustersIds));
     }
   }
 
@@ -361,10 +361,10 @@ export class SignalsGraphVisualizer {
           cb(node);
         }
       };
-    } else if (isGroupNode(node)) {
-      outer.onclick = () => this.setGroupVisibility(node.id, true);
+    } else if (isClusterNode(node)) {
+      outer.onclick = () => this.setClusterVisibility(node.id, true);
     }
-    outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.groupType]}`;
+    outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.clusterType]}`;
 
     const header = document.createElement('div');
 
@@ -380,10 +380,10 @@ export class SignalsGraphVisualizer {
         }
       }
 
-      if (node.groupId) {
-        outer.classList.add('group-node');
-        const groupType = graph.groups[node.groupId].type;
-        outer.classList.add(GROUP_TYPE_CLASS_MAP[groupType]);
+      if (node.clusterId) {
+        outer.classList.add('cluster-node');
+        const clusterType = graph.clusters[node.clusterId].type;
+        outer.classList.add(CLUSTER_TYPE_CLASS_MAP[clusterType]);
       }
     }
 
@@ -402,7 +402,7 @@ export class SignalsGraphVisualizer {
 }
 
 function getBodyText(node: DevtoolsSignalGraphNode): string {
-  if (isGroupNode(node)) {
+  if (isClusterNode(node)) {
     return '[nodes]';
   }
 

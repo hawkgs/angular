@@ -7,10 +7,14 @@
  */
 
 import {DebugSignalGraphNode} from '../../../../../../protocol';
-import {DevtoolsGroupNode, DevtoolsSignalNode, DevtoolsSignalGraphNode} from './signal-graph-types';
+import {
+  DevtoolsClusterNode,
+  DevtoolsSignalNode,
+  DevtoolsSignalGraphNode,
+} from './signal-graph-types';
 
-export function isGroupNode(node: DevtoolsSignalGraphNode): node is DevtoolsGroupNode {
-  return node.nodeType === 'group';
+export function isClusterNode(node: DevtoolsSignalGraphNode): node is DevtoolsClusterNode {
+  return node.nodeType === 'cluster';
 }
 
 export function isSignalNode(node: DevtoolsSignalGraphNode): node is DevtoolsSignalNode {
@@ -18,11 +22,11 @@ export function isSignalNode(node: DevtoolsSignalGraphNode): node is DevtoolsSig
 }
 
 /**
- * Checks whether a `DebugSignalGraphNode` is part of a group
- * and returns the the group and signal names, if it's affirmative.
+ * Checks whether a `DebugSignalGraphNode` is part of a cluster
+ * and returns the the cluster and signal names, if it's affirmative.
  */
-export function checkResourceGroupMatch(n: DebugSignalGraphNode): {
-  groupName: string;
+export function checkResourceClusterMatch(n: DebugSignalGraphNode): {
+  clusterName: string;
   signalName: string;
 } | null {
   const match = n.label?.match(/Resource#([\w]+).([\w]+)/);
@@ -30,7 +34,7 @@ export function checkResourceGroupMatch(n: DebugSignalGraphNode): {
     return null;
   }
   return {
-    groupName: match[1],
+    clusterName: match[1],
     signalName: match[2],
   };
 }

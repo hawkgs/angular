@@ -7,71 +7,75 @@
  */
 
 import {DebugSignalGraph, DebugSignalGraphNode} from '../../../../../../protocol';
-import {DevtoolsGroupNodeType, DevtoolsSignalGraph} from './signal-graph-types';
-import {checkResourceGroupMatch} from './utils';
+import {
+  DevtoolsClusterNodeType,
+  DevtoolsSignalGraph,
+  DevtoolsSignalGraphNode,
+} from './signal-graph-types';
+import {checkResourceClusterMatch} from './utils';
 
-let GROUP_IDX = 0;
+let CLUSTER_IDX = 0;
 
-interface Group {
+interface Cluster {
   id: string;
-  type: DevtoolsGroupNodeType;
+  type: DevtoolsClusterNodeType;
   nodes: Set<string>;
   producers: Set<number>;
   consumers: Set<number>;
   name: string;
 }
 
-type GroupIdentifier = (nodes: DebugSignalGraph) => Group[];
+type ClusterIdentifier = (nodes: DebugSignalGraph) => Cluster[];
 
-const resourceGroupIdentifier: GroupIdentifier = (graph) => {
-  const groups: Map<string, Group> = new Map();
+const resourceClusterIdentifier: ClusterIdentifier = (graph) => {
+  const clusters: Map<string, Cluster> = new Map();
 
-  const isNodePartOfGroup = (n: DebugSignalGraphNode, name: string) => {
-    const match = checkResourceGroupMatch(n);
-    return match && match.groupName === name;
+  const isNodePartOfCluster = (n: DebugSignalGraphNode, name: string) => {
+    const match = checkResourceClusterMatch(n);
+    return match && match.clusterName === name;
   };
 
   for (let i = 0; i < graph.nodes.length; i++) {
     const node = graph.nodes[i];
-    const match = checkResourceGroupMatch(node);
+    const match = checkResourceClusterMatch(node);
     if (!match) {
       continue;
     }
 
-    const name = match.groupName;
-    let group = groups.get(name);
-    if (!group) {
-      group = {
-        id: `g${GROUP_IDX++}`,
+    const name = match.clusterName;
+    let cluster = clusters.get(name);
+    if (!cluster) {
+      cluster = {
+        id: `g${CLUSTER_IDX++}`,
         type: 'resource',
         name,
         consumers: new Set(),
         producers: new Set(),
         nodes: new Set(),
       };
-      groups.set(name, group);
+      clusters.set(name, cluster);
     }
 
-    group.nodes.add(node.id);
+    cluster.nodes.add(node.id);
 
     for (const edge of graph.edges) {
       // Note that we have to make sure that the consumer is not part of the
-      // same group since we'll end up with a circular dependency.
-      if (edge.producer === i && !isNodePartOfGroup(graph.nodes[edge.consumer], name)) {
-        group.consumers.add(edge.consumer);
+      // same cluster since we'll end up with a circular dependency.
+      if (edge.producer === i && !isNodePartOfCluster(graph.nodes[edge.consumer], name)) {
+        cluster.consumers.add(edge.consumer);
       }
 
       // Same for producers
-      if (edge.consumer === i && !isNodePartOfGroup(graph.nodes[edge.producer], name)) {
-        group.producers.add(edge.producer);
+      if (edge.consumer === i && !isNodePartOfCluster(graph.nodes[edge.producer], name)) {
+        cluster.producers.add(edge.producer);
       }
     }
   }
 
-  return [...groups].map(([, group]) => group);
+  return [...clusters].map(([, cluster]) => cluster);
 };
 
-const GROUP_IDENTIFIERS: GroupIdentifier[] = [resourceGroupIdentifier];
+const CLUSTER_IDENTIFIERS: ClusterIdentifier[] = [resourceClusterIdentifier];
 
 /**
  * Convert a `DebugSignalGraph` to a DevTools-FE specific `DevtoolsSignalGraph`.
@@ -82,57 +86,57 @@ export function convertToDevtoolsSignalGraph(
   const signalGraph: DevtoolsSignalGraph = {
     nodes: [],
     edges: [],
-    groups: {},
+    clusters: {},
   };
 
-  // Identify groups
-  let groups: Group[] = [];
-  for (const identifier of GROUP_IDENTIFIERS) {
-    groups = groups.concat(identifier(debugSignalGraph));
+  // Identify clusters
+  let clusters: Cluster[] = [];
+  for (const identifier of CLUSTER_IDENTIFIERS) {
+    clusters = clusters.concat(identifier(debugSignalGraph));
   }
 
-  // Add groups
-  signalGraph.groups = groups
+  // Add clusters
+  signalGraph.clusters = clusters
     .map((g) => ({id: g.id, name: g.name, type: g.type}))
     .reduce((acc, g) => ({...acc, [g.id]: g}), {});
 
   // Map nodes
   signalGraph.nodes = debugSignalGraph.nodes.map((n) => {
-    const group = groups.find((g) => g.nodes.has(n.id));
+    const cluster = clusters.find((g) => g.nodes.has(n.id));
 
     return {
       ...n,
       nodeType: 'signal',
-      groupId: group ? group.id : undefined,
-    };
+      clusterId: cluster ? cluster.id : undefined,
+    } satisfies DevtoolsSignalGraphNode;
   });
 
   // Set edges
   signalGraph.edges = [...debugSignalGraph.edges];
 
-  // Add group nodes and edges
-  for (const group of groups) {
+  // Add cluster nodes and edges
+  for (const cluster of clusters) {
     signalGraph.nodes.push({
-      id: group.id,
-      nodeType: 'group',
-      groupType: group.type,
-      label: group.name,
+      id: cluster.id,
+      nodeType: 'cluster',
+      clusterType: cluster.type,
+      label: cluster.name,
     });
 
     // Start from the last node index
-    const groupIdx = signalGraph.nodes.length - 1;
+    const clusterIdx = signalGraph.nodes.length - 1;
 
-    for (const consumerIdx of group.consumers) {
+    for (const consumerIdx of cluster.consumers) {
       signalGraph.edges.push({
-        producer: groupIdx,
+        producer: clusterIdx,
         consumer: consumerIdx,
       });
     }
 
-    for (const producerIdx of group.producers) {
+    for (const producerIdx of cluster.producers) {
       signalGraph.edges.push({
         producer: producerIdx,
-        consumer: groupIdx,
+        consumer: clusterIdx,
       });
     }
   }

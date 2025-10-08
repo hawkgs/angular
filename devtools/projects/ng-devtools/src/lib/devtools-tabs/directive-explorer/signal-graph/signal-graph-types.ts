@@ -8,54 +8,54 @@
 
 import {DebugSignalGraphEdge, DebugSignalGraphNode} from '../../../../../../protocol';
 
-export type DevtoolsGroupNodeType = 'resource';
+export type DevtoolsClusterNodeType = 'resource';
 
 export interface DevtoolsSignalNode extends DebugSignalGraphNode {
   /**
-   * Represents whether the node is an actual signal node or a synthetic group node.
+   * Represents whether the node is an actual signal node or a synthetic cluster node.
    */
   nodeType: 'signal';
 
   /**
-   * Represent the group ID that the node is part of.
+   * Represent the cluster ID that the node is part of.
    */
-  groupId?: string;
+  clusterId?: string;
 }
 
-export interface DevtoolsGroupNode {
+export interface DevtoolsClusterNode {
   /**
-   * Represents whether the node is an actual signal node or a synthetic group node.
+   * Represents whether the node is an actual signal node or a synthetic cluster node.
    */
-  nodeType: 'group';
+  nodeType: 'cluster';
 
   /**
-   * Represents the group type (e.g. `resource`).
+   * Represents the cluster type (e.g. `resource`).
    */
-  groupType: DevtoolsGroupNodeType;
+  clusterType: DevtoolsClusterNodeType;
 
-  /** Group ID. */
+  /** Cluster ID. */
   id: string;
 
-  /** Node label that represents the group name (e.g. a `resource` name). */
+  /** Node label that represents the cluster name (e.g. a `resource` name). */
   label: string;
 }
 
-export type DevtoolsSignalGraphNode = DevtoolsSignalNode | DevtoolsGroupNode;
+export type DevtoolsSignalGraphNode = DevtoolsSignalNode | DevtoolsClusterNode;
 
 export interface DevtoolsSignalGraphEdge extends DebugSignalGraphEdge {}
 
-export interface DevtoolsSignalGraphGroup {
+export interface DevtoolsSignalGraphCluster {
   id: string;
   name: string;
-  type: DevtoolsGroupNodeType;
+  type: DevtoolsClusterNodeType;
 }
 
 /**
  * Represents a DevTools-FE-specific signal graph that extends
- * the `DebugSignalGraph` with synthetic group nodes.
+ * the `DebugSignalGraph` with synthetic cluster nodes.
  */
 export interface DevtoolsSignalGraph {
   nodes: DevtoolsSignalGraphNode[];
   edges: DevtoolsSignalGraphEdge[];
-  groups: Record<string, DevtoolsSignalGraphGroup>;
+  clusters: Record<string, DevtoolsSignalGraphCluster>;
 }
