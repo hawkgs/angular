@@ -8,6 +8,7 @@
 
 import {DebugSignalGraph, DebugSignalGraphNode} from '../../../../../../protocol';
 import {DevtoolsGroupNodeType, DevtoolsSignalGraph} from './signal-graph-types';
+import {checkResourceGroupMatch} from './utils';
 
 let GROUP_IDX = 0;
 
@@ -25,11 +26,9 @@ type GroupIdentifier = (nodes: DebugSignalGraph) => Group[];
 const resourceGroupIdentifier: GroupIdentifier = (graph) => {
   const groups: Map<string, Group> = new Map();
 
-  const checkResourceGroupMatch = (n: DebugSignalGraphNode) =>
-    n.label?.match(/Resource#([\w]+).[\w]+/);
   const isNodePartOfGroup = (n: DebugSignalGraphNode, name: string) => {
     const match = checkResourceGroupMatch(n);
-    return match && match[1] === name;
+    return match && match.groupName === name;
   };
 
   for (let i = 0; i < graph.nodes.length; i++) {
@@ -39,7 +38,7 @@ const resourceGroupIdentifier: GroupIdentifier = (graph) => {
       continue;
     }
 
-    const name = match[1];
+    const name = match.groupName;
     let group = groups.get(name);
     if (!group) {
       group = {
@@ -83,7 +82,7 @@ export function convertToDevtoolsSignalGraph(
   const signalGraph: DevtoolsSignalGraph = {
     nodes: [],
     edges: [],
-    groups: [],
+    groups: {},
   };
 
   // Identify groups
@@ -93,7 +92,9 @@ export function convertToDevtoolsSignalGraph(
   }
 
   // Add groups
-  signalGraph.groups = groups.map((g) => ({id: g.id, name: g.name}));
+  signalGraph.groups = groups
+    .map((g) => ({id: g.id, name: g.name, type: g.type}))
+    .reduce((acc, g) => ({...acc, [g.id]: g}), {});
 
   // Map nodes
   signalGraph.nodes = debugSignalGraph.nodes.map((n) => {

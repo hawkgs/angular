@@ -1,6 +1,5 @@
 @let node = this.node();
 @let isSignalNode = this.isSignalNode(node);
-@let isGroupNode = this.isGroupNode(node);
 
 <div class="header">
   @if (isSignalNode) {
@@ -27,20 +26,25 @@
 </div>
 
 <dl>
-  @if (node.label) {
+  @if (name(); as name) {
     <dt>Name:</dt>
-    <dd class="node-name">{{node.label}}</dd>
+    <dd class="node-name">{{name}}</dd>
   }
-  <dt>Type:</dt>
-  <dd>
-    @if (isSignalNode) {
+  @if (isSignalNode) {
+    <dt>Type:</dt>
+    <dd>
       <span [class]="TYPE_CLASS_MAP[node.kind]" class="type">{{node.kind}}</span>
-    } @else if (isGroupNode) {
-      <span [class]="TYPE_CLASS_MAP[node.groupType]" class="type"
-        >{{ node.groupType }} (group)</span
-      >
-    }
-  </dd>
+    </dd>
+  }
+
+  @if (group(); as group) {
+    <dt>Part of:</dt>
+    <dd>{{group.name}}</dd>
+    <dt>Group type:</dt>
+    <dd>
+      <span [class]="TYPE_CLASS_MAP[group.type]" class="type">{{ group.type }}</span>
+    </dd>
+  }
   @if (isSignalNode) {
     <dt>Epoch:</dt>
     <dd>{{node.epoch}}</dd>

@@ -36,7 +36,7 @@ export interface DevtoolsGroupNode {
   /** Group ID. */
   id: string;
 
-  /** Group label (e.g. `resource` name). */
+  /** Node label that represents the group name (e.g. a `resource` name). */
   label: string;
 }
 
@@ -47,6 +47,7 @@ export interface DevtoolsSignalGraphEdge extends DebugSignalGraphEdge {}
 export interface DevtoolsSignalGraphGroup {
   id: string;
   name: string;
+  type: DevtoolsGroupNodeType;
 }
 
 /**
@@ -56,5 +57,5 @@ export interface DevtoolsSignalGraphGroup {
 export interface DevtoolsSignalGraph {
   nodes: DevtoolsSignalGraphNode[];
   edges: DevtoolsSignalGraphEdge[];
-  groups: DevtoolsSignalGraphGroup[];
+  groups: Record<string, DevtoolsSignalGraphGroup>;
 }
