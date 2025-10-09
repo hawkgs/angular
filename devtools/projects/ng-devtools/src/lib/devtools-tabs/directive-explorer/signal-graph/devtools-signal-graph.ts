@@ -12,7 +12,7 @@ import {
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
 } from './signal-graph-types';
-import {checkResourceClusterMatch} from './utils';
+import {checkClusterMatch} from './utils';
 
 let CLUSTER_IDX = 0;
 
@@ -31,13 +31,13 @@ const resourceClusterIdentifier: ClusterIdentifier = (graph) => {
   const clusters: Map<string, Cluster> = new Map();
 
   const isNodePartOfCluster = (n: DebugSignalGraphNode, name: string) => {
-    const match = checkResourceClusterMatch(n);
+    const match = checkClusterMatch(n);
     return match && match.clusterName === name;
   };
 
   for (let i = 0; i < graph.nodes.length; i++) {
     const node = graph.nodes[i];
-    const match = checkResourceClusterMatch(node);
+    const match = checkClusterMatch(node);
     if (!match) {
       continue;
     }
@@ -46,7 +46,7 @@ const resourceClusterIdentifier: ClusterIdentifier = (graph) => {
     let cluster = clusters.get(name);
     if (!cluster) {
       cluster = {
-        id: `g${CLUSTER_IDX++}`,
+        id: `c${CLUSTER_IDX++}`,
         type: 'resource',
         name,
         consumers: new Set(),
