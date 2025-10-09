@@ -1,13 +1,13 @@
 <svg #host></svg>
 
-@if (visibleClusters().length) {
+@if (expandedClusters().length) {
   <div class="visible-clusters">
     <p>Expanded nodes</p>
-    @for (cluster of visibleClusters(); track cluster.id) {
+    @for (cluster of expandedClusters(); track cluster.id) {
       <button
         ng-button
         size="compact"
-        (click)="hideCluster(cluster.id)"
+        (click)="collapseCluster(cluster.id)"
         [attr.title]="'Collapse ' + cluster.name"
       >
         <mat-icon>close</mat-icon>

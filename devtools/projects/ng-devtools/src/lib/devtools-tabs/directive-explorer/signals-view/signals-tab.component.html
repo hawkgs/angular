@@ -3,7 +3,7 @@
   [selectedNodeId]="selectedNodeId()"
   [element]="signalGraph.element()"
   (nodeClick)="onNodeClick($event)"
-  (clusterHide)="detailsVisible.set(false)"
+  (clusterCollapse)="detailsVisible.set(false)"
 />
 
 @let node = selectedNode();

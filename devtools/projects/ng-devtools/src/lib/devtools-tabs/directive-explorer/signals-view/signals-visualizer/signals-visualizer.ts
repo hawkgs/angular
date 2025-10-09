@@ -51,8 +51,8 @@ export class SignalsGraphVisualizer {
   private animationMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
-  private clustersVisibilityChangeListeners: ((visibleClustersIds: Set<string>) => void)[] = [];
-  private visibleClustersIds = new Set<string>();
+  private clustersStateChangeListeners: ((expandedClustersIds: Set<string>) => void)[] = [];
+  private expandedClustersIds = new Set<string>();
   private inputGraph: DevtoolsSignalGraph | null = null;
 
   constructor(private svg: SVGSVGElement) {
@@ -126,7 +126,7 @@ export class SignalsGraphVisualizer {
       this.graph.removeEdge(v, w, null);
     }
     this.animationMap.clear();
-    this.visibleClustersIds.clear();
+    this.expandedClustersIds.clear();
     this.notifyForClusterVisibilityUpdate();
     this.cleanup();
     this.timeouts.clear();
@@ -160,15 +160,15 @@ export class SignalsGraphVisualizer {
     ]);
   }
 
-  setClusterVisibility(clusterId: string, visible: boolean) {
+  setClusterState(clusterId: string, expanded: boolean) {
     if (!this.inputGraph) {
       return;
     }
 
-    if (visible) {
-      this.visibleClustersIds.add(clusterId);
+    if (expanded) {
+      this.expandedClustersIds.add(clusterId);
     } else {
-      this.visibleClustersIds.delete(clusterId);
+      this.expandedClustersIds.delete(clusterId);
     }
 
     this.notifyForClusterVisibilityUpdate();
@@ -193,18 +193,18 @@ export class SignalsGraphVisualizer {
   }
 
   /**
-   * Listen for cluster visibility changes.
+   * Listen for cluster state changes.
    *
    * @param cb Callback/listener
    * @returns An unlisten function
    */
-  onClustersVisibilityChange(cb: (visibleClustersIds: Set<string>) => void): () => void {
-    this.clustersVisibilityChangeListeners.push(cb);
+  onClustersStateChange(cb: (expandedClustersIds: Set<string>) => void): () => void {
+    this.clustersStateChangeListeners.push(cb);
 
     return () => {
-      const idx = this.clustersVisibilityChangeListeners.indexOf(cb);
+      const idx = this.clustersStateChangeListeners.indexOf(cb);
       if (idx > -1) {
-        this.clustersVisibilityChangeListeners.splice(idx, 1);
+        this.clustersStateChangeListeners.splice(idx, 1);
       }
     };
   }
@@ -212,11 +212,11 @@ export class SignalsGraphVisualizer {
   private isNodeVisible(node: DevtoolsSignalGraphNode): boolean {
     // Checks whether it's a:
     // 1. Standard signal node that's not part of a cluster
-    // 2. Standard signal node that's part of a visible cluster
+    // 2. Standard signal node that's part of an expanded cluster
     // 3. Standard cluster node that represents a currently collapsed cluster
     return (
-      (isSignalNode(node) && (!node.clusterId || this.visibleClustersIds.has(node.clusterId))) ||
-      (isClusterNode(node) && !this.visibleClustersIds.has(node.id))
+      (isSignalNode(node) && (!node.clusterId || this.expandedClustersIds.has(node.clusterId))) ||
+      (isClusterNode(node) && !this.expandedClustersIds.has(node.id))
     );
   }
 
@@ -229,10 +229,10 @@ export class SignalsGraphVisualizer {
 
     let clustersUpdated = false;
 
-    for (const clusterId of this.visibleClustersIds) {
+    for (const clusterId of this.expandedClustersIds) {
       if (!newClusterIds.has(clusterId)) {
-        // Hide cluster that shouldn't be visible
-        this.visibleClustersIds.delete(clusterId);
+        // Hide cluster that should be collapsed
+        this.expandedClustersIds.delete(clusterId);
         this.graph.removeNode(clusterId);
         clustersUpdated = true;
       } else {
@@ -296,7 +296,7 @@ export class SignalsGraphVisualizer {
           epoch: isSignal ? n.epoch : undefined,
         });
         // Add to the expanded cluster node, if the node is part of a visible cluster
-        if (isSignal && this.visibleClustersIds.has(n.clusterId || '')) {
+        if (isSignal && this.expandedClustersIds.has(n.clusterId || '')) {
           this.graph.setParent(n.id, n.clusterId);
         }
       }
@@ -350,8 +350,8 @@ export class SignalsGraphVisualizer {
   }
 
   private notifyForClusterVisibilityUpdate() {
-    for (const cb of this.clustersVisibilityChangeListeners) {
-      cb(new Set(this.visibleClustersIds));
+    for (const cb of this.clustersStateChangeListeners) {
+      cb(new Set(this.expandedClustersIds));
     }
   }
 
@@ -364,7 +364,7 @@ export class SignalsGraphVisualizer {
         }
       };
     } else if (isClusterNode(node)) {
-      outer.onclick = () => this.setClusterVisibility(node.id, true);
+      outer.onclick = () => this.setClusterState(node.id, true);
     }
     outer.className = `${NODE_CLASS} ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.clusterType]}`;
 
