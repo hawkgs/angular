@@ -79,12 +79,6 @@ export class DemoAppComponent {
     return {...original, age: original.age + 1};
   });
 
-  myRsrc = resource({
-    defaultValue: 'def_val',
-    loader: () => Promise.resolve('next_val'),
-    debugName: 'myRsrc',
-  });
-
   getTitle(): '► Click to expand' | '▼ Click to collapse' {
     if (!this.zippy() || !this.zippy()?.visible) {
       return '► Click to expand';

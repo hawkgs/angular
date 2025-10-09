@@ -48,11 +48,11 @@ export class SignalsVisualizerComponent {
   protected readonly selectedNodeId = input.required<string | null>();
   protected readonly element = input.required<ElementPosition | undefined>();
   protected readonly nodeClick = output<DevtoolsSignalGraphNode>();
-  protected readonly clusterHide = output<string>();
+  protected readonly clusterCollapse = output<string>();
 
-  private readonly visibleClustersIds = signal<Set<string>>(new Set());
-  protected readonly visibleClusters = computed<DevtoolsSignalGraphCluster[]>(() => {
-    const clusterIds = this.visibleClustersIds();
+  private readonly expandedClustersIds = signal<Set<string>>(new Set());
+  protected readonly expandedClusters = computed<DevtoolsSignalGraphCluster[]>(() => {
+    const clusterIds = this.expandedClustersIds();
     const graph = untracked(this.graph);
     if (!clusterIds || !graph) {
       return [];
@@ -106,13 +106,13 @@ export class SignalsVisualizerComponent {
     this.signalsVisualizer.onNodeClick((node) => {
       this.nodeClick.emit(node);
     });
-    this.signalsVisualizer.onClustersVisibilityChange((visibleClusters) => {
-      this.visibleClustersIds.set(visibleClusters);
+    this.signalsVisualizer.onClustersStateChange((expandedClusters) => {
+      this.expandedClustersIds.set(expandedClusters);
     });
   }
 
-  hideCluster(id: string) {
-    this.signalsVisualizer?.setClusterVisibility(id, false);
-    this.clusterHide.emit(id);
+  collapseCluster(id: string) {
+    this.signalsVisualizer?.setClusterState(id, false);
+    this.clusterCollapse.emit(id);
   }
 }
