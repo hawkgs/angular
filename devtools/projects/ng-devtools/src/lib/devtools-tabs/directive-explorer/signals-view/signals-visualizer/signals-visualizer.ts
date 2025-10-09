@@ -15,34 +15,8 @@ import {
   DevtoolsSignalGraphNode,
   DevtoolsClusterNodeType,
 } from '../../signal-graph';
+import {DagreGraph, DagreGraphNode} from './dagre-d3-types';
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
-
-// Non-exhaustive; Alter based on Dagre D3 docs if required
-interface DagreGraphNode {
-  label: HTMLDivElement;
-  labelType: string;
-  shape: string;
-  padding: number;
-  style: string;
-  epoch?: number;
-  rx: number;
-  ry: number;
-}
-
-// Non-exhaustive; Alter based on Dagre D3 docs if required
-interface DagreGraphEdge {
-  curve: any;
-  style: string;
-  arrowheadStyle: string;
-}
-
-// Improve Graphlib types
-declare class DagreGraph extends graphlib.Graph {
-  override setNode(id: string, value: DagreGraphNode, ...args: any[]): this;
-  override setEdge(producerId: string, consumerId: string, value: DagreGraphEdge): this;
-  override node(id: string): DagreGraphNode;
-  override edges(): {v: string; w: string}[];
-}
 
 const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
   'signal': 'kind-signal',
@@ -59,6 +33,17 @@ const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'resource-child',
 };
 
+const NODE_CLASS = 'node-label';
+const CLUSTER_CLASS = 'cluster';
+const EDGE_CLASS = 'edge';
+
+// Terminology:
+//
+// - `DevtoolsSignalGraph` – The input graph that the visualizer accepts
+// - `DevtoolsSignalGraphNode` – A node of the input graph
+// - Standard signal node – A visualized standard node
+// - Standard cluster node – A cluster node, visualized as a standard node (i.e. collapsed)
+// - Expanded cluster node – A cluster node, visualized as a container of its child nodes (i.e. expanded)
 export class SignalsGraphVisualizer {
   private graph: DagreGraph;
   private drender: ReturnType<typeof dagreRender>;
@@ -228,9 +213,9 @@ export class SignalsGraphVisualizer {
 
   private isNodeVisible(node: DevtoolsSignalGraphNode): boolean {
     // Checks whether it's a:
-    // 1. Standard node that's not part of a cluster
-    // 2. Standard node that's part of a visible cluster
-    // 3. Cluster node that represents a currently hidden cluster
+    // 1. Standard signal node that's not part of a cluster
+    // 2. Standard signal node that's part of a visible cluster
+    // 3. Standard cluster node that represents a currently collapsed cluster
     return (
       (isSignalNode(node) && (!node.clusterId || this.visibleClustersIds.has(node.clusterId))) ||
       (isClusterNode(node) && !this.visibleClustersIds.has(node.id))
@@ -248,8 +233,17 @@ export class SignalsGraphVisualizer {
 
     for (const clusterId of this.visibleClustersIds) {
       if (!newClusterIds.has(clusterId)) {
+        // Hide cluster that shouldn't be visible
         this.visibleClustersIds.delete(clusterId);
+        this.graph.removeNode(clusterId);
         clustersUpdated = true;
+      } else {
+        // Render the new cluster as an expanded cluster node
+        this.graph.setNode(clusterId, {
+          label: signalGraph.clusters[clusterId].name,
+          class: CLUSTER_CLASS,
+          clusterLabelPos: 'top',
+        });
       }
     }
 
@@ -260,10 +254,13 @@ export class SignalsGraphVisualizer {
 
   private updateNodes(signalGraph: DevtoolsSignalGraph) {
     let matchedNodeId = false;
-    for (const oldNodeId of this.graph.nodes()) {
-      const node = signalGraph.nodes.find((n) => n.id === oldNodeId);
+    const signalNodes = convertNodesToMap(signalGraph.nodes);
 
-      if (!node || !this.isNodeVisible(node)) {
+    for (const oldNodeId of this.graph.nodes()) {
+      const node = signalNodes.get(oldNodeId);
+
+      // To avoid removing an expanded cluster node, we have to check if `isSignalNode`.
+      if (!node || (!this.isNodeVisible(node) && isSignalNode(node))) {
         this.graph.removeNode(oldNodeId);
         this.animationMap.delete(oldNodeId);
       } else {
@@ -275,9 +272,11 @@ export class SignalsGraphVisualizer {
 
     for (const n of signalGraph.nodes) {
       const isSignal = isSignalNode(n);
-      const existingNode = this.graph.node(n.id);
+      let existingNode = this.graph.node(n.id);
 
       if (existingNode && isSignal) {
+        existingNode = existingNode as DagreGraphNode;
+
         if (n.epoch !== existingNode.epoch) {
           updatedNodes.push(n.id);
           const count = this.animationMap.get(n.id) ?? 0;
@@ -297,9 +296,11 @@ export class SignalsGraphVisualizer {
           padding: 0,
           style: 'fill: none;',
           epoch: isSignal ? n.epoch : undefined,
-          rx: 8,
-          ry: 8,
         });
+        // Add to the expanded cluster node, if the node is part of a visible cluster
+        if (isSignal && this.visibleClustersIds.has(n.clusterId || '')) {
+          this.graph.setParent(n.id, n.clusterId);
+        }
       }
     }
 
@@ -334,14 +335,17 @@ export class SignalsGraphVisualizer {
       ) {
         this.graph.setEdge(producerId, consumerId, {
           curve: d3.curveBasis,
-          style: 'stroke: gray; fill:none; stroke-width: 1px; stroke-dasharray: 5, 5;',
-          arrowheadStyle: 'fill: gray',
+          class: EDGE_CLASS,
         });
       }
     }
 
+    const signalNodes = convertNodesToMap(signalGraph.nodes);
+
     for (const edge of this.graph.edges()) {
-      if (!newEdgeIds.has(getEdgeId(edge.v, edge.w))) {
+      const edgeId = getEdgeId(edge.v, edge.w);
+
+      if (!newEdgeIds.has(edgeId) || !this.isNodeVisible(signalNodes.get(edge.v)!)) {
         this.graph.removeEdge(edge.v, edge.w, undefined);
       }
     }
@@ -364,7 +368,7 @@ export class SignalsGraphVisualizer {
     } else if (isClusterNode(node)) {
       outer.onclick = () => this.setClusterVisibility(node.id, true);
     }
-    outer.className = `node-label ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.clusterType]}`;
+    outer.className = `${NODE_CLASS} ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.clusterType]}`;
 
     const header = document.createElement('div');
 
@@ -374,14 +378,14 @@ export class SignalsGraphVisualizer {
         label = node.kind === 'effect' ? 'Effect' : 'Unnamed';
         header.classList.add('special');
       } else {
-        const hashIdx = label.indexOf('#');
+        const hashIdx = label.indexOf('.');
         if (hashIdx > -1) {
           label = label.substring(hashIdx + 1, label.length);
         }
       }
 
       if (node.clusterId) {
-        outer.classList.add('cluster-node');
+        outer.classList.add('cluster-child');
         const clusterType = graph.clusters[node.clusterId].type;
         outer.classList.add(CLUSTER_TYPE_CLASS_MAP[clusterType]);
       }
@@ -423,4 +427,8 @@ function getBodyText(node: DevtoolsSignalGraphNode): string {
 
 function getEdgeId(producerId: string, consumerId: string): string {
   return `${btoa(producerId)}-${btoa(consumerId)}`;
+}
+
+function convertNodesToMap(nodes: DevtoolsSignalGraphNode[]): Map<string, DevtoolsSignalGraphNode> {
+  return new Map(nodes.map((n) => [n.id, n]));
 }

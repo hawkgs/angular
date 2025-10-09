@@ -24,7 +24,7 @@ import {
   isSignalNode,
   DevtoolsSignalGraphNode,
   SignalGraphManager,
-  checkResourceClusterMatch,
+  checkClusterMatch,
 } from '../../signal-graph';
 import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
@@ -62,7 +62,7 @@ export class SignalsDetailsComponent {
   protected readonly name = computed(() => {
     const node = this.node();
     if (isSignalNode(node) && node.clusterId) {
-      const match = checkResourceClusterMatch(node);
+      const match = checkClusterMatch(node);
       if (match) {
         return match.signalName;
       }

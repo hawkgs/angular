@@ -21,15 +21,18 @@ export function isSignalNode(node: DevtoolsSignalGraphNode): node is DevtoolsSig
   return node.nodeType === 'signal';
 }
 
+const CLUSTERS = ['Resource'];
+const CLUSTER_NODE_LABEL_REGEX = new RegExp(`${CLUSTERS.join('|')}#([\\w]+).([\\w]+)`);
+
 /**
  * Checks whether a `DebugSignalGraphNode` is part of a cluster
  * and returns the the cluster and signal names, if it's affirmative.
  */
-export function checkResourceClusterMatch(n: DebugSignalGraphNode): {
+export function checkClusterMatch(n: DebugSignalGraphNode): {
   clusterName: string;
   signalName: string;
 } | null {
-  const match = n.label?.match(/Resource#([\w]+).([\w]+)/);
+  const match = n.label?.match(CLUSTER_NODE_LABEL_REGEX);
   if (!match) {
     return null;
   }
