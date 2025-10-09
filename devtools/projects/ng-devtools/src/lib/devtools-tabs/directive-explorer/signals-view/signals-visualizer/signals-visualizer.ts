@@ -323,15 +323,17 @@ export class SignalsGraphVisualizer {
 
     for (const edge of signalGraph.edges) {
       const producerNode = signalGraph.nodes[edge.producer];
+      const consumerNode = signalGraph.nodes[edge.consumer];
       const producerId = producerNode.id;
-      const consumerId = signalGraph.nodes[edge.consumer].id;
+      const consumerId = consumerNode.id;
 
       const edgeId = getEdgeId(producerId, consumerId);
       newEdgeIds.add(edgeId);
 
       if (
         !this.graph.hasEdge(producerId, consumerId, undefined) &&
-        this.isNodeVisible(producerNode)
+        this.isNodeVisible(producerNode) &&
+        this.isNodeVisible(consumerNode)
       ) {
         this.graph.setEdge(producerId, consumerId, {
           curve: d3.curveBasis,
@@ -345,7 +347,11 @@ export class SignalsGraphVisualizer {
     for (const edge of this.graph.edges()) {
       const edgeId = getEdgeId(edge.v, edge.w);
 
-      if (!newEdgeIds.has(edgeId) || !this.isNodeVisible(signalNodes.get(edge.v)!)) {
+      if (
+        !newEdgeIds.has(edgeId) ||
+        !this.isNodeVisible(signalNodes.get(edge.v)!) ||
+        !this.isNodeVisible(signalNodes.get(edge.w)!)
+      ) {
         this.graph.removeEdge(edge.v, edge.w, undefined);
       }
     }
