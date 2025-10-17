@@ -18,7 +18,7 @@
       }
 
       .cluster {
-        rect {
+        & > rect {
           fill: none;
           stroke: var(--yellow-01);
           stroke-width: 1px;
@@ -28,7 +28,19 @@
 
         text {
           fill: var(--color-text);
-          font-weight: 600;
+          font-weight: 500;
+        }
+
+        .cluster-close-btn {
+          cursor: pointer;
+
+          rect {
+            fill: transparent;
+          }
+
+          path {
+            fill: var(--color-text);
+          }
         }
       }
 
@@ -56,11 +68,11 @@
         border-radius: 8px;
         background-color: var(--gray-400);
         cursor: pointer;
-        transition: border-width 0.25s ease-in-out;
-        border: 0px solid black;
+        transition: outline-width 0.25s ease-in-out; /* Keep in sync with signals-visualizer.ts */
+        outline: 0px solid var(--purple-03);
 
-        &.animating {
-          border-width: 5px;
+        &.node-epoch-anim {
+          outline-width: 5px;
         }
 
         .header {

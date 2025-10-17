@@ -79,6 +79,16 @@ export class DemoAppComponent {
     return {...original, age: original.age + 1};
   });
 
+  counter = signal(1);
+
+  rsrcParam = signal('rsrc_param');
+
+  myRsrc = resource({
+    params: () => this.rsrcParam(),
+    loader: () => Promise.resolve('next_val'),
+    debugName: 'myRsrc',
+  });
+
   getTitle(): '► Click to expand' | '▼ Click to collapse' {
     if (!this.zippy() || !this.zippy()?.visible) {
       return '► Click to expand';
