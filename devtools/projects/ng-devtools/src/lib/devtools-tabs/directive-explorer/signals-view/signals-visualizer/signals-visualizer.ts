@@ -36,6 +36,10 @@ const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
 const NODE_CLASS = 'node-label';
 const CLUSTER_CLASS = 'cluster';
 const EDGE_CLASS = 'edge';
+const CLOSE_BTN_CLASS = 'cluster-close-btn';
+const NODE_EPOCH_UPDATE_ANIM_CLASS = 'node-epoch-anim';
+
+const NODE_EPOCH_UPDATE_ANIM_DURATION = 250; // Keep in sync with signals-visualizer.component.scss
 
 // Terminology:
 //
@@ -50,7 +54,7 @@ export class SignalsGraphVisualizer {
 
   zoomController: d3.ZoomBehavior<SVGSVGElement, unknown>;
 
-  private animationMap: Map<string, number> = new Map();
+  private animatedNodesMap: Map<string, number> = new Map();
   private timeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   private nodeClickListeners: ((node: DevtoolsSignalGraphNode) => void)[] = [];
   private clustersStateChangeListeners: ((expandedClustersIds: Set<string>) => void)[] = [];
@@ -62,7 +66,7 @@ export class SignalsGraphVisualizer {
     this.graph.setGraph({});
     this.graph.graph().rankdir = 'TB';
     this.graph.graph().ranksep = 50;
-    this.graph.graph().nodesep = 5;
+    this.graph.graph().nodesep = 10;
 
     this.graph.setDefaultEdgeLabel(() => ({}));
 
@@ -102,24 +106,6 @@ export class SignalsGraphVisualizer {
     }
   }
 
-  updateNodeAnimations(updatedNodes: string[], timeout: ReturnType<typeof setTimeout>) {
-    this.timeouts.delete(timeout);
-
-    for (const id of updatedNodes) {
-      const count = this.animationMap.get(id) ?? 0;
-      if (count > 0) {
-        this.animationMap.set(id, count - 1);
-      }
-    }
-
-    d3.select(this.svg)
-      .select('.output .nodes')
-      .selectAll<SVGGElement, string>('g.node')
-      .select('.label foreignObject .node-label')
-      .filter((d) => !this.animationMap.get(d))
-      .classed('animating', false);
-  }
-
   reset() {
     for (const node of this.graph.nodes()) {
       this.graph.removeNode(node);
@@ -127,7 +113,7 @@ export class SignalsGraphVisualizer {
     for (const {v, w} of this.graph.edges()) {
       this.graph.removeEdge(v, w, null);
     }
-    this.animationMap.clear();
+    this.animatedNodesMap.clear();
     this.expandedClustersIds.clear();
     this.notifyForClusterVisibilityUpdate();
     this.cleanup();
@@ -148,6 +134,8 @@ export class SignalsGraphVisualizer {
     const xTransform = isFinite(width) ? -width / 2 : 0;
     const yTransform = isFinite(height) ? -height / 2 : 0;
     g.select('.output').attr('transform', `translate(${xTransform}, ${yTransform})`);
+
+    this.addCloseButtonsToClusters(g);
 
     this.inputGraph = signalGraph;
   }
@@ -262,7 +250,7 @@ export class SignalsGraphVisualizer {
       // To avoid removing an expanded cluster node, we have to check if `isSignalNode`.
       if (!node || (!this.isNodeVisible(node) && isSignalNode(node))) {
         this.graph.removeNode(oldNodeId);
-        this.animationMap.delete(oldNodeId);
+        this.animatedNodesMap.delete(oldNodeId);
       } else {
         matchedNodeId = true;
       }
@@ -279,10 +267,10 @@ export class SignalsGraphVisualizer {
 
         if (n.epoch !== existingNode.epoch) {
           updatedNodes.push(n.id);
-          const count = this.animationMap.get(n.id) ?? 0;
-          this.animationMap.set(n.id, count + 1);
+          const count = this.animatedNodesMap.get(n.id) ?? 0;
+          this.animatedNodesMap.set(n.id, count + 1);
           existingNode.epoch = n.epoch;
-          d3.select(existingNode.label).classed('animating', true);
+          d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
           const body = existingNode.label.getElementsByClassName('body').item(0);
           if (body) {
             body.textContent = getBodyText(n);
@@ -306,7 +294,7 @@ export class SignalsGraphVisualizer {
 
     const timeout = setTimeout(() => {
       this.updateNodeAnimations(updatedNodes, timeout);
-    }, 250);
+    }, NODE_EPOCH_UPDATE_ANIM_DURATION);
     this.timeouts.add(timeout);
 
     if (matchedNodeId) {
@@ -355,6 +343,24 @@ export class SignalsGraphVisualizer {
         this.graph.removeEdge(edge.v, edge.w, undefined);
       }
     }
+  }
+
+  private updateNodeAnimations(updatedNodes: string[], timeout: ReturnType<typeof setTimeout>) {
+    this.timeouts.delete(timeout);
+
+    for (const id of updatedNodes) {
+      const count = this.animatedNodesMap.get(id) ?? 0;
+      if (count > 0) {
+        this.animatedNodesMap.set(id, count - 1);
+      }
+    }
+
+    d3.select(this.svg)
+      .select('.output .nodes')
+      .selectAll<SVGGElement, string>('g.node')
+      .select('.label foreignObject .node-label')
+      .filter((d) => !this.animatedNodesMap.get(d))
+      .classed(NODE_EPOCH_UPDATE_ANIM_CLASS, false);
   }
 
   private notifyForClusterVisibilityUpdate() {
@@ -408,6 +414,57 @@ export class SignalsGraphVisualizer {
     outer.appendChild(body);
 
     return outer;
+  }
+
+  // A customization of the Dagre D3 cluster.
+  // Needs to be executed after the cluster has been rendered.
+  private addCloseButtonsToClusters(g: d3.Selection<d3.BaseType, unknown, null, unknown>) {
+    const iconMargin = 7;
+    const iconSize = 15;
+    const clusterAnimDelay = 1000;
+
+    const clusters = g.selectAll(`.${CLUSTER_CLASS}`);
+
+    // Sometimes the cluster buttons are not removed for an unknown reason.
+    clusters.select(`${CLOSE_BTN_CLASS}`).remove();
+
+    // We need to wait until the cluster animation completes before calling `getBBox`.
+    const timeout = setTimeout(() => {
+      this.timeouts.delete(timeout);
+
+      clusters.each((clusterId, idx, groups) => {
+        const svgCluster = groups[idx] as SVGGraphicsElement;
+        const d3Cluster = d3.select(svgCluster);
+        const {width, height} = svgCluster.getBBox();
+
+        const group = d3Cluster
+          .append('g')
+          .attr('transform', `translate(${width / 2 - iconMargin}, ${-(height / 2 - iconMargin)})`)
+          .attr('class', CLOSE_BTN_CLASS);
+
+        group
+          .append('path')
+          .attr('transform', 'translate(-18, 18) scale(0.022)')
+          .attr(
+            'd',
+            'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
+          );
+
+        group
+          .append('rect')
+          .attr('width', iconSize)
+          .attr('height', iconSize)
+          .attr('x', -iconSize)
+          .on('click', () => {
+            this.setClusterState(clusterId as string, false);
+          });
+
+        // Accessibility
+        group.append('title').attr('id', `cluster-${clusterId}`).text('Close the cluster');
+      });
+    }, clusterAnimDelay);
+
+    this.timeouts.add(timeout);
   }
 }
 

@@ -9,3 +9,8 @@
 <div *appStructural>Test Structural Directive</div>
 <app-sample-properties></app-sample-properties>
 <app-cookies />
+
+{{ myRsrc.value() }}
+{{ myRsrc.isLoading() }}
+
+<button (click)="counter.set(counter() + 1)">Increase ct ({{ counter() }})</button>
