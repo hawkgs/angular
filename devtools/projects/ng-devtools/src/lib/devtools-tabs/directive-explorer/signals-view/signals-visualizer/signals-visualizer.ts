@@ -14,6 +14,7 @@ import {
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
   DevtoolsClusterNodeType,
+  DevtoolsSignalNode,
 } from '../../signal-graph';
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
 import {DagreGraph, DagreGraphCluster, DagreGraphNode} from './dagre-d3-types';
@@ -290,6 +291,7 @@ export class SignalsGraphVisualizer {
       if (existingNode) {
         existingNode = existingNode as DagreGraphNode;
 
+        // !!! TBD: This part of the code needs to be improved !!!
         if (isSignal && n.epoch !== existingNode.epoch) {
           updatedNodes.push(n.id);
           const count = this.animatedNodesMap.get(n.id) ?? 0;
@@ -298,17 +300,35 @@ export class SignalsGraphVisualizer {
           d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
           const body = existingNode.label.getElementsByClassName('body').item(0);
           if (body) {
-            body.textContent = getBodyText(n);
+            body.textContent = getBodyText(n, signalGraph);
+          }
+        } else if (isClusterNode(n) && !this.expandedClustersIds.has(n.id)) {
+          const previewNode = signalGraph.nodes[n.previewNode ?? -1] as DevtoolsSignalNode;
+
+          if (previewNode.epoch !== existingNode.epoch) {
+            updatedNodes.push(n.id);
+            const count = this.animatedNodesMap.get(n.id) ?? 0;
+            this.animatedNodesMap.set(n.id, count + 1);
+            existingNode.epoch = previewNode.epoch;
+            d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
+            const body = existingNode.label.getElementsByClassName('body').item(0);
+            if (body) {
+              body.textContent = getBodyText(n, signalGraph);
+            }
           }
         }
       } else if (this.isNodeVisible(n)) {
         this.graph.setNode(n.id, {
-          label: this.createNode(n, signalGraph),
+          label: this.createNodeHtml(n, signalGraph),
           labelType: 'html',
           shape: 'rect',
           padding: 0,
           style: 'fill: none;',
-          epoch: isSignal ? n.epoch : undefined,
+          epoch: isSignal
+            ? n.epoch
+            : isClusterNode(n) && n.previewNode
+              ? (signalGraph.nodes[n.previewNode] as DevtoolsSignalNode).epoch
+              : undefined,
           width: NODE_WIDTH,
           height: NODE_HEIGHT,
         });
@@ -410,17 +430,16 @@ export class SignalsGraphVisualizer {
     }
   }
 
-  private createNode(node: DevtoolsSignalGraphNode, graph: DevtoolsSignalGraph): HTMLDivElement {
+  private createNodeHtml(
+    node: DevtoolsSignalGraphNode,
+    graph: DevtoolsSignalGraph,
+  ): HTMLDivElement {
     const outer = document.createElement('div');
-    if (isSignalNode(node)) {
-      outer.onclick = () => {
-        for (const cb of this.nodeClickListeners) {
-          cb(node);
-        }
-      };
-    } else if (isClusterNode(node)) {
-      outer.onclick = () => this.setClusterState(node.id, true);
-    }
+    outer.onclick = () => {
+      for (const cb of this.nodeClickListeners) {
+        cb(node);
+      }
+    };
     const typeClass = isSignalNode(node)
       ? KIND_CLASS_MAP[node.kind]
       : CLUSTER_TYPE_CLASS_MAP[node.clusterType];
@@ -452,7 +471,7 @@ export class SignalsGraphVisualizer {
 
     const body = document.createElement('div');
     body.className = NODE_BODY_CLASS;
-    body.textContent = getBodyText(node);
+    body.textContent = getBodyText(node, graph);
 
     outer.appendChild(header);
     outer.appendChild(body);
@@ -476,9 +495,7 @@ export class SignalsGraphVisualizer {
         const svgCluster = groups[idx] as SVGGraphicsElement;
         const d3Cluster = d3.select(svgCluster);
 
-        if (d3Cluster.select(`.${CLOSE_BTN_CLASS}`).size()) {
-          return;
-        }
+        d3Cluster.select(`.${CLOSE_BTN_CLASS}`).remove();
 
         const {width, height} = svgCluster.getBBox();
 
@@ -541,8 +558,12 @@ export class SignalsGraphVisualizer {
   }
 }
 
-function getBodyText(node: DevtoolsSignalGraphNode): string {
+function getBodyText(node: DevtoolsSignalGraphNode, graph: DevtoolsSignalGraph): string {
   if (isClusterNode(node)) {
+    const previewNode = graph.nodes[node.previewNode ?? -1] as DevtoolsSignalNode | undefined;
+    if (previewNode) {
+      return previewNode.preview.preview;
+    }
     return '[nodes]';
   }
 

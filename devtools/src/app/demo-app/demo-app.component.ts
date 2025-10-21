@@ -47,6 +47,15 @@ export class StructuralDirective {
   }
 }
 
+function loader() {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      // res('next_val');
+      rej('!error!');
+    }, 10000);
+  });
+}
+
 @Component({
   selector: 'app-demo-component',
   templateUrl: './demo-app.component.html',
@@ -85,7 +94,8 @@ export class DemoAppComponent {
 
   myRsrc = resource({
     params: () => this.rsrcParam(),
-    loader: () => Promise.resolve('next_val'),
+    defaultValue: 'def_val',
+    loader,
     debugName: 'myRsrc',
   });
 

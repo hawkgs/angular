@@ -4,13 +4,14 @@
 $node-width: 100px;
 $node-height: 60px;
 $node-epoch-anim-duration: 250ms;
+$cluster-expand-anim-duration: 1s;
 
 %animated {
   opacity: 0;
   animation-name: fade-in;
   animation-duration: 200ms;
   animation-timing-function: ease;
-  animation-delay: 1s;
+  animation-delay: $cluster-expand-anim-duration;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 }

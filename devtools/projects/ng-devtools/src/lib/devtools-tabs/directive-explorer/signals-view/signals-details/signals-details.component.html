@@ -1,5 +1,6 @@
 @let node = this.node();
 @let isSignalNode = this.isSignalNode(node);
+@let isClusterNode = this.isClusterNode(node);
 
 <div class="header">
   @if (isSignalNode) {
@@ -12,6 +13,12 @@
     >
       <mat-icon> arrow_outward </mat-icon>
       View Source
+    </button>
+  }
+  @if (isClusterNode) {
+    <button ng-button size="compact" class="action-btn" (click)="expandCluster.emit(node.id)">
+      <mat-icon> expand_content </mat-icon>
+      Expand
     </button>
   }
   <button
@@ -36,6 +43,16 @@
       <span [class]="TYPE_CLASS_MAP[node.kind]" class="type">{{node.kind}}</span>
     </dd>
   }
+  @if (isClusterNode) {
+    <dt>Type:</dt>
+    <dd>
+      <span
+        [class]="CLUSTER_TYPE_CLASS_MAP[node.clusterType]"
+        class="type"
+        >{{ node.clusterType }}</span
+      >
+    </dd>
+  }
 
   @if (cluster(); as cluster) {
     <dt>Compound of:</dt>
@@ -49,7 +66,26 @@
     <dt>Epoch:</dt>
     <dd>{{node.epoch}}</dd>
   }
+
+  <!-- Cluster-type-specific properties -->
+  @if (resourceCluster(); as resource) {
+    <dt>Is loading:</dt>
+    <dd>{{ resource.isLoading }}</dd>
+
+    <dt>Status:</dt>
+    <dd>{{ resource.status }}</dd>
+
+    @if (resource.errored) {
+      <dt>Errored:</dt>
+      <dd>{{ resource.errored }}</dd>
+    }
+  }
 </dl>
+
+<!-- TBD Improve -->
+@if (resourceCluster() && dataSource()) {
+  <ng-signals-value-tree [dataSource]="dataSource()!" [treeControl]="treeControl()" />
+}
 
 @if (isSignalNode && (node.kind === 'signal' || node.kind === 'computed')) {
   @let dataSource = this.dataSource();

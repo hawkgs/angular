@@ -38,6 +38,9 @@ export interface DevtoolsClusterNode {
 
   /** Node label that represents the cluster name (e.g. a `resource` name). */
   label: string;
+
+  /** A child/compound node of the cluster that acts as a preview of the whole cluster. */
+  previewNode?: number;
 }
 
 export type DevtoolsSignalGraphNode = DevtoolsSignalNode | DevtoolsClusterNode;

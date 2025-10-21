@@ -12,7 +12,7 @@ import {
   DevtoolsSignalGraph,
   DevtoolsSignalGraphNode,
 } from './signal-graph-types';
-import {checkClusterMatch, getClusterId} from './utils';
+import {checkClusterMatch} from './utils';
 
 interface Cluster {
   id: string;
@@ -21,6 +21,7 @@ interface Cluster {
   producers: Set<number>;
   consumers: Set<number>;
   name: string;
+  previewNode?: number;
 }
 
 type ClusterIdentifier = (nodes: DebugSignalGraph) => Cluster[];
@@ -45,7 +46,7 @@ const resourceClusterIdentifier: ClusterIdentifier = (graph) => {
     let cluster = clusters.get(name);
     if (!cluster) {
       cluster = {
-        id: '',
+        id: `cl_${name}`,
         type: 'resource',
         name,
         consumers: new Set(),
@@ -69,11 +70,10 @@ const resourceClusterIdentifier: ClusterIdentifier = (graph) => {
         cluster.producers.add(edge.producer);
       }
     }
-  }
 
-  // Add IDs
-  for (const [_, cluster] of Array.from(clusters)) {
-    cluster.id = getClusterId(cluster);
+    if (match.signalName === 'value') {
+      cluster.previewNode = i;
+    }
   }
 
   return [...clusters].map(([, cluster]) => cluster);
@@ -126,6 +126,7 @@ export function convertToDevtoolsSignalGraph(
       nodeType: 'cluster',
       clusterType: cluster.type,
       label: cluster.name,
+      previewNode: cluster.previewNode,
     });
 
     // Start from the last node index

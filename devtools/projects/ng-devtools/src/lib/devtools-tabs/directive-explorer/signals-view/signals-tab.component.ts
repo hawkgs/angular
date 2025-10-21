@@ -15,6 +15,7 @@ import {
   linkedSignal,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 
@@ -34,6 +35,8 @@ import {SignalsVisualizerComponent} from './signals-visualizer/signals-visualize
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignalsTabComponent {
+  protected readonly visualizer = viewChild.required<SignalsVisualizerComponent>('visualizer');
+
   protected readonly signalGraph = inject(SignalGraphManager);
   private readonly appOperations = inject(ApplicationOperations);
   private readonly frameManager = inject(FrameManager);
@@ -82,5 +85,9 @@ export class SignalsTabComponent {
       },
       frame!,
     );
+  }
+
+  expandCluster(clusterId: string) {
+    this.visualizer().expandCluster(clusterId);
   }
 }

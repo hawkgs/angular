@@ -13,4 +13,9 @@
 {{ myRsrc.value() }}
 {{ myRsrc.isLoading() }}
 
-<button (click)="counter.set(counter() + 1)">Increase ct ({{ counter() }})</button>
+<button
+  (click)="counter.set(counter() + 1)"
+  style="position:fixed; top: 0; left: 0; border: 2px solid purple"
+>
+  Increase ct ({{ counter() }})
+</button>

@@ -26,6 +26,8 @@ import {
   SignalGraphManager,
   checkClusterMatch,
   DevtoolsClusterNodeType,
+  DevtoolsSignalNode,
+  DevtoolsClusterNode,
 } from '../../signal-graph';
 import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
@@ -43,6 +45,12 @@ const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'type-resource',
 };
 
+interface ResourceCluster {
+  isLoading: string;
+  status: string;
+  errored: boolean;
+}
+
 @Component({
   selector: 'ng-signals-details',
   templateUrl: './signals-details.component.html',
@@ -57,12 +65,14 @@ export class SignalsDetailsComponent {
   protected readonly node = input.required<DevtoolsSignalGraphNode>();
 
   protected readonly gotoSource = output<DevtoolsSignalGraphNode>();
+  protected readonly expandCluster = output<string>();
   protected readonly close = output<void>();
 
   protected readonly TYPE_CLASS_MAP = TYPE_CLASS_MAP;
   protected readonly CLUSTER_TYPE_CLASS_MAP = CLUSTER_TYPE_CLASS_MAP;
 
   protected readonly isSignalNode = isSignalNode;
+  protected readonly isClusterNode = isClusterNode;
 
   protected readonly name = computed(() => {
     const node = this.node();
@@ -83,6 +93,21 @@ export class SignalsDetailsComponent {
     return null;
   });
 
+  protected resourceCluster = computed<ResourceCluster | null>(() => {
+    const node = this.node();
+    if (!isClusterNode(node) || node.clusterType !== 'resource') {
+      return null;
+    }
+
+    const getCompoundNodeVal = this.getCompoundNodeValueHof(node);
+
+    return {
+      status: getCompoundNodeVal('status') || 'idle',
+      isLoading: getCompoundNodeVal('isLoading') || 'false',
+      errored: !!getCompoundNodeVal('error'),
+    };
+  });
+
   protected treeControl = computed<FlatTreeControl<FlatNode>>(() => {
     return new FlatTreeControl(
       (node) => node.level,
@@ -92,12 +117,25 @@ export class SignalsDetailsComponent {
 
   protected dataSource = computed<DataSource<FlatNode> | null>(() => {
     const selectedNode = this.node();
-    if (!selectedNode || isClusterNode(selectedNode)) {
+    if (!selectedNode) {
       return null;
     }
 
+    let inspectableNode: DevtoolsSignalNode;
+
+    if (isClusterNode(selectedNode)) {
+      if (!selectedNode.previewNode) {
+        return null;
+      }
+      inspectableNode = this.signalGraph.graph()?.nodes[
+        selectedNode.previewNode
+      ] as DevtoolsSignalNode;
+    } else {
+      inspectableNode = selectedNode;
+    }
+
     return new SignalDataSource(
-      selectedNode.preview,
+      inspectableNode.preview,
       new MatTreeFlattener<Property, FlatNode, FlatNode>(
         (node, level) => ({
           expandable: node.descriptor.expandable,
@@ -115,8 +153,19 @@ export class SignalsDetailsComponent {
         },
       ),
       this.treeControl(),
-      {element: this.signalGraph.element()!, signalId: selectedNode.id},
+      {element: this.signalGraph.element()!, signalId: inspectableNode.id},
       this.messageBus,
     );
   });
+
+  private getCompoundNodeValueHof(node: DevtoolsClusterNode) {
+    const compoundNodes = this.signalGraph
+      .graph()
+      ?.nodes.filter((n) => isSignalNode(n) && n.clusterId === node.id);
+
+    return (name: string) =>
+      (
+        compoundNodes?.find((n) => n.label?.includes(name)) as DevtoolsSignalNode | undefined
+      )?.preview.preview.replace(/"/g, '');
+  }
 }

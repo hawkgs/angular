@@ -101,7 +101,16 @@ export class SignalsVisualizerComponent {
     });
   }
 
-  setUpSignalsVisualizer() {
+  expandCluster(id: string) {
+    this.signalsVisualizer?.setClusterState(id, true);
+  }
+
+  protected collapseCluster(id: string) {
+    this.signalsVisualizer?.setClusterState(id, false);
+    this.clusterCollapse.emit(id);
+  }
+
+  private setUpSignalsVisualizer() {
     this.signalsVisualizer = new SignalsGraphVisualizer(this.svgHost().nativeElement);
     this.signalsVisualizer.onNodeClick((node) => {
       this.nodeClick.emit(node);
@@ -109,10 +118,5 @@ export class SignalsVisualizerComponent {
     this.signalsVisualizer.onClustersStateChange((expandedClusters) => {
       this.expandedClustersIds.set(expandedClusters);
     });
-  }
-
-  collapseCluster(id: string) {
-    this.signalsVisualizer?.setClusterState(id, false);
-    this.clusterCollapse.emit(id);
   }
 }
