@@ -25,10 +25,11 @@ import {
   DevtoolsSignalGraphNode,
   SignalGraphManager,
   checkClusterMatch,
+  DevtoolsClusterNodeType,
 } from '../../signal-graph';
 import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
-const TYPE_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
+const TYPE_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
   'signal': 'type-signal',
   'computed': 'type-computed',
   'effect': 'type-effect',
@@ -36,6 +37,9 @@ const TYPE_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'template': 'type-template',
   'linkedSignal': 'type-linked-signal',
   'unknown': 'type-unknown',
+};
+
+const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'type-resource',
 };
 
@@ -56,6 +60,7 @@ export class SignalsDetailsComponent {
   protected readonly close = output<void>();
 
   protected readonly TYPE_CLASS_MAP = TYPE_CLASS_MAP;
+  protected readonly CLUSTER_TYPE_CLASS_MAP = CLUSTER_TYPE_CLASS_MAP;
 
   protected readonly isSignalNode = isSignalNode;
 

@@ -18,7 +18,7 @@ import {
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
 import {DagreGraph, DagreGraphCluster, DagreGraphNode} from './dagre-d3-types';
 
-const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
+const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
   'signal': 'kind-signal',
   'computed': 'kind-computed',
   'effect': 'kind-effect',
@@ -26,10 +26,13 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: strin
   'template': 'kind-template',
   'linkedSignal': 'kind-linked-signal',
   'unknown': 'kind-unknown',
-  'resource': 'kind-resource',
 };
 
 const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
+  'resource': 'kind-resource',
+};
+
+const CLUSTER_CHILD_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'resource-child',
 };
 
@@ -418,7 +421,10 @@ export class SignalsGraphVisualizer {
     } else if (isClusterNode(node)) {
       outer.onclick = () => this.setClusterState(node.id, true);
     }
-    outer.className = `${NODE_CLASS} ${KIND_CLASS_MAP[isSignalNode(node) ? node.kind : node.clusterType]}`;
+    const typeClass = isSignalNode(node)
+      ? KIND_CLASS_MAP[node.kind]
+      : CLUSTER_TYPE_CLASS_MAP[node.clusterType];
+    outer.className = `${NODE_CLASS} ${typeClass}`;
 
     const header = document.createElement('div');
 
@@ -437,7 +443,7 @@ export class SignalsGraphVisualizer {
       if (node.clusterId) {
         outer.classList.add(CLUSTER_CHILD_CLASS);
         const clusterType = graph.clusters[node.clusterId].type;
-        outer.classList.add(CLUSTER_TYPE_CLASS_MAP[clusterType]);
+        outer.classList.add(CLUSTER_CHILD_TYPE_CLASS_MAP[clusterType]);
       }
     }
 
