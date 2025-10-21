@@ -1,5 +1,20 @@
 @use '../../../../../styles/typography' as tg;
 
+/* Keep in sync with signals-visualizer.ts */
+$node-width: 100px;
+$node-height: 60px;
+$node-epoch-anim-duration: 250ms;
+
+%animated {
+  opacity: 0;
+  animation-name: fade-in;
+  animation-duration: 200ms;
+  animation-timing-function: ease;
+  animation-delay: 1s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
 :host {
   position: relative;
   display: block;
@@ -52,6 +67,12 @@
           stroke-dasharray: 5, 5;
         }
 
+        &.cluster-edge {
+          .path {
+            @extend %animated;
+          }
+        }
+
         marker > path {
           fill: var(--gray-500);
         }
@@ -61,14 +82,14 @@
         position: relative;
         box-sizing: border-box;
         contain: paint;
-        width: 100px;
-        height: 60px;
+        width: $node-width;
+        height: $node-height;
         text-align: center;
         word-wrap: break-word;
         border-radius: 8px;
         background-color: var(--gray-400);
         cursor: pointer;
-        transition: outline-width 0.25s ease-in-out; /* Keep in sync with signals-visualizer.ts */
+        transition: outline-width $node-epoch-anim-duration ease-in-out;
         outline: 0px solid var(--purple-03);
 
         &.node-epoch-anim {
@@ -88,6 +109,8 @@
         }
 
         &.cluster-child {
+          @extend %animated;
+
           &::before {
             position: absolute;
             border-radius: 50%;
@@ -215,5 +238,14 @@
         overflow: hidden;
       }
     }
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

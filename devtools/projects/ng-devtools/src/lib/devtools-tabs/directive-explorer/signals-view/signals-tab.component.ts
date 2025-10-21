@@ -44,7 +44,12 @@ export class SignalsTabComponent {
   // selected is automatically reset to null whenever `graph` changes
   protected readonly selectedNodeId = linkedSignal<DevtoolsSignalGraph | null, string | null>({
     source: this.signalGraph.graph,
-    computation: () => this.preselectedNodeId(),
+    computation: (source, prev) => {
+      if (prev?.value && source?.nodes.find((n) => n.id === prev.value)) {
+        return prev.value;
+      }
+      return this.preselectedNodeId();
+    },
   });
 
   protected selectedNode = computed(() => {

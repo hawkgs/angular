@@ -6,6 +6,8 @@ export interface DagreGraphNode {
   labelType: string;
   shape: string;
   padding: number;
+  width: number;
+  height: number;
   style?: string;
   epoch?: number;
 }

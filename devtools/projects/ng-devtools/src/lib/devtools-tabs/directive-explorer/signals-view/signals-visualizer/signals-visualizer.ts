@@ -15,8 +15,8 @@ import {
   DevtoolsSignalGraphNode,
   DevtoolsClusterNodeType,
 } from '../../signal-graph';
-import {DagreGraph, DagreGraphNode} from './dagre-d3-types';
 import {DebugSignalGraphNode} from '../../../../../../../protocol';
+import {DagreGraph, DagreGraphCluster, DagreGraphNode} from './dagre-d3-types';
 
 const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind'] & 'resource']: string} = {
   'signal': 'kind-signal',
@@ -34,12 +34,22 @@ const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
 };
 
 const NODE_CLASS = 'node-label';
+const SPECIAL_NODE_CLASS = 'special';
+const NODE_HEADER_CLASS = 'header';
+const NODE_BODY_CLASS = 'body';
 const CLUSTER_CLASS = 'cluster';
 const EDGE_CLASS = 'edge';
+const CLUSTER_EDGE_CLASS = 'cluster-edge';
+const CLUSTER_CHILD_CLASS = 'cluster-child';
 const CLOSE_BTN_CLASS = 'cluster-close-btn';
 const NODE_EPOCH_UPDATE_ANIM_CLASS = 'node-epoch-anim';
 
-const NODE_EPOCH_UPDATE_ANIM_DURATION = 250; // Keep in sync with signals-visualizer.component.scss
+// Keep in sync with signals-visualizer.component.scss
+const NODE_WIDTH = 100;
+const NODE_HEIGHT = 60;
+const NODE_EPOCH_UPDATE_ANIM_DURATION = 250;
+
+const CLUSTER_EXPAND_ANIM_DURATION = 1100; // Empirical value based on Dagre's behavior with an included leeway
 
 // Terminology:
 //
@@ -66,7 +76,7 @@ export class SignalsGraphVisualizer {
     this.graph.setGraph({});
     this.graph.graph().rankdir = 'TB';
     this.graph.graph().ranksep = 50;
-    this.graph.graph().nodesep = 10;
+    this.graph.graph().nodesep = 15;
 
     this.graph.setDefaultEdgeLabel(() => ({}));
 
@@ -136,6 +146,7 @@ export class SignalsGraphVisualizer {
     g.select('.output').attr('transform', `translate(${xTransform}, ${yTransform})`);
 
     this.addCloseButtonsToClusters(g);
+    this.reinforceNodeDimensions();
 
     this.inputGraph = signalGraph;
   }
@@ -215,27 +226,36 @@ export class SignalsGraphVisualizer {
 
     for (const clusterId of Object.keys(signalGraph.clusters)) {
       newClusterIds.add(clusterId);
-    }
 
-    let clustersUpdated = false;
+      const currentNode = this.graph.node(clusterId);
+      const isClusterNode = isDagreClusterNode(currentNode);
+      const isExpanded = this.expandedClustersIds.has(clusterId);
 
-    for (const clusterId of this.expandedClustersIds) {
-      if (!newClusterIds.has(clusterId)) {
-        // Hide cluster that should be collapsed
-        this.expandedClustersIds.delete(clusterId);
-        this.graph.removeNode(clusterId);
-        clustersUpdated = true;
-      } else {
+      if (isExpanded && !isClusterNode) {
         // Render the new cluster as an expanded cluster node
         this.graph.setNode(clusterId, {
           label: signalGraph.clusters[clusterId].name,
           class: CLUSTER_CLASS,
           clusterLabelPos: 'top',
         });
+      } else if (!isExpanded && isClusterNode) {
+        // Collapse collapsed clusters
+        this.graph.removeNode(clusterId);
       }
     }
 
-    if (clustersUpdated) {
+    let clustersSetUpdated = false;
+
+    // Remove expanded cluster nodes that are not longer present in the graph
+    for (const clusterId of this.expandedClustersIds) {
+      if (!newClusterIds.has(clusterId)) {
+        this.expandedClustersIds.delete(clusterId);
+        this.graph.removeNode(clusterId);
+        clustersSetUpdated = true;
+      }
+    }
+
+    if (clustersSetUpdated) {
       this.notifyForClusterVisibilityUpdate();
     }
   }
@@ -244,6 +264,7 @@ export class SignalsGraphVisualizer {
     let matchedNodeId = false;
     const signalNodes = convertNodesToMap(signalGraph.nodes);
 
+    // Remove old & rendundant nodes
     for (const oldNodeId of this.graph.nodes()) {
       const node = signalNodes.get(oldNodeId);
 
@@ -258,14 +279,15 @@ export class SignalsGraphVisualizer {
 
     const updatedNodes: string[] = [];
 
+    // Add new/update existing nodes
     for (const n of signalGraph.nodes) {
       const isSignal = isSignalNode(n);
       let existingNode = this.graph.node(n.id);
 
-      if (existingNode && isSignal) {
+      if (existingNode) {
         existingNode = existingNode as DagreGraphNode;
 
-        if (n.epoch !== existingNode.epoch) {
+        if (isSignal && n.epoch !== existingNode.epoch) {
           updatedNodes.push(n.id);
           const count = this.animatedNodesMap.get(n.id) ?? 0;
           this.animatedNodesMap.set(n.id, count + 1);
@@ -284,6 +306,8 @@ export class SignalsGraphVisualizer {
           padding: 0,
           style: 'fill: none;',
           epoch: isSignal ? n.epoch : undefined,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
         });
         // Add to the expanded cluster node, if the node is part of a visible cluster
         if (isSignal && this.expandedClustersIds.has(n.clusterId || '')) {
@@ -292,10 +316,16 @@ export class SignalsGraphVisualizer {
       }
     }
 
-    const timeout = setTimeout(() => {
-      this.updateNodeAnimations(updatedNodes, timeout);
+    const epochAnimTimeout = setTimeout(() => {
+      this.updateNodeEpochAnimations(updatedNodes, epochAnimTimeout);
     }, NODE_EPOCH_UPDATE_ANIM_DURATION);
-    this.timeouts.add(timeout);
+    this.timeouts.add(epochAnimTimeout);
+
+    const clusterChildrenAnimTimeout = setTimeout(() => {
+      this.timeouts.delete(clusterChildrenAnimTimeout);
+      this.getNodeLabelsSelection().attr('style', 'animation-name: unset; opacity: 1');
+    }, CLUSTER_EXPAND_ANIM_DURATION);
+    this.timeouts.add(clusterChildrenAnimTimeout);
 
     if (matchedNodeId) {
       this.graph.graph().transition = (selection: any) => {
@@ -323,9 +353,17 @@ export class SignalsGraphVisualizer {
         this.isNodeVisible(producerNode) &&
         this.isNodeVisible(consumerNode)
       ) {
+        const isClusterEdge = signalGraph.nodes.some(
+          (node) =>
+            isSignalNode(node) &&
+            node.clusterId &&
+            (node.id === producerId || node.id === consumerId),
+        );
+        const classes = EDGE_CLASS + (isClusterEdge ? ` ${CLUSTER_EDGE_CLASS}` : '');
+
         this.graph.setEdge(producerId, consumerId, {
           curve: d3.curveBasis,
-          class: EDGE_CLASS,
+          class: classes,
         });
       }
     }
@@ -345,7 +383,10 @@ export class SignalsGraphVisualizer {
     }
   }
 
-  private updateNodeAnimations(updatedNodes: string[], timeout: ReturnType<typeof setTimeout>) {
+  private updateNodeEpochAnimations(
+    updatedNodes: string[],
+    timeout: ReturnType<typeof setTimeout>,
+  ) {
     this.timeouts.delete(timeout);
 
     for (const id of updatedNodes) {
@@ -355,10 +396,7 @@ export class SignalsGraphVisualizer {
       }
     }
 
-    d3.select(this.svg)
-      .select('.output .nodes')
-      .selectAll<SVGGElement, string>('g.node')
-      .select('.label foreignObject .node-label')
+    this.getNodeLabelsSelection()
       .filter((d) => !this.animatedNodesMap.get(d))
       .classed(NODE_EPOCH_UPDATE_ANIM_CLASS, false);
   }
@@ -388,7 +426,7 @@ export class SignalsGraphVisualizer {
     if (isSignalNode(node)) {
       if (!label) {
         label = node.kind === 'effect' ? 'Effect' : 'Unnamed';
-        header.classList.add('special');
+        header.classList.add(SPECIAL_NODE_CLASS);
       } else {
         const hashIdx = label.indexOf('.');
         if (hashIdx > -1) {
@@ -397,17 +435,17 @@ export class SignalsGraphVisualizer {
       }
 
       if (node.clusterId) {
-        outer.classList.add('cluster-child');
+        outer.classList.add(CLUSTER_CHILD_CLASS);
         const clusterType = graph.clusters[node.clusterId].type;
         outer.classList.add(CLUSTER_TYPE_CLASS_MAP[clusterType]);
       }
     }
 
-    header.classList.add('header');
+    header.classList.add(NODE_HEADER_CLASS);
     header.textContent = label;
 
     const body = document.createElement('div');
-    body.className = 'body';
+    body.className = NODE_BODY_CLASS;
     body.textContent = getBodyText(node);
 
     outer.appendChild(header);
@@ -421,12 +459,8 @@ export class SignalsGraphVisualizer {
   private addCloseButtonsToClusters(g: d3.Selection<d3.BaseType, unknown, null, unknown>) {
     const iconMargin = 7;
     const iconSize = 15;
-    const clusterAnimDelay = 1000;
 
     const clusters = g.selectAll(`.${CLUSTER_CLASS}`);
-
-    // Sometimes the cluster buttons are not removed for an unknown reason.
-    clusters.select(`${CLOSE_BTN_CLASS}`).remove();
 
     // We need to wait until the cluster animation completes before calling `getBBox`.
     const timeout = setTimeout(() => {
@@ -435,6 +469,11 @@ export class SignalsGraphVisualizer {
       clusters.each((clusterId, idx, groups) => {
         const svgCluster = groups[idx] as SVGGraphicsElement;
         const d3Cluster = d3.select(svgCluster);
+
+        if (d3Cluster.select(`.${CLOSE_BTN_CLASS}`).size()) {
+          return;
+        }
+
         const {width, height} = svgCluster.getBBox();
 
         const group = d3Cluster
@@ -462,9 +501,37 @@ export class SignalsGraphVisualizer {
         // Accessibility
         group.append('title').attr('id', `cluster-${clusterId}`).text('Close the cluster');
       });
-    }, clusterAnimDelay);
+    }, CLUSTER_EXPAND_ANIM_DURATION);
 
     this.timeouts.add(timeout);
+  }
+
+  // For some reason Dagre is not using the statically-provided node width and height
+  // for the <foreignObject> that contains the HTML label. This method ensures that
+  // this always happens, which prevents misaligned nodes after a cluster collapse.
+  private reinforceNodeDimensions() {
+    d3.select(this.svg)
+      .selectAll('.node .label')
+      .each((nodeId, idx, group) => {
+        const node = group[idx];
+        const d3Node = d3.select(node);
+        const {width, height} = this.graph.node(nodeId as string) as DagreGraphNode;
+
+        d3Node
+          .select('g')
+          .attr('transform', `translate(${-width / 2}, ${-height / 2})`)
+          .select('foreignObject')
+          .attr('width', width)
+          .attr('height', height);
+      });
+  }
+
+  private getNodeLabelsSelection() {
+    return d3
+      .select(this.svg)
+      .select('.output .nodes')
+      .selectAll<SVGGElement, string>('g.node')
+      .select('.label foreignObject .node-label');
   }
 }
 
@@ -494,4 +561,10 @@ function getEdgeId(producerId: string, consumerId: string): string {
 
 function convertNodesToMap(nodes: DevtoolsSignalGraphNode[]): Map<string, DevtoolsSignalGraphNode> {
   return new Map(nodes.map((n) => [n.id, n]));
+}
+
+function isDagreClusterNode(
+  node: DagreGraphCluster | DagreGraphNode | undefined,
+): node is DagreGraphCluster {
+  return !!(node as DagreGraphCluster)?.clusterLabelPos;
 }

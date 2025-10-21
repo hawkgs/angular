@@ -41,3 +41,8 @@ export function checkClusterMatch(n: DebugSignalGraphNode): {
     signalName: match[2],
   };
 }
+
+export function getClusterId(clusterData: {name: string; nodes: Set<string>}): string {
+  const nodesString = Array.from(clusterData.nodes).join('-');
+  return `${clusterData.name}_${nodesString}`;
+}
