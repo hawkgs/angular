@@ -48,7 +48,7 @@ export class SignalsVisualizerComponent {
   protected readonly selectedNodeId = input.required<string | null>();
   protected readonly element = input.required<ElementPosition | undefined>();
   protected readonly nodeClick = output<DevtoolsSignalGraphNode>();
-  protected readonly clusterCollapse = output<string>();
+  protected readonly clusterCollapse = output<void>();
 
   private readonly expandedClustersIds = signal<Set<string>>(new Set());
   protected readonly expandedClusters = computed<DevtoolsSignalGraphCluster[]>(() => {
@@ -107,7 +107,6 @@ export class SignalsVisualizerComponent {
 
   protected collapseCluster(id: string) {
     this.signalsVisualizer?.setClusterState(id, false);
-    this.clusterCollapse.emit(id);
   }
 
   private setUpSignalsVisualizer() {
@@ -116,7 +115,16 @@ export class SignalsVisualizerComponent {
       this.nodeClick.emit(node);
     });
     this.signalsVisualizer.onClustersStateChange((expandedClusters) => {
+      const collapsed = new Set(this.expandedClustersIds());
+      for (const expanded of Array.from(expandedClusters)) {
+        collapsed.delete(expanded);
+      }
+
       this.expandedClustersIds.set(expandedClusters);
+
+      if (collapsed.size) {
+        this.clusterCollapse.emit();
+      }
     });
   }
 }

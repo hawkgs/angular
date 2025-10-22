@@ -89,24 +89,6 @@
       }
     }
   }
-
-  .value,
-  ng-signals-value-tree {
-    border-radius: 0.25rem;
-    margin-top: 0.75rem;
-    background: var(--nonary-contrast);
-    padding-block: 0.25rem;
-  }
-
-  ng-signals-value-tree {
-    scrollbar-width: thin;
-    scrollbar-color: var(--quaternary-contrast) transparent;
-  }
-
-  .value {
-    @extend %monospaced;
-    padding-inline: 0.5rem;
-  }
 }
 
 @include th.dark-theme {

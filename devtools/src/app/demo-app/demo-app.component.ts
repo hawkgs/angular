@@ -50,8 +50,8 @@ export class StructuralDirective {
 function loader() {
   return new Promise((res, rej) => {
     setTimeout(() => {
-      // res('next_val');
-      rej('!error!');
+      res('next_val');
+      // rej('!error!');
     }, 10000);
   });
 }

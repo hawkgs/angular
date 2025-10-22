@@ -82,17 +82,12 @@
   }
 </dl>
 
-<!-- TBD Improve -->
-@if (resourceCluster() && dataSource()) {
-  <ng-signals-value-tree [dataSource]="dataSource()!" [treeControl]="treeControl()" />
-}
+@let isPreviewable =
+  isSignalNode &&
+  (node.kind === 'signal' || node.kind === 'computed' || node.kind === 'linkedSignal');
 
-@if (isSignalNode && (node.kind === 'signal' || node.kind === 'computed')) {
-  @let dataSource = this.dataSource();
-
-  @if (node.preview.preview === 'undefined' || !dataSource) {
-    <div class="value">undefined</div>
-  } @else {
-    <ng-signals-value-tree [dataSource]="dataSource" [treeControl]="treeControl()" />
+@if (isPreviewable || resourceCluster()) {
+  @if (previewableNode(); as previewableNode) {
+    <ng-signals-value-tree [node]="previewableNode" />
   }
 }

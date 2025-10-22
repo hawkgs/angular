@@ -286,35 +286,18 @@ export class SignalsGraphVisualizer {
     // Add new/update existing nodes
     for (const n of signalGraph.nodes) {
       const isSignal = isSignalNode(n);
-      let existingNode = this.graph.node(n.id);
+      const existingNode = this.graph.node(n.id) as DagreGraphNode | undefined;
 
       if (existingNode) {
-        existingNode = existingNode as DagreGraphNode;
-
-        // !!! TBD: This part of the code needs to be improved !!!
         if (isSignal && n.epoch !== existingNode.epoch) {
+          this.updateDagreNode(n, existingNode, signalGraph);
           updatedNodes.push(n.id);
-          const count = this.animatedNodesMap.get(n.id) ?? 0;
-          this.animatedNodesMap.set(n.id, count + 1);
-          existingNode.epoch = n.epoch;
-          d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
-          const body = existingNode.label.getElementsByClassName('body').item(0);
-          if (body) {
-            body.textContent = getBodyText(n, signalGraph);
-          }
         } else if (isClusterNode(n) && !this.expandedClustersIds.has(n.id)) {
           const previewNode = signalGraph.nodes[n.previewNode ?? -1] as DevtoolsSignalNode;
 
           if (previewNode.epoch !== existingNode.epoch) {
+            this.updateDagreNode(previewNode, existingNode, signalGraph);
             updatedNodes.push(n.id);
-            const count = this.animatedNodesMap.get(n.id) ?? 0;
-            this.animatedNodesMap.set(n.id, count + 1);
-            existingNode.epoch = previewNode.epoch;
-            d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
-            const body = existingNode.label.getElementsByClassName('body').item(0);
-            if (body) {
-              body.textContent = getBodyText(n, signalGraph);
-            }
           }
         }
       } else if (this.isNodeVisible(n)) {
@@ -403,6 +386,21 @@ export class SignalsGraphVisualizer {
       ) {
         this.graph.removeEdge(edge.v, edge.w, undefined);
       }
+    }
+  }
+
+  private updateDagreNode(
+    newNode: DevtoolsSignalNode,
+    existingNode: DagreGraphNode,
+    signalGraph: DevtoolsSignalGraph,
+  ) {
+    const count = this.animatedNodesMap.get(newNode.id) ?? 0;
+    this.animatedNodesMap.set(newNode.id, count + 1);
+    existingNode.epoch = newNode.epoch;
+    d3.select(existingNode.label).classed(NODE_EPOCH_UPDATE_ANIM_CLASS, true);
+    const body = existingNode.label.getElementsByClassName(NODE_BODY_CLASS).item(0);
+    if (body) {
+      body.textContent = getBodyText(newNode, signalGraph);
     }
   }
 

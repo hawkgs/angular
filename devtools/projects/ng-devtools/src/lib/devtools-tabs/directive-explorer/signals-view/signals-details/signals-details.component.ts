@@ -7,17 +7,10 @@
  */
 
 import {ChangeDetectionStrategy, Component, computed, inject, input, output} from '@angular/core';
-import {DataSource} from '@angular/cdk/collections';
-import {FlatTreeControl} from '@angular/cdk/tree';
 import {MatIcon} from '@angular/material/icon';
-import {MatTreeFlattener} from '@angular/material/tree';
 
-import {DebugSignalGraphNode, MessageBus, PropType} from '../../../../../../../protocol';
-import {
-  FlatNode,
-  SignalsValueTreeComponent,
-  Property,
-} from './signals-value-tree/signals-value-tree.component';
+import {DebugSignalGraphNode} from '../../../../../../../protocol';
+import {SignalsValueTreeComponent} from './signals-value-tree/signals-value-tree.component';
 import {ButtonComponent} from '../../../../shared/button/button.component';
 import {
   isClusterNode,
@@ -29,7 +22,6 @@ import {
   DevtoolsSignalNode,
   DevtoolsClusterNode,
 } from '../../signal-graph';
-import {arrayifyProps, SignalDataSource} from './signal-data-source';
 
 const TYPE_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
   'signal': 'type-signal',
@@ -60,7 +52,6 @@ interface ResourceCluster {
 })
 export class SignalsDetailsComponent {
   private readonly signalGraph = inject(SignalGraphManager);
-  private readonly messageBus = inject(MessageBus);
 
   protected readonly node = input.required<DevtoolsSignalGraphNode>();
 
@@ -108,54 +99,26 @@ export class SignalsDetailsComponent {
     };
   });
 
-  protected treeControl = computed<FlatTreeControl<FlatNode>>(() => {
-    return new FlatTreeControl(
-      (node) => node.level,
-      (node) => node.expandable,
-    );
-  });
-
-  protected dataSource = computed<DataSource<FlatNode> | null>(() => {
+  protected readonly previewableNode = computed<DevtoolsSignalNode | null>(() => {
     const selectedNode = this.node();
     if (!selectedNode) {
       return null;
     }
 
-    let inspectableNode: DevtoolsSignalNode;
+    let previewableNode: DevtoolsSignalNode;
 
     if (isClusterNode(selectedNode)) {
       if (!selectedNode.previewNode) {
         return null;
       }
-      inspectableNode = this.signalGraph.graph()?.nodes[
+      previewableNode = this.signalGraph.graph()?.nodes[
         selectedNode.previewNode
       ] as DevtoolsSignalNode;
     } else {
-      inspectableNode = selectedNode;
+      previewableNode = selectedNode;
     }
 
-    return new SignalDataSource(
-      inspectableNode.preview,
-      new MatTreeFlattener<Property, FlatNode, FlatNode>(
-        (node, level) => ({
-          expandable: node.descriptor.expandable,
-          prop: node,
-          level,
-        }),
-        (node) => node.level,
-        (node) => node.expandable,
-        (prop) => {
-          const descriptor = prop.descriptor;
-          if (descriptor.type === PropType.Object || descriptor.type === PropType.Array) {
-            return arrayifyProps(descriptor.value || {}, prop);
-          }
-          return;
-        },
-      ),
-      this.treeControl(),
-      {element: this.signalGraph.element()!, signalId: inspectableNode.id},
-      this.messageBus,
-    );
+    return previewableNode;
   });
 
   private getCompoundNodeValueHof(node: DevtoolsClusterNode) {
