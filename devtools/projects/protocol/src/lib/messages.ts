@@ -444,6 +444,7 @@ export interface Events {
 
   contentScriptConnected: (frameId: number, name: string, url: string) => void;
   contentScriptDisconnected: (frameId: number, name: string, url: string) => void;
+  contentScriptInitialized: () => void;
   enableFrameConnection: (frameId: number, tabId: number) => void;
   frameConnected: (frameId: number) => void;
   detectAngular: (detectionResult: AngularDetection) => void;

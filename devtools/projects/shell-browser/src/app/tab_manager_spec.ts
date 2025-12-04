@@ -94,8 +94,8 @@ describe('Tab Manager - ', () => {
     }
   }
 
-  function emitBackendReadyToPort(contentScriptPort: MockPort) {
-    emitMessageToPort(contentScriptPort, {topic: 'backendReady'});
+  function emitContentScriptInitToPort(contentScriptPort: MockPort) {
+    emitMessageToPort(contentScriptPort, {topic: 'contentScriptInitialized'});
   }
 
   function emitDisconnectToPort(port: MockPort) {
@@ -160,10 +160,10 @@ describe('Tab Manager - ', () => {
       {
         // Content Script -> Backend Ready -> Devtools
         const contentScriptPort = createContentScriptPort();
-        emitBackendReadyToPort(contentScriptPort);
+        emitContentScriptInitToPort(contentScriptPort);
         const devtoolsPort = createDevToolsPort();
         const tab = tabs[tabId]!;
-        await tab.contentScripts[contentScriptFrameId].backendReady;
+        await tab.contentScripts[contentScriptFrameId].contentScriptInit;
         yield {tab, contentScriptPort, devtoolsPort};
         delete tabs[tabId];
       }
@@ -172,9 +172,9 @@ describe('Tab Manager - ', () => {
         // Content Script -> Devtools -> Backend Ready
         const contentScriptPort = createContentScriptPort();
         const devtoolsPort = createDevToolsPort();
-        emitBackendReadyToPort(contentScriptPort);
+        emitContentScriptInitToPort(contentScriptPort);
         const tab = tabs[tabId]!;
-        await tab.contentScripts[contentScriptFrameId].backendReady;
+        await tab.contentScripts[contentScriptFrameId].contentScriptInit;
         yield {tab, contentScriptPort, devtoolsPort};
         delete tabs[tabId];
       }
@@ -183,9 +183,9 @@ describe('Tab Manager - ', () => {
         // Devtools -> Content Script -> Backend Ready
         const devtoolsPort = createDevToolsPort();
         const contentScriptPort = createContentScriptPort();
-        emitBackendReadyToPort(contentScriptPort);
+        emitContentScriptInitToPort(contentScriptPort);
         const tab = tabs[tabId]!;
-        await tab.contentScripts[contentScriptFrameId].backendReady;
+        await tab.contentScripts[contentScriptFrameId].contentScriptInit;
         yield {tab, contentScriptPort, devtoolsPort};
       }
     }
@@ -258,7 +258,7 @@ describe('Tab Manager - ', () => {
       }
     });
 
-    it('should set backendReady when the contentPort recieves the backendReady message', async () => {
+    it('should set contentScriptInitialized when the contentPort recieves the contentScriptInitialized message', async () => {
       for await (const {
         contentScriptPort,
         devtoolsPort,
@@ -325,61 +325,61 @@ describe('Tab Manager - ', () => {
 
     async function* eachOrderingOfDevToolsInitialization() {
       {
-        // Devtools Connected -> Top Level Content Script Connected -> Top Level Content Script Backend Ready
-        // -> Child Content Script Connected -> Child Content Script Backend Ready
+        // Devtools Connected -> Top Level Content Script Connected -> Top Level Content Script Initialized
+        // -> Child Content Script Connected -> Child Content Script Initialized
         const devtoolsPort = createDevToolsPort();
         const topLevelContentScriptPort = createTopLevelContentScriptPort();
-        emitBackendReadyToPort(topLevelContentScriptPort);
+        emitContentScriptInitToPort(topLevelContentScriptPort);
         const childContentScriptPort = createChildContentScriptPort();
-        emitBackendReadyToPort(childContentScriptPort);
+        emitContentScriptInitToPort(childContentScriptPort);
         const tab = tabs[tabId]!;
-        await tab.contentScripts[topLevelFrameId].backendReady;
-        await tab.contentScripts[childFrameId].backendReady;
+        await tab.contentScripts[topLevelFrameId].contentScriptInit;
+        await tab.contentScripts[childFrameId].contentScriptInit;
         yield {tab, topLevelContentScriptPort, childContentScriptPort, devtoolsPort};
         delete tabs[tabId];
       }
 
       {
-        // Top Level Content Script Connected -> Top Level Content Script Backend Ready -> Devtools Connected
-        // -> Child Content Script Connected -> Child Content Script Backend Ready
+        // Top Level Content Script Connected -> Top Level Content Script Initialized -> Devtools Connected
+        // -> Child Content Script Connected -> Child Content Script Initialized
         const topLevelContentScriptPort = createTopLevelContentScriptPort();
-        emitBackendReadyToPort(topLevelContentScriptPort);
+        emitContentScriptInitToPort(topLevelContentScriptPort);
         const devtoolsPort = createDevToolsPort();
         const childContentScriptPort = createChildContentScriptPort();
-        emitBackendReadyToPort(childContentScriptPort);
+        emitContentScriptInitToPort(childContentScriptPort);
         const tab = tabs[tabId]!;
-        await tab.contentScripts[topLevelFrameId].backendReady;
-        await tab.contentScripts[childFrameId].backendReady;
+        await tab.contentScripts[topLevelFrameId].contentScriptInit;
+        await tab.contentScripts[childFrameId].contentScriptInit;
         yield {tab, topLevelContentScriptPort, childContentScriptPort, devtoolsPort};
         delete tabs[tabId];
       }
 
       {
-        // Top Level Content Script Connected -> Top Level Content Script Backend Ready -> Child Content Script Connected
-        // -> Child Content Script Backend Ready -> Devtools Connected
+        // Top Level Content Script Connected -> Top Level Content Script Initialized -> Child Content Script Connected
+        // -> Child Content Script Initialized -> Devtools Connected
         const topLevelContentScriptPort = createTopLevelContentScriptPort();
-        emitBackendReadyToPort(topLevelContentScriptPort);
+        emitContentScriptInitToPort(topLevelContentScriptPort);
         const childContentScriptPort = createChildContentScriptPort();
-        emitBackendReadyToPort(childContentScriptPort);
+        emitContentScriptInitToPort(childContentScriptPort);
         const devtoolsPort = createDevToolsPort();
         tab = tabs[tabId]!;
-        await tab.contentScripts[topLevelFrameId].backendReady;
-        await tab.contentScripts[childFrameId].backendReady;
+        await tab.contentScripts[topLevelFrameId].contentScriptInit;
+        await tab.contentScripts[childFrameId].contentScriptInit;
         yield {tab, topLevelContentScriptPort, childContentScriptPort, devtoolsPort};
         delete tabs[tabId];
       }
 
       {
         // Top Level Content Script Connected -> Devtools Connected -> Child Content Script Connected
-        // -> Top Level Content Script Backend Ready -> Child Content Script Backend Ready
+        // -> Top Level Content Script Initialized -> Child Content Script Initialized
         const topLevelContentScriptPort = createTopLevelContentScriptPort();
         const devtoolsPort = createDevToolsPort();
         const childContentScriptPort = createChildContentScriptPort();
-        emitBackendReadyToPort(topLevelContentScriptPort);
-        emitBackendReadyToPort(childContentScriptPort);
+        emitContentScriptInitToPort(topLevelContentScriptPort);
+        emitContentScriptInitToPort(childContentScriptPort);
         const tab = tabs[tabId]!;
-        await tab.contentScripts[topLevelFrameId].backendReady;
-        await tab.contentScripts[childFrameId].backendReady;
+        await tab.contentScripts[topLevelFrameId].contentScriptInit;
+        await tab.contentScripts[childFrameId].contentScriptInit;
         yield {tab, topLevelContentScriptPort, childContentScriptPort, devtoolsPort};
       }
     }

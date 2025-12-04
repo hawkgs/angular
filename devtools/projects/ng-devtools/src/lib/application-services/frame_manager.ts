@@ -56,6 +56,7 @@ export class FrameManager {
     this._messageBus.on('frameConnected', (frameId: number) => {
       if (this._frames().has(frameId)) {
         this._selectedFrameId.set(frameId);
+        console.log('FRAME connected');
       }
     });
 

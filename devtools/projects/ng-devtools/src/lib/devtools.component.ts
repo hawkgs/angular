@@ -10,6 +10,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   signal,
@@ -19,13 +20,15 @@ import {interval} from 'rxjs';
 
 import {FrameManager} from './application-services/frame_manager';
 import {ThemeService} from './application-services/theme_service';
-import {MatTooltip, MatTooltipModule} from '@angular/material/tooltip';
+import {MatTooltip} from '@angular/material/tooltip';
 import {DevToolsTabsComponent} from './devtools-tabs/devtools-tabs.component';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {Frame} from './application-environment';
 import {BrowserStylesService} from './application-services/browser_styles_service';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {SUPPORTED_APIS} from './application-providers/supported_apis';
+import {SyncedLogger, SyncedLoggerSrc} from '../../../shared-utils';
+import {ButtonComponent} from './shared/button/button.component';
 
 const DETECT_ANGULAR_ATTEMPTS = 20;
 
@@ -53,7 +56,7 @@ export const LAST_SUPPORTED_VERSION = 12;
   selector: 'ng-devtools',
   templateUrl: './devtools.component.html',
   styleUrls: ['./devtools.component.scss'],
-  imports: [DevToolsTabsComponent, MatIcon, MatTooltip, MatProgressSpinnerModule, MatTooltipModule],
+  imports: [DevToolsTabsComponent, MatIcon, MatTooltip, MatProgressSpinnerModule, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevToolsComponent implements OnDestroy {
@@ -65,6 +68,7 @@ export class DevToolsComponent implements OnDestroy {
   readonly angularIsInDevMode = signal(true);
   readonly hydration = signal(false);
   readonly ivy = signal<boolean | undefined>(undefined);
+  protected readonly syncedLogger = signal<SyncedLogger | null>(null);
 
   readonly LAST_SUPPORTED_VERSION = LAST_SUPPORTED_VERSION;
 
@@ -88,6 +92,7 @@ export class DevToolsComponent implements OnDestroy {
       this.angularStatus.set(AngularStatus.DOES_NOT_EXIST);
     }
     this._messageBus.emit('queryNgAvailability');
+    this.syncedLogger()?.log(`Emitting 'queryNgAvailability'`);
   });
 
   constructor() {
@@ -95,7 +100,23 @@ export class DevToolsComponent implements OnDestroy {
     inject(BrowserStylesService).initBrowserSpecificStyles();
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
 
+    effect(() => {
+      const selectedFrame = this._frameManager.selectedFrame();
+      // We don't check if `selectedFrame` exists, since
+      // it doesn't in the development app.
+      const logger = new SyncedLogger(SyncedLoggerSrc.Frontend).addChannel(this._messageBus);
+      logger.log(`Init; Frame ID: ${selectedFrame?.id || 'null'}`);
+      this.syncedLogger.set(logger);
+    });
+
     this._messageBus.once('ngAvailability', ({version, devMode, ivy, hydration, supportedApis}) => {
+      this.syncedLogger()?.log(`'ngAvailability' received`, {
+        version,
+        devMode,
+        ivy,
+        hydration,
+        supportedApis: JSON.stringify(supportedApis),
+      });
       this.angularStatus.set(version ? AngularStatus.EXISTS : AngularStatus.DOES_NOT_EXIST);
       this.angularVersion.set(version);
       this.angularIsInDevMode.set(devMode);

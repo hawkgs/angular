@@ -9,20 +9,25 @@
 import {initializeMessageBus} from '../../../ng-devtools-backend';
 
 import {unHighlight} from '../../../ng-devtools-backend/src/lib/highlighter';
+import {SyncedLogger, SyncedLoggerSrc} from '../../../shared-utils';
 
 import {initializeExtendedWindowOperations} from './chrome-window-extensions';
 import {BACKEND_URI, CONTENT_SCRIPT_URI} from './communication';
 import {SamePageMessageBus} from './same-page-message-bus';
 
 const messageBus = new SamePageMessageBus(BACKEND_URI, CONTENT_SCRIPT_URI);
+const syncedLogger = new SyncedLogger(SyncedLoggerSrc.Backend).addChannel(messageBus);
+syncedLogger.log('Init');
 
 let initialized = false;
 messageBus.on('handshake', () => {
+  syncedLogger.log(`'handshake' intercepted`);
+
   if (initialized) {
     return;
   }
   initialized = true;
-  initializeMessageBus(messageBus);
+  initializeMessageBus(messageBus, syncedLogger);
   initializeExtendedWindowOperations();
 
   let inspectorRunning = false;
@@ -46,5 +51,6 @@ messageBus.on('handshake', () => {
     false,
   );
 
+  syncedLogger.log(`Emitting 'backendReady'; Backend initialized`);
   messageBus.emit('backendReady');
 });

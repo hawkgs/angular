@@ -7,9 +7,14 @@
  */
 
 import {Events, MessageBus} from '../../../protocol';
+import {SyncedLogger} from '../../../shared-utils';
 
 import {subscribeToClientEvents} from './client-event-subscribers';
 
-export const initializeMessageBus = (messageBus: MessageBus<Events>) => {
-  subscribeToClientEvents(messageBus);
+export const initializeMessageBus = (
+  messageBus: MessageBus<Events>,
+  syncedLogger: SyncedLogger,
+) => {
+  syncedLogger.log(`'ng-devtools-backend' initialized`);
+  subscribeToClientEvents(messageBus, syncedLogger);
 };

@@ -8,6 +8,7 @@
               (frameSelected)="inspectFrame($event)"
               [isHydrationEnabled]="hydration()"
               [angularVersion]="angularVersion()"
+              [syncedLogger]="syncedLogger()"
             ></ng-devtools-tabs>
           </div>
         } @else {
@@ -86,6 +87,9 @@
           matTooltip="You see this message because the app is still loading, or this is not an Angular application"
         >
           Angular application not detected.
+        </p>
+        <p class="text-message">
+          <button ng-button (click)="syncedLogger()?.exportFullLog()">Download logs (dev)</button>
         </p>
       </div>
     }

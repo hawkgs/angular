@@ -30,6 +30,7 @@ import {
   appIsSupportedAngularVersion,
   getAngularVersion,
   isHydrationEnabled,
+  SyncedLogger,
 } from '../../../shared-utils';
 
 import {ComponentInspector} from './component-inspector/component-inspector';
@@ -67,6 +68,7 @@ type InspectorRef = {ref: ComponentInspector | null};
 
 export const subscribeToClientEvents = (
   messageBus: MessageBus<Events>,
+  syncedLogger: SyncedLogger,
   depsForTestOnly?: {
     directiveForestHooks?: typeof DirectiveForestHooks;
   },
@@ -80,7 +82,7 @@ export const subscribeToClientEvents = (
     getLatestComponentExplorerViewCallback(messageBus),
   );
 
-  messageBus.on('queryNgAvailability', checkForAngularCallback(messageBus));
+  messageBus.on('queryNgAvailability', checkForAngularCallback(messageBus, syncedLogger));
 
   messageBus.on('startProfiling', startProfilingCallback(messageBus));
   messageBus.on('stopProfiling', stopProfilingCallback(messageBus));
@@ -181,8 +183,9 @@ const getLatestComponentExplorerViewCallback =
     }
   };
 
-const checkForAngularCallback = (messageBus: MessageBus<Events>) => () =>
-  checkForAngular(messageBus);
+const checkForAngularCallback =
+  (messageBus: MessageBus<Events>, syncedLogger: SyncedLogger) => () =>
+    checkForAngular(messageBus, syncedLogger);
 
 const getRoutesCallback = (messageBus: MessageBus<Events>) => () => getRoutes(messageBus);
 
@@ -327,11 +330,14 @@ const getRouterConfigFromRoot = (): Route | void => {
   return parseRoutes(router);
 };
 
-const checkForAngular = (messageBus: MessageBus<Events>): void => {
+const checkForAngular = (messageBus: MessageBus<Events>, syncedLogger: SyncedLogger): void => {
+  syncedLogger.log(`Intercepting 'queryNgAvailability'`);
+
   const ngVersion = getAngularVersion();
   const appIsIvy = appIsAngularIvy();
 
   if (!ngVersion) {
+    syncedLogger.log(`'queryNgAvailability' failed; Reason: nullish 'ngVersion'`);
     return;
   }
 
@@ -340,16 +346,20 @@ const checkForAngular = (messageBus: MessageBus<Events>): void => {
   }
 
   const devMode = appIsAngularInDevMode();
+  const payload = {
+    version: ngVersion.toString(),
+    devMode,
+    ivy: appIsIvy,
+    hydration: isHydrationEnabled(),
+    supportedApis: devMode ? getSupportedApis() : null,
+  };
 
-  messageBus.emit('ngAvailability', [
-    {
-      version: ngVersion.toString(),
-      devMode,
-      ivy: appIsIvy,
-      hydration: isHydrationEnabled(),
-      supportedApis: devMode ? getSupportedApis() : null,
-    },
-  ]);
+  syncedLogger.log(`Emitting 'ngAvailability'`, {
+    ...payload,
+    supportedApis: JSON.stringify(payload.supportedApis),
+  });
+
+  messageBus.emit('ngAvailability', [payload]);
 };
 
 const setupInspector = (messageBus: MessageBus<Events>): ComponentInspector => {

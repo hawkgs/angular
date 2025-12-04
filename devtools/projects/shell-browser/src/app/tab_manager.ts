@@ -14,7 +14,7 @@ export interface ContentScriptConnection {
   port: chrome.runtime.Port | null;
   enabled: boolean;
   frameId: 'devtools' | number;
-  backendReady?: Promise<void>;
+  contentScriptInit?: Promise<void>;
 }
 
 export interface DevToolsConnection {
@@ -90,10 +90,10 @@ export class TabManager {
     // we need to set up the double pipe between the devtools and each content script, and send
     // the contentScriptConnected message to the devtools page to inform it of all frames on the page.
     for (const [frameId, connection] of Object.entries(tab.contentScripts)) {
-      connection.backendReady!.then(() => {
+      connection.contentScriptInit!.then(() => {
         if (connection.port === null) {
           throw new Error(
-            'Expected Content to have already connected before the backendReady event on the same page.',
+            'Expected Content to have already connected before the contentScriptInitialized event on the same page.',
           );
         }
         this.doublePipe(tab.devtools, connection);
@@ -137,12 +137,12 @@ export class TabManager {
       }
     });
 
-    contentScript.backendReady = new Promise((resolveBackendReady) => {
-      const onBackendReady = (message: {topic: string}) => {
-        if (message.topic === 'backendReady') {
+    contentScript.contentScriptInit = new Promise((resolveContentScriptInit) => {
+      const onContentScriptInit = (message: {topic: string}) => {
+        if (message.topic === 'contentScriptInitialized') {
           // If DevTools is not yet connected, this resolve will enable devtools to eventually connect to this
           // content script (even though the content script connected first)
-          resolveBackendReady();
+          resolveContentScriptInit();
 
           // If the devtools connection is already established, set up the double pipe between the
           // devtools and the content script.
@@ -155,13 +155,13 @@ export class TabManager {
             });
           }
 
-          port.onMessage.removeListener(onBackendReady);
+          port.onMessage.removeListener(onContentScriptInit);
         }
       };
 
-      port.onMessage.addListener(onBackendReady);
+      port.onMessage.addListener(onContentScriptInit);
       port.onDisconnect.addListener(() => {
-        port.onMessage.removeListener(onBackendReady);
+        port.onMessage.removeListener(onContentScriptInit);
       });
     });
   }

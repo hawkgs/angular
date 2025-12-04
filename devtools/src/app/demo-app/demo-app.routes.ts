@@ -17,6 +17,7 @@ import {DEVTOOLS_BACKEND_URI, DEVTOOLS_FRONTEND_URI} from '../../communication';
 import {DemoAppComponent} from './demo-app.component';
 import {ZippyComponent} from './zippy.component';
 import {AuxiliaryComponent} from './auxiliary/auxiliary.component';
+import {SyncedLogger, SyncedLoggerSrc} from '../../../projects/shared-utils';
 
 export const DEMO_ROUTES: Routes = [
   {
@@ -42,6 +43,11 @@ export const DEMO_ROUTES: Routes = [
   },
 ];
 
-initializeMessageBus(
-  new ZoneUnawareIFrameMessageBus(DEVTOOLS_BACKEND_URI, DEVTOOLS_FRONTEND_URI, () => window.parent),
+const messageBus = new ZoneUnawareIFrameMessageBus(
+  DEVTOOLS_BACKEND_URI,
+  DEVTOOLS_FRONTEND_URI,
+  () => window.parent,
 );
+const syncedLogger = new SyncedLogger(SyncedLoggerSrc.Backend).addChannel(messageBus);
+
+initializeMessageBus(messageBus, syncedLogger);
