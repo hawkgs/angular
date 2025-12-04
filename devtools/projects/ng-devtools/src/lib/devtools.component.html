@@ -76,6 +76,9 @@
         >
         Angular application not detected.
       </p>
+      <p class="text-message">
+        <button ng-button (click)="syncedLogger.exportFullLog()">Download logs (dev)</button>
+      </p>
     }
     @case (AngularStatus.UNKNOWN) {
       <div class="initializing">

@@ -38,6 +38,7 @@ ng_project(
         "//devtools/projects/ng-devtools/src/lib/devtools-tabs/transfer-state",
         "//devtools/projects/ng-devtools/src/lib/shared/button",
         "//devtools/projects/protocol",
+        "//devtools/projects/shared-utils",
     ],
 )
 

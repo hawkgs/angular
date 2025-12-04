@@ -34,7 +34,9 @@ ng_project(
         "//devtools/projects/ng-devtools/src/lib/application-services:frame_manager",
         "//devtools/projects/ng-devtools/src/lib/application-services:theme",
         "//devtools/projects/ng-devtools/src/lib/devtools-tabs",
+        "//devtools/projects/ng-devtools/src/lib/shared/button",
         "//devtools/projects/protocol",
+        "//devtools/projects/shared-utils",
     ],
 )
 

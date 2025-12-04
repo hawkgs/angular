@@ -159,6 +159,7 @@ ts_project(
         ":same_page_message_bus",
         "//devtools/projects/ng-devtools-backend",
         "//devtools/projects/ng-devtools-backend/src/lib:highlighter",
+        "//devtools/projects/shared-utils",
     ],
 )
 
@@ -172,6 +173,7 @@ ts_project(
         ":communication",
         ":same_page_message_bus",
         "//devtools/projects/protocol",
+        "//devtools/projects/shared-utils",
     ],
 )
 
