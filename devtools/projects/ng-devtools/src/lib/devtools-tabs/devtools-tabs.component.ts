@@ -42,6 +42,7 @@ import {TabUpdate} from './tab-update/index';
 import {Settings} from '../application-services/settings';
 import {SUPPORTED_APIS} from '../application-providers/supported_apis';
 import {ButtonComponent} from '../shared/button/button.component';
+import {SyncedLogger} from '../../../../shared-utils';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
 
@@ -73,6 +74,7 @@ export class DevToolsTabsComponent {
   public readonly frameManager = inject(FrameManager);
   protected readonly themeService = inject(ThemeService);
   private readonly tabUpdate = inject(TabUpdate);
+  private readonly syncedLogger = inject(SyncedLogger);
   protected readonly messageBus = inject<MessageBus<Events>>(MessageBus);
   protected readonly settings = inject(Settings);
   protected readonly applicationEnvironment = inject(ApplicationEnvironment);
@@ -195,6 +197,11 @@ export class DevToolsTabsComponent {
     this.timingAPIEnabled()
       ? this.messageBus.emit('enableTimingAPI')
       : this.messageBus.emit('disableTimingAPI');
+  }
+
+  downloadLogs() {
+    console.log(this.syncedLogger.getFullLog());
+    this.syncedLogger.exportFullLog();
   }
 
   protected setRouterGraph(enabled: boolean): void {

@@ -7,6 +7,7 @@
  */
 
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -26,6 +27,8 @@ import {Frame} from './application-environment';
 import {BrowserStylesService} from './application-services/browser_styles_service';
 import {MatIconRegistry} from '@angular/material/icon';
 import {SUPPORTED_APIS} from './application-providers/supported_apis';
+import {SyncedLogger, SyncedLoggerSrc} from '../../../shared-utils';
+import {ButtonComponent} from './shared/button/button.component';
 
 const DETECT_ANGULAR_ATTEMPTS = 20;
 
@@ -49,14 +52,40 @@ enum AngularStatus {
 
 const LAST_SUPPORTED_VERSION = 9;
 
+function withResolvers() {
+  const ref: {resolve?: () => void; reject?: () => void} = {
+    resolve: undefined,
+    reject: undefined,
+  };
+  const promise = new Promise<void>((res, rej) => {
+    ref.resolve = res;
+    ref.reject = rej;
+  });
+
+  return {promise, resolve: ref.resolve, reject: ref.reject};
+}
+
 @Component({
   selector: 'ng-devtools',
   templateUrl: './devtools.component.html',
   styleUrls: ['./devtools.component.scss'],
-  imports: [DevToolsTabsComponent, MatTooltip, MatProgressSpinnerModule, MatTooltipModule],
+  imports: [
+    DevToolsTabsComponent,
+    MatTooltip,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    ButtonComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: SyncedLogger,
+      useFactory: () => new SyncedLogger(SyncedLoggerSrc.Frontend),
+    },
+  ],
 })
 export class DevToolsComponent implements OnDestroy {
+  protected readonly syncedLogger = inject(SyncedLogger);
   protected readonly supportedApis = inject(SUPPORTED_APIS);
 
   readonly AngularStatus = AngularStatus;
@@ -65,6 +94,7 @@ export class DevToolsComponent implements OnDestroy {
   readonly angularIsInDevMode = signal(true);
   readonly hydration = signal(false);
   readonly ivy = signal<boolean | undefined>(undefined);
+  private readonly rendered = withResolvers();
 
   readonly supportedVersion = computed(() => {
     const version = this.angularVersion();
@@ -86,14 +116,35 @@ export class DevToolsComponent implements OnDestroy {
       this.angularStatus.set(AngularStatus.DOES_NOT_EXIST);
     }
     this._messageBus.emit('queryNgAvailability');
+    this.rendered.promise.then(() => {
+      this.syncedLogger.log('Emitting "queryNgAvailability"');
+    });
   });
 
   constructor() {
+    afterNextRender({
+      read: () => this.rendered.resolve?.(),
+    });
+
+    this.rendered.promise.then(() => {
+      this.syncedLogger.addChannel(this._messageBus);
+      this.syncedLogger.log('Init');
+    });
+
     inject(ThemeService).initializeThemeWatcher();
     inject(BrowserStylesService).initBrowserSpecificStyles();
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
 
     this._messageBus.once('ngAvailability', ({version, devMode, ivy, hydration, supportedApis}) => {
+      this.rendered.promise.then(() => {
+        this.syncedLogger.log('"ngAvailability" received', {
+          version,
+          devMode,
+          ivy,
+          hydration,
+          supportedApis: JSON.stringify(supportedApis),
+        });
+      });
       this.angularStatus.set(version ? AngularStatus.EXISTS : AngularStatus.DOES_NOT_EXIST);
       this.angularVersion.set(version);
       this.angularIsInDevMode.set(devMode);
