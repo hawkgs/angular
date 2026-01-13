@@ -52,6 +52,8 @@ import {
 import {declareNoDirectiveHostTemplate} from './template';
 import {removeFromAnimationQueue} from '../../animation/queue';
 import {allLeavingAnimations} from '../../animation/longest_animation';
+import {LIfBlockDetails, TIfBlockDetails} from '../interfaces/control_flow';
+import {setDebugLIfBlockDetails, setDebugTIfBlockDetails} from '../util/control-flow';
 
 /**
  * Creates an LContainer for an ng-template representing a root node
@@ -85,6 +87,19 @@ export function ɵɵconditionalCreate(
   const lView = getLView();
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
+
+  const adjustedIndex = HEADER_OFFSET + index;
+
+  if (tView.firstCreatePass) {
+    const tDetails: TIfBlockDetails = {
+      tDummy: 'tDevtools',
+    };
+    setDebugTIfBlockDetails(tView, adjustedIndex, tDetails);
+  }
+
+  const lDetails: LIfBlockDetails = ['lDevtools'];
+  setDebugLIfBlockDetails(lView, adjustedIndex, lDetails);
+
   declareNoDirectiveHostTemplate(
     lView,
     tView,

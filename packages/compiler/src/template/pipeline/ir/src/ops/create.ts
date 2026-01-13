@@ -372,6 +372,7 @@ export function createConditionalCreateOp(
     wholeSourceSpan,
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
+    numSlotsUsed: 2, // TODO/QUESTION(hawkgs): Can we increment the slot only in dev mode?
   };
 }
 

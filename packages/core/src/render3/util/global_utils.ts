@@ -38,6 +38,7 @@ import {getSignalGraph} from './signal_debug';
 
 import {enableProfiling} from '../debug/chrome_dev_tools_performance';
 import {getTransferState} from './transfer_state_utils';
+import {getIfBlocks} from './control-flow';
 
 /**
  * This file introduces series of globally accessible debug tools
@@ -79,7 +80,7 @@ const globalUtilsFunctions = {
   'ɵgetSignalGraph': getSignalGraph,
   'ɵgetDeferBlocks': getDeferBlocks,
   'ɵgetTransferState': getTransferState,
-
+  'ɵgetIfBlocks': getIfBlocks,
   'getDirectiveMetadata': getDirectiveMetadata,
   'getComponent': getComponent,
   'getContext': getContext,

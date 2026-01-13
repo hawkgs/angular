@@ -9,6 +9,7 @@
 import {AnimationLViewData} from '../../animation/interfaces';
 import type {ChangeDetectionScheduler} from '../../change_detection/scheduling/zoneless_scheduling';
 import {TDeferBlockDetails} from '../../defer/interfaces';
+import {TIfBlockDetails} from './control_flow';
 import type {Injector} from '../../di/injector';
 import {ProviderToken} from '../../di/provider_token';
 import {DehydratedView} from '../../hydration/interfaces';
@@ -649,7 +650,7 @@ export interface TView {
    */
   firstUpdatePass: boolean;
 
-  /** Static data equivalent of LView.data[]. Contains TNodes, PipeDefInternal or TI18n. */
+  /** Static data equivalent of LView[]. Contains TNodes, PipeDefInternal or TI18n. */
   data: TData;
 
   /**
@@ -948,4 +949,5 @@ export type TData = (
   | null
   | string
   | TDeferBlockDetails
+  | TIfBlockDetails
 )[];
