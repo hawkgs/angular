@@ -242,6 +242,7 @@ export class RTreeStrategy {
     // New
     const ifBlocks = ng.ɵgetIfBlocks?.(element) ?? [];
     console.log('IF_BLOCKS', ifBlocks);
+    console.log('DEFER_BLOCKS', deferBlocks);
 
     return extractViewTree(
       element,

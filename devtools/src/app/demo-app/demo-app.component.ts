@@ -79,6 +79,9 @@ export class DemoAppComponent {
     return {...original, age: original.age + 1};
   });
 
+  ifFlag = signal(true);
+  secondFlag = signal(true);
+
   getTitle(): '► Click to expand' | '▼ Click to collapse' {
     if (!this.zippy() || !this.zippy()?.visible) {
       return '► Click to expand';

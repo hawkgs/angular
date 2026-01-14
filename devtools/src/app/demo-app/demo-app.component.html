@@ -1,11 +1,21 @@
 <router-outlet></router-outlet>
 <app-zippy [title]="getTitle()">This is my content</app-zippy>
-@defer {
+@defer (on timer(5s)) {
   <app-heavy></app-heavy>
-} @placeholder (minimum 5s) {
-  <b>Stuff will be loaded here</b>
 }
+
 <div #elementReference>HTMLElement</div>
 <div *appStructural>Test Structural Directive</div>
 <app-sample-properties></app-sample-properties>
 <app-cookies />
+
+<h1>IF test:</h1>
+@if (ifFlag()) {
+  <p class="first">flag_visible</p>
+  <div class="second">
+    <div class="inner">inside</div>
+    @if (secondFlag()) {
+      <div class="inner-inner">1</div>
+    }
+  </div>
+}

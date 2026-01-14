@@ -6,18 +6,21 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {assertIndexInDeclRange} from '../assert';
+import {assertIndexInDeclRange, assertLView} from '../assert';
+import {collectNativeNodes} from '../collect_native_nodes';
 import {getLContext} from '../context_discovery';
 import {CONTAINER_HEADER_OFFSET, LContainer} from '../interfaces/container';
 import {IF_BLOCK_L_DUMMY, LIfBlockDetails, TIfBlockDetails} from '../interfaces/control_flow';
 import {TNode} from '../interfaces/node';
 import {isLContainer, isLView} from '../interfaces/type_checks';
 import {HEADER_OFFSET, HOST, LView, TView, TVIEW} from '../interfaces/view';
+import {getNativeByTNode} from './view_utils';
 
 export interface PublicIfBlockData {
   tDummy: string;
   lDummy: string;
-  rootNodes: Node[];
+  hostNode: Node;
+  renderedNodes: Node[];
 }
 
 export interface IntermediateIfBlockData {
@@ -101,16 +104,49 @@ function findIfBlocks(node: Node, lView: LView, blocks: PublicIfBlockData[]) {
   for (const block of ifBlocks) {
     const lDetails = getLIfBlockDetails(block.lView, block.tNode);
 
-    const publicBlock: PublicIfBlockData = {
+    // TBD, collect nodes
+    const nativeNode = getNativeByTNode(block.tNode, block.lView);
+
+    if (!node.contains(nativeNode as Node)) {
+      continue;
+    }
+
+    const renderedNodes: Node[] = [];
+    // Get comment node; There should always be a comment node
+    const commentHostNode = block.lContainer[HOST];
+
+    const renderedLView = getRenderedLView(block.lContainer);
+    if (renderedLView) {
+      collectNativeNodes(
+        renderedLView[TVIEW],
+        renderedLView,
+        renderedLView[TVIEW].firstChild,
+        renderedNodes,
+      );
+    }
+
+    // const rendererLView = block.lContainer[CONTAINER_HEADER_OFFSET];
+    // ngDevMode && assertLView(rendererLView);
+    // console.log('Renderer LView', rendererLView);
+
+    blocks.push({
       tDummy: block.tDetails.tDummy,
       lDummy: lDetails[IF_BLOCK_L_DUMMY],
-      rootNodes: [],
-    };
-
-    // TBD, collect nodes
-
-    blocks.push(publicBlock);
+      hostNode: commentHostNode as Node,
+      renderedNodes,
+    });
   }
+}
+
+// Copied from defer utils.
+function getRenderedLView(lContainer: LContainer): LView | null {
+  if (lContainer.length <= CONTAINER_HEADER_OFFSET) {
+    return null;
+  }
+
+  const lView = lContainer[CONTAINER_HEADER_OFFSET];
+  ngDevMode && assertLView(lView);
+  return lView;
 }
 
 function traverseLViewForIfBlocks(lView: LView, blocks: IntermediateIfBlockData[]) {

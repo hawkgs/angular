@@ -113,6 +113,11 @@ export function ɵɵconditionalCreate(
     localRefsIndex,
     localRefExtractor,
   );
+
+  // console.log('@if LView', lView.slice(adjustedIndex, tView.bindingStartIndex));
+  // console.log('@if TView', tView.data.slice(adjustedIndex, tView.bindingStartIndex));
+  // console.log('');
+
   return ɵɵconditionalBranchCreate;
 }
 
