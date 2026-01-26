@@ -92,6 +92,11 @@ export interface DeferInfo {
   blocks: BlockDetails;
 }
 
+export interface IfInfo {
+  id: string;
+  dummyProp: string;
+}
+
 export interface BlockDetails {
   hasErrorBlock: boolean;
   placeholderBlock: {exists: boolean; minimumTime: number | null};
@@ -109,6 +114,7 @@ export interface DevToolsNode<DirType = DirectiveType, CmpType = ComponentType> 
   resolutionPath?: SerializedInjector[];
   hydration: HydrationStatus;
   defer: DeferInfo | null;
+  if: IfInfo | null;
   onPush?: boolean;
 }
 

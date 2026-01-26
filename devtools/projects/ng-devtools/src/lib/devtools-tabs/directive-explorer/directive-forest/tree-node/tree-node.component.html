@@ -33,8 +33,9 @@
   }
 
   @let defer = node().defer;
+  @let ifNode = node().if;
 
-  @if (!defer && (!hydration || hydration.status !== 'dehydrated')) {
+  @if (!defer && !ifNode && (!hydration || hydration.status !== 'dehydrated')) {
     <!-- Shown/hidden via CSS -->
     <span class="console-reference trait"> == $ng0 </span>
   }

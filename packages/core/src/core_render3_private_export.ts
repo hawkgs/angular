@@ -288,6 +288,7 @@ export {compilePipe as ɵcompilePipe} from './render3/jit/pipe';
 export {isNgModule as ɵisNgModule} from './render3/jit/util';
 export {getAsyncClassMetadataFn as ɵgetAsyncClassMetadataFn} from './render3/metadata';
 export {DeferBlockData as ɵDeferBlockData} from './render3/util/defer';
+export {PublicIfBlockData as ɵIfBlockData} from './render3/util/control-flow';
 export {
   FrameworkAgnosticGlobalUtils as ɵFrameworkAgnosticGlobalUtils,
   GlobalDevModeUtils as ɵGlobalDevModeUtils,

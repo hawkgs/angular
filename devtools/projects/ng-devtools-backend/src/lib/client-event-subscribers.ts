@@ -387,8 +387,10 @@ export interface SerializableComponentInstanceType extends ComponentType {
   id: number;
 }
 
-export interface SerializableComponentTreeNode
-  extends DevToolsNode<SerializableDirectiveInstanceType, SerializableComponentInstanceType> {
+export interface SerializableComponentTreeNode extends DevToolsNode<
+  SerializableDirectiveInstanceType,
+  SerializableComponentInstanceType
+> {
   children: SerializableComponentTreeNode[];
   nativeElement?: never;
   // Since the nativeElement is not serializable, we will use this boolean as backup
@@ -437,6 +439,7 @@ const prepareForestForSerialization = (
       children: prepareForestForSerialization(node.children, includeResolutionPath),
       hydration: node.hydration,
       defer: node.defer,
+      if: node.if,
       onPush: node.component ? isOnPushDirective(node.component) : false,
 
       // native elements are not serializable

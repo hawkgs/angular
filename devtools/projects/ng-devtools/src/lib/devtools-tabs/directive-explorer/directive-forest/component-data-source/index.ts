@@ -10,7 +10,7 @@ import {CollectionViewer, DataSource} from '@angular/cdk/collections';
 import {FlatTreeControl} from '@angular/cdk/tree';
 import {DefaultIterableDiffer, TrackByFunction} from '@angular/core';
 import {MatTreeFlattener} from '@angular/material/tree';
-import {DeferInfo, DevToolsNode, HydrationStatus} from '../../../../../../../protocol';
+import {DeferInfo, DevToolsNode, HydrationStatus, IfInfo} from '../../../../../../../protocol';
 import {BehaviorSubject, merge, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
@@ -29,6 +29,7 @@ export interface FlatNode {
   newItem?: boolean;
   hydration: HydrationStatus;
   defer: DeferInfo | null;
+  if: IfInfo | null;
   onPush?: boolean;
   hasNativeElement: boolean;
 }
@@ -41,6 +42,8 @@ const trackBy: TrackByFunction<FlatNode> = (_: number, item: FlatNode) =>
 const getId = (node: IndexedNode) => {
   if (node.defer) {
     return node.defer.id;
+  } else if (node.if) {
+    return node.if.id;
   } else if (node.hydration?.status === 'dehydrated') {
     return node.position.join('-');
   }
@@ -104,6 +107,7 @@ export class ComponentDataSource extends DataSource<FlatNode> {
         level,
         hydration: node.hydration,
         defer: node.defer,
+        if: node.if,
         onPush: node.onPush,
         hasNativeElement: node.hasNativeElement,
       };

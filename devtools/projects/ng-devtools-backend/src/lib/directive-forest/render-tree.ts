@@ -10,6 +10,7 @@ import {
   ɵFrameworkAgnosticGlobalUtils as FrameworkAgnosticGlobalUtils,
   ɵDeferBlockData as DeferBlockData,
   ɵHydratedNode as HydrationNode,
+  ɵIfBlockData as IfBlockData,
 } from '@angular/core';
 import {RenderedDeferBlock, HydrationStatus} from '../../../../protocol';
 
@@ -21,6 +22,7 @@ const extractViewTree = (
   domNode: Node | Element,
   result: ComponentTreeNode[],
   deferBlocks: DeferBlocksIterator,
+  ifBlocks: IfBlocksIterator,
   rootId: number,
   getComponent?: FrameworkAgnosticGlobalUtils['getComponent'],
   getDirectives?: FrameworkAgnosticGlobalUtils['getDirectives'],
@@ -48,6 +50,7 @@ const extractViewTree = (
     nativeElement: domNode,
     hydration: hydrationStatus(domNode),
     defer: null,
+    if: null,
   };
 
   if (!(domNode instanceof Element)) {
@@ -73,26 +76,42 @@ const extractViewTree = (
 
   // Nodes that are part of a defer block will be added as children of the defer block
   // and should be skipped from the regular code path
-  const deferredNodesToSkip = new Set<Node>();
+  const nodesToSkip = new Set<Node>();
   const appendTo = isDisplayableNode ? componentTreeNode.children : result;
 
   domNode.childNodes.forEach((node) => {
-    groupDeferChildrenIfNeeded(
+    const isDefer = groupDeferChildrenIfNeeded(
       node,
-      deferredNodesToSkip,
+      nodesToSkip,
       appendTo,
       deferBlocks,
+      ifBlocks,
       rootId,
       getComponent,
       getDirectives,
       getDirectiveMetadata,
     );
 
-    if (!deferredNodesToSkip.has(node)) {
+    if (!isDefer) {
+      groupIfChildrenIfNeeded(
+        node,
+        nodesToSkip,
+        appendTo,
+        deferBlocks,
+        ifBlocks,
+        rootId,
+        getComponent,
+        getDirectives,
+        getDirectiveMetadata,
+      );
+    }
+
+    if (!nodesToSkip.has(node)) {
       extractViewTree(
         node,
         appendTo,
         deferBlocks,
+        ifBlocks,
         rootId,
         getComponent,
         getDirectives,
@@ -108,7 +127,7 @@ const extractViewTree = (
  * Group Nodes under a defer block if they are part of it.
  *
  * @param node
- * @param deferredNodesToSkip Will mutate the set with the nodes that are grouped into the created deferblock.
+ * @param nodesToSkip Will mutate the set with the nodes that are grouped into the created deferblock.
  * @param deferBlocks
  * @param appendTo
  * @param getComponent
@@ -117,9 +136,10 @@ const extractViewTree = (
  */
 function groupDeferChildrenIfNeeded(
   node: Node,
-  deferredNodesToSkip: Set<Node>,
+  nodesToSkip: Set<Node>,
   appendTo: ComponentTreeNode[],
   deferBlocks: DeferBlocksIterator,
+  ifBlocks: IfBlocksIterator,
   rootId: number,
   getComponent?: FrameworkAgnosticGlobalUtils['getComponent'],
   getDirectives?: FrameworkAgnosticGlobalUtils['getDirectives'],
@@ -143,6 +163,7 @@ function groupDeferChildrenIfNeeded(
         child,
         childrenTree,
         deferBlocks,
+        ifBlocks,
         rootId,
         getComponent,
         getDirectives,
@@ -168,11 +189,77 @@ function groupDeferChildrenIfNeeded(
           loadingBlock: currentDeferBlock.loadingBlock,
         },
       },
+      if: null,
     } satisfies ComponentTreeNode;
 
-    currentDeferBlock?.rootNodes.forEach((child) => deferredNodesToSkip.add(child));
+    currentDeferBlock?.rootNodes.forEach((child) => nodesToSkip.add(child));
     appendTo.push(deferBlockTreeNode);
+
+    return true;
   }
+
+  return false;
+}
+
+// Code repetition
+function groupIfChildrenIfNeeded(
+  node: Node,
+  nodesToSkip: Set<Node>,
+  appendTo: ComponentTreeNode[],
+  deferBlocks: DeferBlocksIterator,
+  ifBlocks: IfBlocksIterator,
+  rootId: number,
+  getComponent?: FrameworkAgnosticGlobalUtils['getComponent'],
+  getDirectives?: FrameworkAgnosticGlobalUtils['getDirectives'],
+  getDirectiveMetadata?: FrameworkAgnosticGlobalUtils['getDirectiveMetadata'],
+) {
+  const currentIfBlock = ifBlocks.currentBlock;
+  const isFirstIfChild = node === currentIfBlock?.renderedNodes[0];
+  // Handles the case where the @defer is still unresolved but doesn't
+  // have a placeholder, for instance, by which children we mark
+  // the position of the block normally. In this case, we use the host.
+  const isHostNode = node === currentIfBlock?.hostNode;
+
+  if (isFirstIfChild || isHostNode) {
+    ifBlocks.advance();
+
+    // When encountering the first child of a defer block (or the host node),
+    // we create a synthetic TreeNode representing the defer block.
+    const childrenTree: ComponentTreeNode[] = [];
+    for (const child of currentIfBlock.renderedNodes) {
+      extractViewTree(
+        child,
+        childrenTree,
+        deferBlocks,
+        ifBlocks,
+        rootId,
+        getComponent,
+        getDirectives,
+        getDirectiveMetadata,
+      );
+    }
+
+    const ifBlockTreeNode = {
+      children: childrenTree,
+      component: null,
+      directives: [],
+      element: '@if',
+      nativeElement: undefined,
+      hydration: null,
+      defer: null,
+      if: {
+        id: `ifId-${rootId}-${ifBlocks.currentIndex}`,
+        dummyProp: '',
+      },
+    } satisfies ComponentTreeNode;
+
+    currentIfBlock?.renderedNodes.forEach((child) => nodesToSkip.add(child));
+    appendTo.push(ifBlockTreeNode);
+
+    return true;
+  }
+
+  return false;
 }
 
 function hydrationStatus(element: Node): HydrationStatus {
@@ -241,18 +328,37 @@ export class RTreeStrategy {
 
     // New
     const ifBlocks = ng.ɵgetIfBlocks?.(element) ?? [];
-    console.log('IF_BLOCKS', ifBlocks);
-    console.log('DEFER_BLOCKS', deferBlocks);
+    // console.log('IF_BLOCKS', ifBlocks);
+    // console.log('DEFER_BLOCKS', deferBlocks);
 
     return extractViewTree(
       element,
       [],
       new DeferBlocksIterator(deferBlocks),
+      // New
+      new IfBlocksIterator(ifBlocks),
       rootId,
       ng.getComponent,
       ng.getDirectives,
       ng.getDirectiveMetadata,
     );
+  }
+}
+
+// Code repetition
+class IfBlocksIterator {
+  public currentIndex = 0;
+  private blocks: IfBlockData[] = [];
+  constructor(blocks: IfBlockData[]) {
+    this.blocks = blocks;
+  }
+
+  advance() {
+    this.currentIndex++;
+  }
+
+  get currentBlock(): IfBlockData | undefined {
+    return this.blocks[this.currentIndex];
   }
 }
 

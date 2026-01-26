@@ -32,6 +32,7 @@ const indexTree = (
     children: node.children.map((n, i) => indexTree(n, i, position)),
     hydration: node.hydration,
     defer: node.defer,
+    if: node.if,
     onPush: node.onPush,
     hasNativeElement: (node as any).hasNativeElement,
   };
