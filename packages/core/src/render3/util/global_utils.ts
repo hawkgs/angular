@@ -12,7 +12,7 @@ import {assertDefined} from '../../util/assert';
 import {global} from '../../util/global';
 import {setupFrameworkInjectorProfiler} from '../debug/framework_injector_profiler';
 import {setProfiler} from '../profiler';
-import {isSignal} from '../reactivity/api';
+import {isSignal, Signal} from '../reactivity/api';
 
 import {applyChanges} from './change_detection_utils';
 import {getDeferBlocks} from './defer';
@@ -34,10 +34,11 @@ import {
   getInjectorProviders,
   getInjectorResolutionPath,
 } from './injector_discovery_utils';
-import {getSignalGraph} from './signal_debug';
+import {DebugSignalGraph, getSignalGraph} from './signal_debug';
 
 import {enableProfiling} from '../debug/chrome_dev_tools_performance';
 import {getTransferState} from './transfer_state_utils';
+import {Injector} from '../../../primitives/di';
 
 /**
  * This file introduces series of globally accessible debug tools
@@ -149,6 +150,12 @@ export type FrameworkAgnosticGlobalUtils = Omit<
   'getDirectiveMetadata'
 > & {
   getDirectiveMetadata(directiveOrComponentInstance: any): DirectiveDebugMetadata | null;
+
+  ɵgetTransitiveDependencies(
+    injector: Injector,
+    signal: Signal<unknown>,
+    direction: 'upstream' | 'downstream',
+  ): DebugSignalGraph;
 } & ExternalGlobalUtils;
 
 /**

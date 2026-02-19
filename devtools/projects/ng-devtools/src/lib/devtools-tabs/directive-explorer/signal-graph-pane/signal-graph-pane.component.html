@@ -10,8 +10,11 @@
 
 @let node = selectedNode();
 @if (node && detailsVisible()) {
+  <h1>DETAILS VISIBLE</h1>
   <ng-signal-details
     [node]="node"
+    [graph]="signalGraph.graph()!"
+    [element]="signalGraph.element()!"
     (gotoSource)="gotoSource($event)"
     (expandCluster)="expandCluster($event)"
     (highlightDeps)="highlightDeps($event)"

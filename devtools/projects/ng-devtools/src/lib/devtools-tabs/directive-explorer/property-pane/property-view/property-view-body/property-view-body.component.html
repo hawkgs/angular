@@ -51,6 +51,23 @@
                   </button>
                 }
 
+                @if (
+                  supportedApis().transitiveSignalDepsInspection &&
+                    signalGraphEnabled() &&
+                    getSignalNode(node);
+                  as signalNode
+                ) {
+                  @let upDepsBtnTooltip = `Show '${node.prop.name}' upstream dependencies`;
+                  <button class="prop-action-btn" type="button" [matTooltip]="upDepsBtnTooltip">
+                    <mat-icon>swipe_up_alt</mat-icon>
+                  </button>
+
+                  @let downDepsBtnTooltip = `Show '${node.prop.name}' downstream dependants`;
+                  <button class="prop-action-btn" type="button" [matTooltip]="downDepsBtnTooltip">
+                    <mat-icon>swipe_down_alt</mat-icon>
+                  </button>
+                }
+
                 @if (node.level === 0) {
                   @let tooltip = "Log '" + node.prop.name + "' to console";
                   <button
