@@ -26,13 +26,15 @@ import {
 import {NUM_ROOT_NODES} from '../../hydration/interfaces';
 import {NGH_DEFER_BLOCKS_KEY} from '../../hydration/utils';
 import {TransferState} from '../../transfer_state';
-import {assertLView} from '../assert';
+import {assertIndexInDeclRange, assertLView} from '../assert';
 import {collectNativeNodes} from '../collect_native_nodes';
 import {getLContext} from '../context_discovery';
 import {CONTAINER_HEADER_OFFSET, LContainer, NATIVE} from '../interfaces/container';
-import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET} from '../interfaces/view';
+import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET, TView} from '../interfaces/view';
 import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
+import {IF_BLOCK_L_DUMMY, LIfBlockDetails, TIfBlockDetails} from '../interfaces/control_flow';
+import {TNode} from '../interfaces/node';
 
 import {
   ControlFlowBlock,
@@ -42,8 +44,8 @@ import {
   DeferBlockData,
   ForLoopBlockData,
   RepeaterMetadataShape,
+  IfBlockData,
 } from './control_flow_types';
-import {TNode} from '../interfaces/node';
 
 /**
  * Gets all of the control flow blocks that are present inside the specified DOM node.
@@ -76,82 +78,82 @@ const deferBlockFinder: ControlFlowBlockViewFinder = ({
     return null;
   }
 
-  const lContainer = slot;
-
   // An LContainer may represent an instance of a defer block, in which case
   // we store it as a result. Otherwise, keep iterating over LContainer views and
   // look for defer blocks.
   const isLast = slotIdx === tView.bindingStartIndex - 1;
+  if (isLast) {
+    return null;
+  }
 
-  if (!isLast) {
-    const tNode = tView.data[slotIdx] as TNode;
-    const tDetails = getTDeferBlockDetails(tView, tNode);
+  const tNode = tView.data[slotIdx] as TNode;
+  const tDetails = getTDeferBlockDetails(tView, tNode);
+  const lContainer = slot;
 
-    if (isTDeferBlockDetails(tDetails)) {
-      const native = getNativeByTNode(tNode, lView);
-      const lDetails = getLDeferBlockDetails(lView, tNode);
+  if (isTDeferBlockDetails(tDetails)) {
+    const native = getNativeByTNode(tNode, lView);
+    const lDetails = getLDeferBlockDetails(lView, tNode);
 
-      // The LView from `getLContext` might be the view the element is placed in.
-      // Filter out defer blocks that aren't inside the specified root node.
-      if (!node.contains(native as Node)) {
-        return null;
-      }
-
-      const viewInjector = lView[INJECTOR];
-      const registry = viewInjector.get(DEHYDRATED_BLOCK_REGISTRY, null, {optional: true});
-
-      const renderedLView = getRendererLView(lContainer);
-      const rootNodes: Node[] = [];
-      const hydrationState = inferHydrationState(tDetails, lDetails, registry);
-
-      if (renderedLView !== null) {
-        collectNativeNodes(
-          renderedLView[TVIEW],
-          renderedLView,
-          renderedLView[TVIEW].firstChild,
-          rootNodes,
-        );
-      } else if (hydrationState === 'dehydrated') {
-        // We'll find the number of root nodes in the transfer state and
-        // collect that number of elements that precede the defer block comment node.
-
-        const transferState = viewInjector.get(TransferState);
-        const deferBlockParents = transferState.get(NGH_DEFER_BLOCKS_KEY, {});
-
-        const deferId = lDetails[SSR_UNIQUE_ID]!;
-        const deferData = deferBlockParents[deferId];
-        const numberOfRootNodes = deferData[NUM_ROOT_NODES];
-
-        let collectedNodeCount = 0;
-        const deferBlockCommentNode = lContainer[NATIVE] as Node;
-        let currentNode: Node | null = deferBlockCommentNode.previousSibling;
-
-        while (collectedNodeCount < numberOfRootNodes && currentNode) {
-          rootNodes.unshift(currentNode);
-          currentNode = currentNode.previousSibling;
-          collectedNodeCount++;
-        }
-      }
-
-      return {
-        type: ControlFlowBlockType.Defer,
-        state: stringifyState(lDetails[DEFER_BLOCK_STATE]),
-        incrementalHydrationState: hydrationState,
-        hasErrorBlock: tDetails.errorTmplIndex !== null,
-        loadingBlock: {
-          exists: tDetails.loadingTmplIndex !== null,
-          minimumTime: tDetails.loadingBlockConfig?.[MINIMUM_SLOT] ?? null,
-          afterTime: tDetails.loadingBlockConfig?.[LOADING_AFTER_SLOT] ?? null,
-        },
-        placeholderBlock: {
-          exists: tDetails.placeholderTmplIndex !== null,
-          minimumTime: tDetails.placeholderBlockConfig?.[MINIMUM_SLOT] ?? null,
-        },
-        triggers: tDetails.debug?.triggers ? Array.from(tDetails.debug.triggers).sort() : [],
-        hostNode: lContainer[HOST] as Node,
-        rootNodes,
-      } satisfies DeferBlockData;
+    // The LView from `getLContext` might be the view the element is placed in.
+    // Filter out defer blocks that aren't inside the specified root node.
+    if (!node.contains(native as Node)) {
+      return null;
     }
+
+    const viewInjector = lView[INJECTOR];
+    const registry = viewInjector.get(DEHYDRATED_BLOCK_REGISTRY, null, {optional: true});
+
+    const renderedLView = getRenderedLView(lContainer);
+    const rootNodes: Node[] = [];
+    const hydrationState = inferHydrationState(tDetails, lDetails, registry);
+
+    if (renderedLView !== null) {
+      collectNativeNodes(
+        renderedLView[TVIEW],
+        renderedLView,
+        renderedLView[TVIEW].firstChild,
+        rootNodes,
+      );
+    } else if (hydrationState === 'dehydrated') {
+      // We'll find the number of root nodes in the transfer state and
+      // collect that number of elements that precede the defer block comment node.
+
+      const transferState = viewInjector.get(TransferState);
+      const deferBlockParents = transferState.get(NGH_DEFER_BLOCKS_KEY, {});
+
+      const deferId = lDetails[SSR_UNIQUE_ID]!;
+      const deferData = deferBlockParents[deferId];
+      const numberOfRootNodes = deferData[NUM_ROOT_NODES];
+
+      let collectedNodeCount = 0;
+      const deferBlockCommentNode = lContainer[NATIVE] as Node;
+      let currentNode: Node | null = deferBlockCommentNode.previousSibling;
+
+      while (collectedNodeCount < numberOfRootNodes && currentNode) {
+        rootNodes.unshift(currentNode);
+        currentNode = currentNode.previousSibling;
+        collectedNodeCount++;
+      }
+    }
+
+    return {
+      type: ControlFlowBlockType.Defer,
+      state: stringifyState(lDetails[DEFER_BLOCK_STATE]),
+      incrementalHydrationState: hydrationState,
+      hasErrorBlock: tDetails.errorTmplIndex !== null,
+      loadingBlock: {
+        exists: tDetails.loadingTmplIndex !== null,
+        minimumTime: tDetails.loadingBlockConfig?.[MINIMUM_SLOT] ?? null,
+        afterTime: tDetails.loadingBlockConfig?.[LOADING_AFTER_SLOT] ?? null,
+      },
+      placeholderBlock: {
+        exists: tDetails.placeholderTmplIndex !== null,
+        minimumTime: tDetails.placeholderBlockConfig?.[MINIMUM_SLOT] ?? null,
+      },
+      triggers: tDetails.debug?.triggers ? Array.from(tDetails.debug.triggers).sort() : [],
+      hostNode: lContainer[HOST] as Node,
+      rootNodes,
+    } satisfies DeferBlockData;
   }
 
   return null;
@@ -163,7 +165,7 @@ const deferBlockFinder: ControlFlowBlockViewFinder = ({
  * @param config Finder configuration object.
  * @returns
  */
-const forLoopFinder: ControlFlowBlockViewFinder = ({
+const forLoopBlockFinder: ControlFlowBlockViewFinder = ({
   lView,
   slotIdx,
 }: ControlFlowBlockViewFinderConfig) => {
@@ -209,8 +211,66 @@ const forLoopFinder: ControlFlowBlockViewFinder = ({
   } satisfies ForLoopBlockData;
 };
 
+const ifBlockFinder: ControlFlowBlockViewFinder = ({
+  lView,
+  tView,
+  slotIdx,
+  node,
+}: ControlFlowBlockViewFinderConfig) => {
+  const slot = lView[slotIdx];
+  if (!isLContainer(slot)) {
+    return null;
+  }
+
+  const isLast = slotIdx === tView.bindingStartIndex - 1;
+  if (isLast) {
+    return null;
+  }
+
+  const tNode = tView.data[slotIdx] as TNode;
+  const tDetails = getTIfBlockDetails(tView, tNode);
+  const lContainer = slot;
+
+  if (isTIfBlockDetails(tDetails)) {
+    const lDetails = getLIfBlockDetails(lView, tNode);
+    const nativeNode = getNativeByTNode(tNode, lView);
+
+    if (!node.contains(nativeNode as Node)) {
+      return null;
+    }
+
+    const rootNodes: Node[] = [];
+    // Get comment node; There should always be a comment node
+    const commentHostNode = lContainer[HOST];
+    const renderedLView = getRenderedLView(lContainer);
+
+    if (renderedLView) {
+      collectNativeNodes(
+        renderedLView[TVIEW],
+        renderedLView,
+        renderedLView[TVIEW].firstChild,
+        rootNodes,
+      );
+    }
+
+    return {
+      type: ControlFlowBlockType.If,
+      tDummy: tDetails.tDummy,
+      lDummy: lDetails[IF_BLOCK_L_DUMMY],
+      hostNode: commentHostNode as Node,
+      rootNodes,
+    } satisfies IfBlockData;
+  }
+
+  return null;
+};
+
 // Represents all supported control flow block finders.
-const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [deferBlockFinder, forLoopFinder];
+const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [
+  deferBlockFinder,
+  forLoopBlockFinder,
+  ifBlockFinder,
+];
 
 /**
  * Finds all the control flow blocks inside a specific node and view.
@@ -305,10 +365,10 @@ function inferHydrationState(
 }
 
 /**
- * Gets the current LView that is rendered out in a defer block.
+ * Gets the current LView that is rendered out in a control flow block (if, defer).
  * @param details Instance information about the block.
  */
-function getRendererLView(lContainer: LContainer): LView | null {
+function getRenderedLView(lContainer: LContainer): LView | null {
   // Defer block containers can only ever contain one view.
   // If they're empty, it means that nothing is rendered.
   if (lContainer.length <= CONTAINER_HEADER_OFFSET) {
@@ -349,4 +409,63 @@ function getTrackExpression(metadata: RepeaterMetadataShape): string {
     return 'item';
   }
   return 'function';
+}
+
+// New
+
+function getIfBlockSlotIndex(ifBlockIndex: number) {
+  return ifBlockIndex + 1;
+}
+
+function isTIfBlockDetails(value: unknown): value is TIfBlockDetails {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as TIfBlockDetails).tDummy === 'string'
+  );
+}
+
+export function getTIfBlockDetails(tView: TView, tNode: TNode): TIfBlockDetails | null {
+  const slotIndex = getIfBlockSlotIndex(tNode.index);
+  if (isNaN(slotIndex)) {
+    return null;
+  }
+  ngDevMode && assertIndexInDeclRange(tView, slotIndex);
+  return tView.data[slotIndex] as TIfBlockDetails;
+}
+
+export function getLIfBlockDetails(lView: LView, tNode: TNode): LIfBlockDetails {
+  const tView = lView[TVIEW];
+  const slotIndex = getIfBlockSlotIndex(tNode.index);
+  ngDevMode && assertIndexInDeclRange(tView, slotIndex);
+  return lView[slotIndex];
+}
+
+export function setDebugTIfBlockDetails(
+  tView: TView,
+  ifBlockIndex: number,
+  tDetails: TIfBlockDetails,
+) {
+  // Warning: Currently, the TDetails slot is allocated on all envs.
+  if (!ngDevMode) {
+    return;
+  }
+  const slotIndex = getIfBlockSlotIndex(ifBlockIndex);
+  assertIndexInDeclRange(tView, slotIndex);
+  tView.data[slotIndex] = tDetails;
+}
+
+export function setDebugLIfBlockDetails(
+  lView: LView,
+  ifBlockIndex: number,
+  lDetails: LIfBlockDetails,
+) {
+  // Warning: Currently, the TDetails slot is allocated on all envs.
+  if (!ngDevMode) {
+    return;
+  }
+  const tView = lView[TVIEW];
+  const slotIndex = getIfBlockSlotIndex(ifBlockIndex);
+  assertIndexInDeclRange(tView, slotIndex);
+  lView[slotIndex] = lDetails;
 }
