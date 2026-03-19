@@ -17,6 +17,7 @@ import {
   ForLoopBlock,
   DeferBlock,
   RenderedDeferBlock,
+  IfBlock,
 } from '../../../../protocol';
 import {ComponentTreeNode} from '../interfaces';
 import {serializeValue} from '../state-serializer/state-serializer';
@@ -24,6 +25,7 @@ import {serializeValue} from '../state-serializer/state-serializer';
 const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.Defer]: '@defer',
   [ControlFlowBlockType.For]: '@for',
+  [ControlFlowBlockType.If]: '@if',
 };
 
 export function isControlFlowBlock(node: Node, iterator: ControlFlowBlocksIterator) {
@@ -64,6 +66,14 @@ export function mapToDevtoolsControlFlowModel(
           loadingBlock: block.loadingBlock,
         },
       } satisfies DeferBlock as DeferBlock;
+
+    case ControlFlowBlockTypeInternal.If:
+      return {
+        id: `deferId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.If,
+        lDummy: block.lDummy,
+        tDummy: block.tDummy,
+      } satisfies IfBlock as IfBlock;
   }
 }
 

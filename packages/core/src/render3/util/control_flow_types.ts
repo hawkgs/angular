@@ -13,6 +13,7 @@ import {LiveCollection} from '../list_reconciliation';
 export enum ControlFlowBlockType {
   Defer,
   For,
+  If,
 }
 
 export interface ControlFlowBlockDataBase {
@@ -75,10 +76,19 @@ export interface ForLoopBlockData extends ControlFlowBlockDataBase {
   trackExpression: string;
 }
 
+/** Retrieved information about an `@if` block.  */
+export interface IfBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.If;
+
+  tDummy: string;
+
+  lDummy: string;
+}
+
 /**
  * A control flow block information object.
  */
-export type ControlFlowBlock = DeferBlockData | ForLoopBlockData;
+export type ControlFlowBlock = DeferBlockData | ForLoopBlockData | IfBlockData;
 
 /**
  * A configuration object passed to a `ControlFlowBlockViewFinder` function.

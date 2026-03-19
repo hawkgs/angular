@@ -13,6 +13,7 @@ export interface DebuggingAPI {
   getDirectives(node: Node): any[];
   getHostElement(cmp: any): HTMLElement;
 }
+
 export interface DirectiveInstanceType {
   instance: any;
   name: string;
@@ -24,7 +25,9 @@ export interface ComponentInstanceType {
   isElement: boolean;
 }
 
-export interface ComponentTreeNode
-  extends DevToolsNode<DirectiveInstanceType, ComponentInstanceType> {
+export interface ComponentTreeNode extends DevToolsNode<
+  DirectiveInstanceType,
+  ComponentInstanceType
+> {
   children: ComponentTreeNode[];
 }

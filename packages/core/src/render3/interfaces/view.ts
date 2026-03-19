@@ -20,6 +20,7 @@ import type {ReactiveLViewConsumer} from '../reactive_lview_consumer';
 import type {ViewEffectNode} from '../reactivity/effect';
 
 import type {LContainer} from './container';
+import {TIfBlockDetails} from './control_flow';
 import {
   ComponentDef,
   ComponentTemplate,
@@ -653,7 +654,7 @@ export interface TView {
    */
   firstUpdatePass: boolean;
 
-  /** Static data equivalent of LView.data[]. Contains TNodes, PipeDefInternal or TI18n. */
+  /** Static data equivalent of LView[]. Contains TNodes, PipeDefInternal or TI18n. */
   data: TData;
 
   /**
@@ -952,4 +953,5 @@ export type TData = (
   | null
   | string
   | TDeferBlockDetails
+  | TIfBlockDetails
 )[];

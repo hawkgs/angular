@@ -82,6 +82,7 @@ export type HydrationStatus =
 export enum ControlFlowBlockType {
   Defer,
   For,
+  If,
 }
 
 export interface ControlFlowBlock {
@@ -114,6 +115,12 @@ export interface ForLoopBlock extends ControlFlowBlock {
   hasEmptyBlock: boolean;
   items: Descriptor[];
   trackExpression: string;
+}
+
+export interface IfBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.If;
+  tDummy: string;
+  lDummy: string;
 }
 
 // TODO: refactor to remove nativeElement as it is not serializable
@@ -312,7 +319,7 @@ export interface DirectiveProfile {
 export interface ElementProfile {
   directives: DirectiveProfile[];
   children: ElementProfile[];
-  type: 'element' | 'defer' | 'for';
+  type: 'element' | 'defer' | 'for' | 'if';
 }
 
 export interface ProfilerFrame {
