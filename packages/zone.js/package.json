@@ -65,6 +65,10 @@
       "require": "./bundles/zone-testing.umd.js",
       "default": "./fesm2015/zone-testing.js"
     },
+    "./testing/vitest": {
+      "require": "./bundles/vitest.umd.js",
+      "default": "./fesm2015/vitest.js"
+    },
     "./node": {
       "require": "./bundles/zone-node.umd.js",
       "default": "./fesm2015/zone-node.js"
