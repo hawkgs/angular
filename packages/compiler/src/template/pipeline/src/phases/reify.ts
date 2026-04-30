@@ -514,6 +514,7 @@ function reifyCreateOperations(unit: CompilationUnit, ops: ir.OpList<ir.CreateOp
             op.tag,
             op.attributes,
             op.localRefs,
+            op.debugConditionalCreateType,
             op.startSourceSpan,
           ),
         );

@@ -31,6 +31,25 @@ import {HeavyComponent} from './heavy.component';
 import {SamplePropertiesComponent} from './sample-properties.component';
 import {ZippyComponent} from './zippy.component';
 
+@Component({
+  selector: 'ng-if-block-test',
+  template: `
+    @if (flag()) {
+      <p>TRUE</p>
+    } @else {
+      <p>FALSE</p>
+    }
+    <button (click)="debug()">DEBUG</button>
+  `,
+})
+export class IfBlockTest {
+  flag = signal(false);
+
+  debug() {
+    debugger;
+  }
+}
+
 // structual directive example
 @Directive({
   selector: '[appStructural]',
@@ -61,6 +80,7 @@ export class StructuralDirective {
     RouterOutlet,
     RouterModule,
     CookieRecipe,
+    IfBlockTest,
   ],
 })
 export class DemoAppComponent {

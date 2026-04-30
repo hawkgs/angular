@@ -33,7 +33,12 @@ import {CONTAINER_HEADER_OFFSET, LContainer, NATIVE} from '../interfaces/contain
 import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET, TView} from '../interfaces/view';
 import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
-import {IF_BLOCK_L_DUMMY, LIfBlockDetails, TIfBlockDetails} from '../interfaces/control_flow';
+import {
+  CONDITIONAL_BLOCK_L_DUMMY,
+  DebugConditionalCreateType,
+  LConditionalBlockDetails,
+  TConditionalBlockDetails,
+} from '../interfaces/control_flow';
 import {TNode} from '../interfaces/node';
 
 import {
@@ -45,6 +50,7 @@ import {
   ForLoopBlockData,
   RepeaterMetadataShape,
   IfBlockData,
+  SwitchBlockData,
 } from './control_flow_types';
 
 /**
@@ -211,7 +217,7 @@ const forLoopBlockFinder: ControlFlowBlockViewFinder = ({
   } satisfies ForLoopBlockData;
 };
 
-const ifBlockFinder: ControlFlowBlockViewFinder = ({
+const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
   lView,
   tView,
   slotIdx,
@@ -228,11 +234,11 @@ const ifBlockFinder: ControlFlowBlockViewFinder = ({
   }
 
   const tNode = tView.data[slotIdx] as TNode;
-  const tDetails = getTIfBlockDetails(tView, tNode);
+  const tDetails = getTConditionalBlockDetails(tView, tNode);
   const lContainer = slot;
 
-  if (isTIfBlockDetails(tDetails)) {
-    const lDetails = getLIfBlockDetails(lView, tNode);
+  if (isTConditionalBlockDetails(tDetails)) {
+    const lDetails = getLConditionalBlockDetails(lView, tNode);
     const nativeNode = getNativeByTNode(tNode, lView);
 
     if (!node.contains(nativeNode as Node)) {
@@ -253,13 +259,26 @@ const ifBlockFinder: ControlFlowBlockViewFinder = ({
       );
     }
 
-    return {
-      type: ControlFlowBlockType.If,
-      tDummy: tDetails.tDummy,
-      lDummy: lDetails[IF_BLOCK_L_DUMMY],
-      hostNode: commentHostNode as Node,
-      rootNodes,
-    } satisfies IfBlockData;
+    switch (getTConditionalBlockType(tDetails)) {
+      case ControlFlowBlockType.If:
+        return {
+          type: ControlFlowBlockType.If,
+          tDummy: tDetails.tDummy,
+          lDummy: lDetails[CONDITIONAL_BLOCK_L_DUMMY],
+          hostNode: commentHostNode as Node,
+          rootNodes,
+        } satisfies IfBlockData;
+      case ControlFlowBlockType.Switch:
+        return {
+          type: ControlFlowBlockType.Switch,
+          tDummy: tDetails.tDummy,
+          lDummy: lDetails[CONDITIONAL_BLOCK_L_DUMMY],
+          hostNode: commentHostNode as Node,
+          rootNodes,
+        } satisfies SwitchBlockData;
+      default:
+        throw new Error('Conditional block not recognized');
+    }
   }
 
   return null;
@@ -269,7 +288,7 @@ const ifBlockFinder: ControlFlowBlockViewFinder = ({
 const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [
   deferBlockFinder,
   forLoopBlockFinder,
-  ifBlockFinder,
+  conditionalBlockFinder,
 ];
 
 /**
@@ -413,59 +432,72 @@ function getTrackExpression(metadata: RepeaterMetadataShape): string {
 
 // New
 
-function getIfBlockSlotIndex(ifBlockIndex: number) {
-  return ifBlockIndex + 1;
+function getConditionalBlockSlotIndex(conditionalBlockIndex: number) {
+  return conditionalBlockIndex + 1;
 }
 
-function isTIfBlockDetails(value: unknown): value is TIfBlockDetails {
+function isTConditionalBlockDetails(value: unknown): value is TConditionalBlockDetails {
   return (
     value !== null &&
     typeof value === 'object' &&
-    typeof (value as TIfBlockDetails).tDummy === 'string'
+    typeof (value as TConditionalBlockDetails).tDummy === 'string'
   );
 }
 
-export function getTIfBlockDetails(tView: TView, tNode: TNode): TIfBlockDetails | null {
-  const slotIndex = getIfBlockSlotIndex(tNode.index);
+export function getTConditionalBlockDetails(
+  tView: TView,
+  tNode: TNode,
+): TConditionalBlockDetails | null {
+  const slotIndex = getConditionalBlockSlotIndex(tNode.index);
   if (isNaN(slotIndex)) {
     return null;
   }
   ngDevMode && assertIndexInDeclRange(tView, slotIndex);
-  return tView.data[slotIndex] as TIfBlockDetails;
+  return tView.data[slotIndex] as TConditionalBlockDetails;
 }
 
-export function getLIfBlockDetails(lView: LView, tNode: TNode): LIfBlockDetails {
+export function getLConditionalBlockDetails(lView: LView, tNode: TNode): LConditionalBlockDetails {
   const tView = lView[TVIEW];
-  const slotIndex = getIfBlockSlotIndex(tNode.index);
+  const slotIndex = getConditionalBlockSlotIndex(tNode.index);
   ngDevMode && assertIndexInDeclRange(tView, slotIndex);
   return lView[slotIndex];
 }
 
 export function setDebugTIfBlockDetails(
   tView: TView,
-  ifBlockIndex: number,
-  tDetails: TIfBlockDetails,
+  conditionalBlockIndex: number,
+  tDetails: TConditionalBlockDetails,
 ) {
   // Warning: Currently, the TDetails slot is allocated on all envs.
   if (!ngDevMode) {
     return;
   }
-  const slotIndex = getIfBlockSlotIndex(ifBlockIndex);
+  const slotIndex = getConditionalBlockSlotIndex(conditionalBlockIndex);
   assertIndexInDeclRange(tView, slotIndex);
   tView.data[slotIndex] = tDetails;
 }
 
-export function setDebugLIfBlockDetails(
+export function setDebugLConditionalBlockDetails(
   lView: LView,
-  ifBlockIndex: number,
-  lDetails: LIfBlockDetails,
+  conditionalBlockIndex: number,
+  lDetails: LConditionalBlockDetails,
 ) {
   // Warning: Currently, the TDetails slot is allocated on all envs.
   if (!ngDevMode) {
     return;
   }
   const tView = lView[TVIEW];
-  const slotIndex = getIfBlockSlotIndex(ifBlockIndex);
+  const slotIndex = getConditionalBlockSlotIndex(conditionalBlockIndex);
   assertIndexInDeclRange(tView, slotIndex);
   lView[slotIndex] = lDetails;
+}
+
+function getTConditionalBlockType(tDetails: TConditionalBlockDetails): ControlFlowBlockType {
+  switch (tDetails.type) {
+    case DebugConditionalCreateType.IfBlock:
+    default:
+      return ControlFlowBlockType.If;
+    case DebugConditionalCreateType.SwitchBlock:
+      return ControlFlowBlockType.Switch;
+  }
 }

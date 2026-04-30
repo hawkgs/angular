@@ -1,3 +1,23 @@
 <h1>Welcome to the dev app!</h1>
 
+@if (ifCond() > 1000) {
+  <h2>IF</h2>
+} @else if (ifCond()) {
+  <h3>ELSE IF</h3>
+} @else {
+  <h4>ELSE</h4>
+}
+
+@switch (switchCond()) {
+  @case ('a') {
+    <h5>SWITCH A</h5>
+  }
+  @case ('b') {
+    <h6>SWITCH B</h6>
+  }
+  @default {
+    <p>SWITCH default</p>
+  }
+}
+
 <router-outlet />

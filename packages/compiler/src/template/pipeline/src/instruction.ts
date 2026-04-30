@@ -453,6 +453,7 @@ export function conditionalCreate(
   tag: string | null,
   constIndex: number | null,
   localRefs: number | null,
+  debugConditionalCreateType: ir.DebugConditionalCreateType | undefined,
   sourceSpan: ParseSourceSpan,
 ): ir.CreateOp {
   const args = [
@@ -462,10 +463,11 @@ export function conditionalCreate(
     o.literal(vars),
     o.literal(tag),
     o.literal(constIndex),
+    o.literal(localRefs),
+    localRefs !== null ? o.importExpr(Identifiers.templateRefExtractor) : o.literal(null),
   ];
-  if (localRefs !== null) {
-    args.push(o.literal(localRefs));
-    args.push(o.importExpr(Identifiers.templateRefExtractor));
+  if (debugConditionalCreateType != null) {
+    args.push(o.literal(debugConditionalCreateType));
   }
   while (args[args.length - 1].isEquivalent(o.NULL_EXPR)) {
     args.pop();
