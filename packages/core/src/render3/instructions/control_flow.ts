@@ -52,8 +52,12 @@ import {
 import {declareNoDirectiveHostTemplate} from './template';
 import {removeFromAnimationQueue} from '../../animation/queue';
 import {allLeavingAnimations} from '../../animation/longest_animation';
-import {LIfBlockDetails, TIfBlockDetails} from '../interfaces/control_flow';
-import {setDebugLIfBlockDetails, setDebugTIfBlockDetails} from '../util/control_flow';
+import {
+  DebugConditionalCreateType,
+  LConditionalBlockDetails,
+  TConditionalBlockDetails,
+} from '../interfaces/control_flow';
+import {setDebugLConditionalBlockDetails, setDebugTIfBlockDetails} from '../util/control_flow';
 
 /**
  * Creates an LContainer for an ng-template representing a root node
@@ -71,6 +75,8 @@ import {setDebugLIfBlockDetails, setDebugTIfBlockDetails} from '../util/control_
  * @param localRefs Index of the local references in the `consts` array.
  * @param localRefExtractor A function which extracts local-refs values from the template.
  *        Defaults to the current element associated with the local-ref.
+ * @param debugConditionalCreateType Represents the control flow block type – `@if` or `@switch`.
+ *        Avaiable in dev mode ONLY.
  * @codeGenApi
  */
 export function ɵɵconditionalCreate(
@@ -82,6 +88,7 @@ export function ɵɵconditionalCreate(
   attrsIndex?: number | null,
   localRefsIndex?: number | null,
   localRefExtractor?: LocalRefExtractor,
+  debugConditionalCreateType?: DebugConditionalCreateType,
 ): typeof ɵɵconditionalBranchCreate {
   performanceMarkFeature('NgControlFlow');
   const lView = getLView();
@@ -92,14 +99,15 @@ export function ɵɵconditionalCreate(
   const adjustedIndex = HEADER_OFFSET + index;
 
   if (tView.firstCreatePass) {
-    const tDetails: TIfBlockDetails = {
+    const tDetails: TConditionalBlockDetails = {
       tDummy: 'tDevtools',
+      type: debugConditionalCreateType,
     };
     setDebugTIfBlockDetails(tView, adjustedIndex, tDetails);
   }
 
-  const lDetails: LIfBlockDetails = ['lDevtools'];
-  setDebugLIfBlockDetails(lView, adjustedIndex, lDetails);
+  const lDetails: LConditionalBlockDetails = ['lDevtools'];
+  setDebugLConditionalBlockDetails(lView, adjustedIndex, lDetails);
 
   declareNoDirectiveHostTemplate(
     lView,

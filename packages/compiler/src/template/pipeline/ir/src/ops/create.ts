@@ -408,6 +408,14 @@ export function createTemplateOp(
 }
 
 /**
+ * Represents ConditionalCreateOp type, i.e. `@if` or `@switch`.
+ */
+export enum DebugConditionalCreateType {
+  IfBlock = 0,
+  SwitchBlock = 1,
+}
+
+/**
  * An op that creates a conditional (e.g. a if or switch).
  */
 export interface ConditionalCreateOp extends ElementOpBase {
@@ -436,6 +444,14 @@ export interface ConditionalCreateOp extends ElementOpBase {
    * The i18n placeholder data associated with this template.
    */
   i18nPlaceholder?: i18n.TagPlaceholder | i18n.BlockPlaceholder;
+
+  /**
+   * Retains the data whether a `ConditionalCreateOp` is an
+   * `@if` or a `@switch` statement after IR and reification during compilation.
+   *
+   * Available only during dev mode.
+   */
+  debugConditionalCreateType?: DebugConditionalCreateType;
 }
 
 export function createConditionalCreateOp(
@@ -447,6 +463,7 @@ export function createConditionalCreateOp(
   i18nPlaceholder: i18n.TagPlaceholder | i18n.BlockPlaceholder | undefined,
   startSourceSpan: ParseSourceSpan,
   wholeSourceSpan: ParseSourceSpan,
+  debugConditionalCreateType?: DebugConditionalCreateType,
 ): ConditionalCreateOp {
   return {
     kind: OpKind.ConditionalCreate,
@@ -466,6 +483,7 @@ export function createConditionalCreateOp(
     wholeSourceSpan,
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
+    debugConditionalCreateType, // TODO(hawkgs): Should be appended only in dev mode.
     numSlotsUsed: 2, // TODO/QUESTION(hawkgs): Can we increment the slot only in dev mode?
   };
 }

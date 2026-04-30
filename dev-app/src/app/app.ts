@@ -9,4 +9,8 @@ import {RouterOutlet} from '@angular/router';
 })
 export class App {
   protected readonly title = signal('dev-app');
+  ifCond = signal(1337);
+  switchCond = signal('test');
+
+  constructor() {}
 }

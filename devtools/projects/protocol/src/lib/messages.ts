@@ -78,6 +78,7 @@ export enum ControlFlowBlockType {
   Defer,
   For,
   If,
+  Switch,
 }
 
 export interface ControlFlowBlock {
@@ -114,6 +115,12 @@ export interface ForLoopBlock extends ControlFlowBlock {
 
 export interface IfBlock extends ControlFlowBlock {
   type: ControlFlowBlockType.If;
+  tDummy: string;
+  lDummy: string;
+}
+
+export interface SwitchBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.Switch;
   tDummy: string;
   lDummy: string;
 }
@@ -315,7 +322,7 @@ export interface DirectiveProfile {
 export interface ElementProfile {
   directives: DirectiveProfile[];
   children: ElementProfile[];
-  type: 'element' | 'defer' | 'for' | 'if';
+  type: 'element' | 'defer' | 'for' | 'if' | 'switch';
 }
 
 export interface ProfilerFrame {

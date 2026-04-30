@@ -612,6 +612,7 @@ function ingestIfBlock(unit: ViewCompilationUnit, ifBlock: t.IfBlock): void {
       ifCaseI18nMeta,
       ifCase.startSourceSpan,
       ifCase.sourceSpan,
+      ir.DebugConditionalCreateType.IfBlock,
     );
     unit.create.push(conditionalCreateOp);
 
@@ -668,6 +669,7 @@ function ingestSwitchBlock(unit: ViewCompilationUnit, switchBlock: t.SwitchBlock
       switchCaseI18nMeta,
       switchCaseGroup.startSourceSpan,
       switchCaseGroup.sourceSpan,
+      ir.DebugConditionalCreateType.SwitchBlock,
     );
     unit.create.push(conditionalCreateOp);
 

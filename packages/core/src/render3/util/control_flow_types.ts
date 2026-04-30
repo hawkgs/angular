@@ -14,6 +14,7 @@ export enum ControlFlowBlockType {
   Defer,
   For,
   If,
+  Switch,
 }
 
 export interface ControlFlowBlockDataBase {
@@ -85,10 +86,19 @@ export interface IfBlockData extends ControlFlowBlockDataBase {
   lDummy: string;
 }
 
+/** Retrieved information about a `@switch` block.  */
+export interface SwitchBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.Switch;
+
+  tDummy: string;
+
+  lDummy: string;
+}
+
 /**
  * A control flow block information object.
  */
-export type ControlFlowBlock = DeferBlockData | ForLoopBlockData | IfBlockData;
+export type ControlFlowBlock = DeferBlockData | ForLoopBlockData | IfBlockData | SwitchBlockData;
 
 /**
  * A configuration object passed to a `ControlFlowBlockViewFinder` function.

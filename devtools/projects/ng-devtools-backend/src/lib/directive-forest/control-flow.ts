@@ -18,6 +18,7 @@ import {
   DeferBlock,
   RenderedDeferBlock,
   IfBlock,
+  SwitchBlock,
 } from '../../../../protocol';
 import {ComponentTreeNode} from '../interfaces';
 import {serializeValue} from '../state-serializer/state-serializer';
@@ -26,6 +27,7 @@ const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.Defer]: '@defer',
   [ControlFlowBlockType.For]: '@for',
   [ControlFlowBlockType.If]: '@if',
+  [ControlFlowBlockType.Switch]: '@switch',
 };
 
 export function isControlFlowBlock(node: Node, iterator: ControlFlowBlocksIterator) {
@@ -69,11 +71,19 @@ export function mapToDevtoolsControlFlowModel(
 
     case ControlFlowBlockTypeInternal.If:
       return {
-        id: `deferId-${rootId}-${iteratorCurrentIdx}`,
+        id: `ifId-${rootId}-${iteratorCurrentIdx}`,
         type: ControlFlowBlockType.If,
         lDummy: block.lDummy,
         tDummy: block.tDummy,
       } satisfies IfBlock as IfBlock;
+
+    case ControlFlowBlockTypeInternal.Switch:
+      return {
+        id: `switchId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.Switch,
+        lDummy: block.lDummy,
+        tDummy: block.tDummy,
+      } satisfies SwitchBlock as SwitchBlock;
   }
 }
 

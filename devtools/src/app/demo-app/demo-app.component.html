@@ -10,3 +10,18 @@
 <app-sample-properties></app-sample-properties>
 <app-cookies />
 <p>Resource value: {{ demoRsrc.value() }}</p>
+
+<ng-if-block-test />
+
+@let value = 'foo';
+@switch ($any(value)) {
+  @case ('foo') {
+    <p>FOO</p>
+  }
+  @case ('bar') {
+    <p>BAR</p>
+  }
+  @default {
+    <p>BAZ</p>
+  }
+}
