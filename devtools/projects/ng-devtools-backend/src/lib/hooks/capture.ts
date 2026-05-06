@@ -35,6 +35,8 @@ const DIRECTIVE_CONTROL_FLOW: {[key in ControlFlowBlockType]: ElementProfile['ty
   [ControlFlowBlockType.Defer]: 'defer',
   [ControlFlowBlockType.If]: 'if',
   [ControlFlowBlockType.Switch]: 'switch',
+  [ControlFlowBlockType.IfBranch]: 'if-branch',
+  [ControlFlowBlockType.SwitchBranch]: 'switch-branch',
 };
 
 export const start = (onFrame: (frame: ProfilerFrame) => void): void => {

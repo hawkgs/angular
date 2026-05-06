@@ -11,10 +11,12 @@ import {LView, TView} from '../interfaces/view';
 import {LiveCollection} from '../list_reconciliation';
 
 export enum ControlFlowBlockType {
-  Defer,
-  For,
-  If,
-  Switch,
+  Defer = 0,
+  For = 1,
+  If = 2,
+  IfBranch = 3,
+  Switch = 4,
+  SwitchBranch = 5,
 }
 
 export interface ControlFlowBlockDataBase {
@@ -86,6 +88,14 @@ export interface IfBlockData extends ControlFlowBlockDataBase {
   lDummy: string;
 }
 
+/** Retrieved infromation about an if `@else` or `@else if` block. */
+export interface IfBranchBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.IfBranch;
+
+  /** Reference to the parent `@if` block. */
+  parent: IfBlockData;
+}
+
 /** Retrieved information about a `@switch` block.  */
 export interface SwitchBlockData extends ControlFlowBlockDataBase {
   type: ControlFlowBlockType.Switch;
@@ -95,10 +105,30 @@ export interface SwitchBlockData extends ControlFlowBlockDataBase {
   lDummy: string;
 }
 
+/** Retrieved information about a switch `@case` or `@default` block. */
+export interface SwitchBranchBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.SwitchBranch;
+
+  /** Reference to the parent `@switch` block. */
+  parent: SwitchBlockData;
+}
+
+/** A collective type for `@if` and `@switch` blocks data. */
+export type ConditionalBlockData = IfBlockData | SwitchBlockData;
+
+/** A collective type for `@else`, `@else if`, `@case` and `@default` blocks data. */
+export type ConditionalBranchBlockData = IfBranchBlockData | SwitchBranchBlockData;
+
 /**
  * A control flow block information object.
  */
-export type ControlFlowBlock = DeferBlockData | ForLoopBlockData | IfBlockData | SwitchBlockData;
+export type ControlFlowBlock =
+  | DeferBlockData
+  | ForLoopBlockData
+  | IfBlockData
+  | IfBranchBlockData
+  | SwitchBlockData
+  | SwitchBranchBlockData;
 
 /**
  * A configuration object passed to a `ControlFlowBlockViewFinder` function.
@@ -115,7 +145,7 @@ export interface ControlFlowBlockViewFinderConfig {
  */
 export type ControlFlowBlockViewFinder = (
   config: ControlFlowBlockViewFinderConfig,
-) => ControlFlowBlock | null;
+) => ControlFlowBlock[] | ControlFlowBlock | null;
 
 /**
  * Represents `RepeaterMetadata` data mirror.

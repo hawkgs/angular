@@ -79,11 +79,14 @@ export type HydrationStatus =
       actualNodeDetails: string | null;
     };
 
+// WARNING: Order should match the internal `ControlFlowBlockType` enum.
 export enum ControlFlowBlockType {
-  Defer,
-  For,
-  If,
-  Switch,
+  Defer = 0,
+  For = 1,
+  If = 2,
+  IfBranch = 3,
+  Switch = 4,
+  SwitchBranch = 5,
 }
 
 export interface ControlFlowBlock {
@@ -124,10 +127,18 @@ export interface IfBlock extends ControlFlowBlock {
   lDummy: string;
 }
 
+export interface IfBranchBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.IfBranch;
+}
+
 export interface SwitchBlock extends ControlFlowBlock {
   type: ControlFlowBlockType.Switch;
   tDummy: string;
   lDummy: string;
+}
+
+export interface SwitchBranchBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.SwitchBranch;
 }
 
 export type ChangeDetection = 'ng-on-push' | 'ng-eager' | 'acx-on-push' | 'acx-default';
@@ -329,7 +340,7 @@ export interface DirectiveProfile {
 export interface ElementProfile {
   directives: DirectiveProfile[];
   children: ElementProfile[];
-  type: 'element' | 'defer' | 'for' | 'if' | 'switch';
+  type: 'element' | 'defer' | 'for' | 'if' | 'if-branch' | 'switch' | 'switch-branch';
 }
 
 export interface ProfilerFrame {
