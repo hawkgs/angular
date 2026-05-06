@@ -19,6 +19,8 @@ import {
   RenderedDeferBlock,
   IfBlock,
   SwitchBlock,
+  IfBranchBlock,
+  SwitchBranchBlock,
 } from '../../../../protocol';
 import {ComponentTreeNode} from '../interfaces';
 import {serializeValue} from '../state-serializer/state-serializer';
@@ -28,6 +30,8 @@ const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.For]: '@for',
   [ControlFlowBlockType.If]: '@if',
   [ControlFlowBlockType.Switch]: '@switch',
+  [ControlFlowBlockType.IfBranch]: '@else',
+  [ControlFlowBlockType.SwitchBranch]: '@case',
 };
 
 export function isControlFlowBlock(node: Node, iterator: ControlFlowBlocksIterator) {
@@ -77,6 +81,12 @@ export function mapToDevtoolsControlFlowModel(
         tDummy: block.tDummy,
       } satisfies IfBlock as IfBlock;
 
+    case ControlFlowBlockTypeInternal.IfBranch:
+      return {
+        id: `ifBranchId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.IfBranch,
+      } satisfies IfBranchBlock as IfBranchBlock;
+
     case ControlFlowBlockTypeInternal.Switch:
       return {
         id: `switchId-${rootId}-${iteratorCurrentIdx}`,
@@ -84,6 +94,12 @@ export function mapToDevtoolsControlFlowModel(
         lDummy: block.lDummy,
         tDummy: block.tDummy,
       } satisfies SwitchBlock as SwitchBlock;
+
+    case ControlFlowBlockTypeInternal.SwitchBranch:
+      return {
+        id: `switchBranchId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.SwitchBranch,
+      } satisfies SwitchBranchBlock as SwitchBranchBlock;
   }
 }
 
