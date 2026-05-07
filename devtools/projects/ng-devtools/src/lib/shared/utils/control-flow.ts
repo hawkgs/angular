@@ -12,6 +12,9 @@ import {
   DeferBlock,
   ForLoopBlock,
   IfBlock,
+  IfBranchBlock,
+  SwitchBlock,
+  SwitchBranchBlock,
 } from '../../../../../protocol';
 
 export const BlockType = {
@@ -25,5 +28,17 @@ export const BlockType = {
 
   isIfBlock(node: ControlFlowBlock | null): node is IfBlock {
     return !!node && node.type === ControlFlowBlockType.If;
+  },
+
+  isConditionalBlock(
+    node: ControlFlowBlock | null,
+  ): node is IfBlock | IfBranchBlock | SwitchBlock | SwitchBranchBlock {
+    return (
+      !!node &&
+      (node.type === ControlFlowBlockType.If ||
+        node.type === ControlFlowBlockType.IfBranch ||
+        node.type === ControlFlowBlockType.Switch ||
+        node.type === ControlFlowBlockType.SwitchBranch)
+    );
   },
 };

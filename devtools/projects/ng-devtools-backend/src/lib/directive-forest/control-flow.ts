@@ -119,6 +119,7 @@ export function createControlFlowTreeNode(
     element: ELEMENT_NAME_MAP[controlFlowBlock.type],
     nativeElement: undefined,
     controlFlowBlock: mapToDevtoolsControlFlowModel(controlFlowBlock, iteratorCurrentIdx, rootId),
+    static: false,
   };
 }
 

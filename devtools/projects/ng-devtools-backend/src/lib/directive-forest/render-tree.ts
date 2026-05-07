@@ -30,23 +30,23 @@ interface TreeExtractionContext {
 }
 
 function extractViewTree(
-  domNode: Node | Element,
+  node: Node | Element,
   result: ComponentTreeNode[],
   ctx: TreeExtractionContext,
   nodesToSkip = new Set<Node>(),
 ): void {
   // Ignore DOM Node if it came from a different frame. Use instanceof Node to check this.
-  if (!(domNode instanceof Node)) {
+  if (!(node instanceof Node)) {
     return;
   }
 
-  if (isControlFlowBlock(domNode, ctx.blocksIterator)) {
+  if (isControlFlowBlock(node, ctx.blocksIterator)) {
     groupControlFlowBlocksChildren(ctx, result, nodesToSkip);
     return;
   }
 
-  const directives = ctx.getDirectives?.(domNode) ?? [];
-  if (!directives.length && !(domNode instanceof Element)) {
+  const directives = ctx.getDirectives?.(node) ?? [];
+  if (!directives.length && !(node instanceof Element)) {
     return;
   }
   const componentTreeNode: ComponentTreeNode = {
@@ -58,25 +58,26 @@ function extractViewTree(
         name: dir.constructor.name,
       };
     }),
-    element: domNode.nodeName.toLowerCase(),
-    nativeElement: domNode,
-    hydration: hydrationStatus(domNode),
+    element: node.nodeName.toLowerCase(),
+    nativeElement: node,
+    hydration: hydrationStatus(node),
+    static: false,
     controlFlowBlock: null,
   };
 
-  if (!(domNode instanceof Element)) {
+  if (!(node instanceof Element)) {
     // In case we show the Comment nodes
     result.push(componentTreeNode);
     return;
   }
 
   const isDehydratedElement = componentTreeNode.hydration?.status === 'dehydrated';
-  const component = ctx.getComponent?.(domNode);
+  const component = ctx.getComponent?.(node);
   if (component) {
     componentTreeNode.component = {
       instance: component,
-      isElement: isCustomElement(domNode),
-      name: ctx.getDirectiveMetadata?.(component)?.name ?? domNode.nodeName.toLowerCase(),
+      isElement: isCustomElement(node),
+      name: ctx.getDirectiveMetadata?.(component)?.name ?? node.nodeName.toLowerCase(),
     };
   }
 
@@ -88,9 +89,9 @@ function extractViewTree(
 
   const childrenResult = isDisplayableNode ? componentTreeNode.children : result;
 
-  for (const node of domNode.childNodes) {
-    if (!nodesToSkip.has(node)) {
-      extractViewTree(node, childrenResult, ctx, nodesToSkip);
+  for (const child of node.childNodes) {
+    if (!nodesToSkip.has(child)) {
+      extractViewTree(child, childrenResult, ctx, nodesToSkip);
     }
   }
 }
@@ -119,6 +120,20 @@ function groupControlFlowBlocksChildren(
     if (!nodesToSkip.has(child)) {
       extractViewTree(child, childrenTree, ctx, nodesToSkip);
     }
+  }
+
+  // If the there isn't a children tree (i.e. child components)
+  // but the block has root nodes, we create a static node that
+  // informs the user that the control flow block
+  // has HTML-only content.
+  if (!childrenTree.length && currentBlock.rootNodes.length) {
+    childrenTree.push({
+      element: '<html_content>',
+      static: true,
+      controlFlowBlock: null,
+      component: null,
+      children: [],
+    });
   }
 
   const blockTreeNode = createControlFlowTreeNode(
