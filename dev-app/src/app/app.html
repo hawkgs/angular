@@ -4,6 +4,8 @@
   <h2>IF</h2>
 } @else if (ifCond()) {
   <h3>ELSE IF</h3>
+} @else if (!ifCond()) {
+  <h3>Another else</h3>
 } @else {
   <h4>ELSE</h4>
 }
@@ -14,6 +16,9 @@
   }
   @case ('b') {
     <h6>SWITCH B</h6>
+  }
+  @case ('c') {
+    <h6>SWITCH C</h6>
   }
   @default {
     <p>SWITCH default</p>

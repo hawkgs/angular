@@ -53,11 +53,17 @@ import {declareNoDirectiveHostTemplate} from './template';
 import {removeFromAnimationQueue} from '../../animation/queue';
 import {allLeavingAnimations} from '../../animation/longest_animation';
 import {
+  DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
   LConditionalBlockDetails,
+  LConditionalBranchBlockDetails,
   TConditionalBlockDetails,
+  TConditionalBranchBlockDetails,
 } from '../interfaces/control_flow';
-import {setDebugLConditionalBlockDetails, setDebugTIfBlockDetails} from '../util/control_flow';
+import {
+  setDebugLGenericConditionalBlockDetails,
+  setDebugTGenericConditionalBlockDetails,
+} from '../util/control_flow';
 
 /**
  * Creates an LContainer for an ng-template representing a root node
@@ -103,11 +109,12 @@ export function ɵɵconditionalCreate(
       tDummy: 'tDevtools',
       type: debugConditionalCreateType,
     };
-    setDebugTIfBlockDetails(tView, adjustedIndex, tDetails);
+    setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
   }
 
   const lDetails: LConditionalBlockDetails = ['lDevtools'];
-  setDebugLConditionalBlockDetails(lView, adjustedIndex, lDetails);
+  setDebugLGenericConditionalBlockDetails(lView, adjustedIndex, lDetails);
+  // New end
 
   declareNoDirectiveHostTemplate(
     lView,
@@ -152,11 +159,26 @@ export function ɵɵconditionalBranchCreate(
   attrsIndex?: number | null,
   localRefsIndex?: number | null,
   localRefExtractor?: LocalRefExtractor,
+  debugConditionalBranchCreateType?: DebugConditionalBranchCreateType,
 ): typeof ɵɵconditionalBranchCreate {
   performanceMarkFeature('NgControlFlow');
   const lView = getLView();
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
+
+  // New Start
+  const adjustedIndex = HEADER_OFFSET + index;
+
+  if (tView.firstCreatePass) {
+    const tDetails: TConditionalBranchBlockDetails = {
+      type: debugConditionalBranchCreateType,
+    };
+    setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
+  }
+
+  const lDetails: LConditionalBranchBlockDetails = [];
+  setDebugLGenericConditionalBlockDetails(lView, adjustedIndex, lDetails);
+  // New end
 
   declareNoDirectiveHostTemplate(
     lView,

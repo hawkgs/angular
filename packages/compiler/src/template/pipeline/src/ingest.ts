@@ -601,9 +601,7 @@ function ingestIfBlock(unit: ViewCompilationUnit, ifBlock: t.IfBlock): void {
       ifCaseI18nMeta = ifCase.i18n;
     }
 
-    const createOp = i === 0 ? ir.createConditionalCreateOp : ir.createConditionalBranchCreateOp;
-
-    const conditionalCreateOp = createOp(
+    const args = [
       cView.xref,
       ir.TemplateKind.Block,
       tagName,
@@ -612,8 +610,18 @@ function ingestIfBlock(unit: ViewCompilationUnit, ifBlock: t.IfBlock): void {
       ifCaseI18nMeta,
       ifCase.startSourceSpan,
       ifCase.sourceSpan,
-      ir.DebugConditionalCreateType.IfBlock,
-    );
+    ] as const;
+
+    const conditionalCreateOp =
+      i === 0
+        ? ir.createConditionalCreateOp(...args, ir.DebugConditionalCreateType.IfBlock)
+        : ir.createConditionalBranchCreateOp(
+            ...args,
+            ifCase.expression
+              ? ir.DebugConditionalBranchCreateType.ElseIfBlock
+              : ir.DebugConditionalBranchCreateType.ElseBlock,
+          );
+
     unit.create.push(conditionalCreateOp);
 
     if (firstXref === null) {
@@ -658,9 +666,7 @@ function ingestSwitchBlock(unit: ViewCompilationUnit, switchBlock: t.SwitchBlock
       switchCaseI18nMeta = switchCaseGroup.i18n;
     }
 
-    const createOp = i === 0 ? ir.createConditionalCreateOp : ir.createConditionalBranchCreateOp;
-
-    const conditionalCreateOp = createOp(
+    const args = [
       cView.xref,
       ir.TemplateKind.Block,
       tagName,
@@ -669,8 +675,18 @@ function ingestSwitchBlock(unit: ViewCompilationUnit, switchBlock: t.SwitchBlock
       switchCaseI18nMeta,
       switchCaseGroup.startSourceSpan,
       switchCaseGroup.sourceSpan,
-      ir.DebugConditionalCreateType.SwitchBlock,
-    );
+    ] as const;
+
+    const conditionalCreateOp =
+      i === 0
+        ? ir.createConditionalCreateOp(...args, ir.DebugConditionalCreateType.SwitchBlock)
+        : ir.createConditionalBranchCreateOp(
+            ...args,
+            switchCaseGroup.cases.find((c) => c.expression)
+              ? ir.DebugConditionalBranchCreateType.CaseBlock
+              : ir.DebugConditionalBranchCreateType.DefaultBlock,
+          );
+
     unit.create.push(conditionalCreateOp);
 
     if (firstXref === null) {
