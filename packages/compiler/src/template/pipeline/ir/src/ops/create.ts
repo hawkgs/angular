@@ -442,6 +442,16 @@ export function createConditionalCreateOp(
 }
 
 /**
+ * Represents ConditionalBranchCreateOp type, i.e. `@else if`, `@else`, `@case` or `@default`.
+ */
+export enum DebugConditionalBranchCreateType {
+  ElseIfBlock = 0,
+  ElseBlock = 1,
+  CaseBlock = 2,
+  DefaultBlock = 3,
+}
+
+/**
  * An op that creates a conditional branch (e.g. an else or case).
  */
 export interface ConditionalBranchCreateOp extends ElementOpBase {
@@ -470,6 +480,14 @@ export interface ConditionalBranchCreateOp extends ElementOpBase {
    * The i18n placeholder data associated with this template.
    */
   i18nPlaceholder?: i18n.TagPlaceholder | i18n.BlockPlaceholder;
+
+  /**
+   * Retains the data whether a `ConditionalBranchCreateOp` is a `@else`, `@case`, etc.
+   * statement after IR and reification during compilation.
+   *
+   * Available only during dev mode.
+   */
+  debugConditionalBranchCreateType?: DebugConditionalBranchCreateType;
 }
 
 export function createConditionalBranchCreateOp(
@@ -481,6 +499,7 @@ export function createConditionalBranchCreateOp(
   i18nPlaceholder: i18n.TagPlaceholder | i18n.BlockPlaceholder | undefined,
   startSourceSpan: ParseSourceSpan,
   wholeSourceSpan: ParseSourceSpan,
+  debugConditionalBranchCreateType?: DebugConditionalBranchCreateType,
 ): ConditionalBranchCreateOp {
   return {
     kind: OpKind.ConditionalBranchCreate,
@@ -500,6 +519,8 @@ export function createConditionalBranchCreateOp(
     wholeSourceSpan,
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
+    debugConditionalBranchCreateType, // TODO(hawkgs): Should be appended only in dev mode.
+    numSlotsUsed: 2, // TODO/QUESTION(hawkgs): Can we increment the slot only in dev mode?
   };
 }
 

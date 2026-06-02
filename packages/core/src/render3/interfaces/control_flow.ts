@@ -14,6 +14,17 @@ export enum DebugConditionalCreateType {
   SwitchBlock = 1,
 }
 
+/**
+ * Represents ConditionalBranchCreateOp type, i.e. `@else if`, `@else`, `@case` or `@default`.
+ */
+// The type exists in
+export enum DebugConditionalBranchCreateType {
+  ElseIfBlock = 0,
+  ElseBlock = 1,
+  CaseBlock = 2,
+  DefaultBlock = 3,
+}
+
 export const CONDITIONAL_BLOCK_L_DUMMY = 0;
 
 export interface TConditionalBlockDetails {
@@ -24,3 +35,9 @@ export interface TConditionalBlockDetails {
 export interface LConditionalBlockDetails extends Array<unknown> {
   [CONDITIONAL_BLOCK_L_DUMMY]: string;
 }
+
+export interface TConditionalBranchBlockDetails {
+  type?: DebugConditionalBranchCreateType;
+}
+
+export interface LConditionalBranchBlockDetails extends Array<unknown> {}
