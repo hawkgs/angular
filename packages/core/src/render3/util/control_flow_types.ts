@@ -84,10 +84,6 @@ export interface ForLoopBlockData extends ControlFlowBlockDataBase {
 /** Retrieved information about an `@if` block.  */
 export interface IfBlockData extends ControlFlowBlockDataBase {
   type: ControlFlowBlockType.If;
-
-  tDummy: string;
-
-  lDummy: string;
 }
 
 /** Retrieved infromation about an if `@else if` block. */
@@ -109,10 +105,6 @@ export interface ElseBlockData extends ControlFlowBlockDataBase {
 /** Retrieved information about a `@switch` block.  */
 export interface SwitchBlockData extends ControlFlowBlockDataBase {
   type: ControlFlowBlockType.Switch;
-
-  tDummy: string;
-
-  lDummy: string;
 }
 
 /** Retrieved information about a switch `@case` block. */

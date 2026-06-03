@@ -34,12 +34,9 @@ import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET, TView} from '../interfaces/
 import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
 import {
-  CONDITIONAL_BLOCK_L_DUMMY,
   DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
   DebugConditionalType,
-  LConditionalBlockDetails,
-  LConditionalBranchBlockDetails,
   TConditionalBlockDetails,
   TConditionalBranchBlockDetails,
   TGenericConditionalBlockDetails,
@@ -254,7 +251,6 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
   }
 
   const lContainer = slot;
-  const lDetails = getLConditionalBlockDetails<LConditionalBlockDetails>(lView, tNode);
   const nativeNode = getNativeByTNode(tNode, lView);
 
   if (!node.contains(nativeNode as Node)) {
@@ -281,8 +277,6 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
     case ControlFlowBlockType.If:
       parentBlock = {
         type: ControlFlowBlockType.If,
-        tDummy: tDetails.tDummy,
-        lDummy: lDetails[CONDITIONAL_BLOCK_L_DUMMY],
         hostNode: commentHostNode as Node,
         rootNodes,
       } satisfies IfBlockData;
@@ -290,8 +284,6 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
     case ControlFlowBlockType.Switch:
       parentBlock = {
         type: ControlFlowBlockType.Switch,
-        tDummy: tDetails.tDummy,
-        lDummy: lDetails[CONDITIONAL_BLOCK_L_DUMMY],
         hostNode: commentHostNode as Node,
         rootNodes,
       } satisfies SwitchBlockData;
@@ -475,16 +467,6 @@ function getTGenericConditionalBlockDetails(
   return tView.data[slotIndex] as TGenericConditionalBlockDetails;
 }
 
-function getLConditionalBlockDetails<T = LConditionalBlockDetails | LConditionalBranchBlockDetails>(
-  lView: LView,
-  tNode: TNode,
-): T {
-  const tView = lView[TVIEW];
-  const slotIndex = getGenericConditionalBlockDetailsSlotIndex(tNode.index);
-  ngDevMode && assertIndexInDeclRange(tView, slotIndex);
-  return lView[slotIndex];
-}
-
 export function setDebugTGenericConditionalBlockDetails(
   tView: TView,
   conditionalBlockIndex: number,
@@ -497,21 +479,6 @@ export function setDebugTGenericConditionalBlockDetails(
   const slotIndex = getGenericConditionalBlockDetailsSlotIndex(conditionalBlockIndex);
   assertIndexInDeclRange(tView, slotIndex);
   tView.data[slotIndex] = tDetails;
-}
-
-export function setDebugLGenericConditionalBlockDetails(
-  lView: LView,
-  conditionalBlockIndex: number,
-  lDetails: LConditionalBlockDetails | LConditionalBranchBlockDetails,
-) {
-  // Warning: Currently, the TDetails slot is allocated on all envs.
-  if (!ngDevMode) {
-    return;
-  }
-  const tView = lView[TVIEW];
-  const slotIndex = getGenericConditionalBlockDetailsSlotIndex(conditionalBlockIndex);
-  assertIndexInDeclRange(tView, slotIndex);
-  lView[slotIndex] = lDetails;
 }
 
 function isTConditionalBlockDetails(

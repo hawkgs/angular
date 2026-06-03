@@ -31,8 +31,6 @@ export enum DebugConditionalType {
   ConditionalBranch = 1,
 }
 
-export const CONDITIONAL_BLOCK_L_DUMMY = 0;
-
 export interface TGenericConditionalBlockDetails {
   __cond: DebugConditionalType;
 }
@@ -40,16 +38,9 @@ export interface TGenericConditionalBlockDetails {
 export interface TConditionalBlockDetails extends TGenericConditionalBlockDetails {
   __cond: DebugConditionalType.Conditional;
   type?: DebugConditionalCreateType;
-  tDummy: string;
-}
-
-export interface LConditionalBlockDetails extends Array<unknown> {
-  [CONDITIONAL_BLOCK_L_DUMMY]: string;
 }
 
 export interface TConditionalBranchBlockDetails extends TGenericConditionalBlockDetails {
   __cond: DebugConditionalType.ConditionalBranch;
   type?: DebugConditionalBranchCreateType;
 }
-
-export interface LConditionalBranchBlockDetails extends Array<unknown> {}
