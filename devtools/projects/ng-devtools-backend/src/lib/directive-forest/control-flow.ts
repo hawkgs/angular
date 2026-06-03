@@ -81,8 +81,6 @@ export function mapToDevtoolsControlFlowModel(
       return {
         id: `ifId-${rootId}-${iteratorCurrentIdx}`,
         type: ControlFlowBlockType.If,
-        lDummy: block.lDummy,
-        tDummy: block.tDummy,
       } satisfies IfBlock as IfBlock;
 
     case ControlFlowBlockTypeInternal.ElseIf:
@@ -101,8 +99,6 @@ export function mapToDevtoolsControlFlowModel(
       return {
         id: `switchId-${rootId}-${iteratorCurrentIdx}`,
         type: ControlFlowBlockType.Switch,
-        lDummy: block.lDummy,
-        tDummy: block.tDummy,
       } satisfies SwitchBlock as SwitchBlock;
 
     case ControlFlowBlockTypeInternal.Case:

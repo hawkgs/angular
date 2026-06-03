@@ -125,8 +125,6 @@ export interface ForLoopBlock extends ControlFlowBlock {
 
 export interface IfBlock extends ControlFlowBlock {
   type: ControlFlowBlockType.If;
-  tDummy: string;
-  lDummy: string;
 }
 
 export interface ElseIfBlock extends ControlFlowBlock {
@@ -139,8 +137,6 @@ export interface ElseBlock extends ControlFlowBlock {
 
 export interface SwitchBlock extends ControlFlowBlock {
   type: ControlFlowBlockType.Switch;
-  tDummy: string;
-  lDummy: string;
 }
 
 export interface CaseBlock extends ControlFlowBlock {

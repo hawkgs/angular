@@ -56,15 +56,10 @@ import {
   DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
   DebugConditionalType,
-  LConditionalBlockDetails,
-  LConditionalBranchBlockDetails,
   TConditionalBlockDetails,
   TConditionalBranchBlockDetails,
 } from '../interfaces/control_flow';
-import {
-  setDebugLGenericConditionalBlockDetails,
-  setDebugTGenericConditionalBlockDetails,
-} from '../util/control_flow';
+import {setDebugTGenericConditionalBlockDetails} from '../util/control_flow';
 
 /**
  * Creates an LContainer for an ng-template representing a root node
@@ -103,19 +98,14 @@ export function ɵɵconditionalCreate(
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
   // New
-  const adjustedIndex = HEADER_OFFSET + index;
-
   if (tView.firstCreatePass) {
+    const adjustedIndex = HEADER_OFFSET + index;
     const tDetails: TConditionalBlockDetails = {
       __cond: DebugConditionalType.Conditional,
-      tDummy: 'tDevtools',
       type: debugConditionalCreateType,
     };
     setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
   }
-
-  const lDetails: LConditionalBlockDetails = ['lDevtools'];
-  setDebugLGenericConditionalBlockDetails(lView, adjustedIndex, lDetails);
   // New end
 
   declareNoDirectiveHostTemplate(
@@ -169,18 +159,14 @@ export function ɵɵconditionalBranchCreate(
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
   // New Start
-  const adjustedIndex = HEADER_OFFSET + index;
-
   if (tView.firstCreatePass) {
+    const adjustedIndex = HEADER_OFFSET + index;
     const tDetails: TConditionalBranchBlockDetails = {
       __cond: DebugConditionalType.ConditionalBranch,
       type: debugConditionalBranchCreateType,
     };
     setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
   }
-
-  const lDetails: LConditionalBranchBlockDetails = [];
-  setDebugLGenericConditionalBlockDetails(lView, adjustedIndex, lDetails);
   // New end
 
   declareNoDirectiveHostTemplate(
