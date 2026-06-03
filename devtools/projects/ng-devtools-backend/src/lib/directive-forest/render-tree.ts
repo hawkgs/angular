@@ -185,6 +185,9 @@ export class RTreeStrategy {
   build(element: Element, rootId: number = 0): ComponentTreeNode[] {
     const ng = ngDebugClient();
     const controlFlowBlocks = ng.ɵgetControlFlowBlocks?.(element) ?? [];
+
+    console.log(controlFlowBlocks);
+
     const ctx: TreeExtractionContext = {
       blocksIterator: new ControlFlowBlocksIterator(controlFlowBlocks),
       rootId,

@@ -14,9 +14,11 @@ export enum ControlFlowBlockType {
   Defer = 0,
   For = 1,
   If = 2,
-  IfBranch = 3,
-  Switch = 4,
-  SwitchBranch = 5,
+  ElseIf = 3,
+  Else = 4,
+  Switch = 5,
+  Case = 6,
+  Default = 7,
 }
 
 export interface ControlFlowBlockDataBase {
@@ -88,9 +90,17 @@ export interface IfBlockData extends ControlFlowBlockDataBase {
   lDummy: string;
 }
 
-/** Retrieved infromation about an if `@else` or `@else if` block. */
-export interface IfBranchBlockData extends ControlFlowBlockDataBase {
-  type: ControlFlowBlockType.IfBranch;
+/** Retrieved infromation about an if `@else if` block. */
+export interface ElseIfBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.ElseIf;
+
+  /** Reference to the parent `@if` block. */
+  parent: IfBlockData;
+}
+
+/** Retrieved infromation about an if `@else` block. */
+export interface ElseBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.Else;
 
   /** Reference to the parent `@if` block. */
   parent: IfBlockData;
@@ -105,9 +115,17 @@ export interface SwitchBlockData extends ControlFlowBlockDataBase {
   lDummy: string;
 }
 
-/** Retrieved information about a switch `@case` or `@default` block. */
-export interface SwitchBranchBlockData extends ControlFlowBlockDataBase {
-  type: ControlFlowBlockType.SwitchBranch;
+/** Retrieved information about a switch `@case` block. */
+export interface CaseBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.Case;
+
+  /** Reference to the parent `@switch` block. */
+  parent: SwitchBlockData;
+}
+
+/** Retrieved information about a switch `@default` block. */
+export interface DefaultBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.Default;
 
   /** Reference to the parent `@switch` block. */
   parent: SwitchBlockData;
@@ -117,7 +135,11 @@ export interface SwitchBranchBlockData extends ControlFlowBlockDataBase {
 export type ConditionalBlockData = IfBlockData | SwitchBlockData;
 
 /** A collective type for `@else`, `@else if`, `@case` and `@default` blocks data. */
-export type ConditionalBranchBlockData = IfBranchBlockData | SwitchBranchBlockData;
+export type ConditionalBranchBlockData =
+  | ElseIfBlockData
+  | ElseBlockData
+  | CaseBlockData
+  | DefaultBlockData;
 
 /**
  * A control flow block information object.
@@ -126,9 +148,11 @@ export type ControlFlowBlock =
   | DeferBlockData
   | ForLoopBlockData
   | IfBlockData
-  | IfBranchBlockData
+  | ElseIfBlockData
+  | ElseBlockData
   | SwitchBlockData
-  | SwitchBranchBlockData;
+  | CaseBlockData
+  | DefaultBlockData;
 
 /**
  * A configuration object passed to a `ControlFlowBlockViewFinder` function.

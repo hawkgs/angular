@@ -19,8 +19,10 @@ import {
   RenderedDeferBlock,
   IfBlock,
   SwitchBlock,
-  IfBranchBlock,
-  SwitchBranchBlock,
+  ElseIfBlock,
+  ElseBlock,
+  CaseBlock,
+  DefaultBlock,
 } from '../../../../protocol';
 import {ComponentTreeNode} from '../interfaces';
 import {serializeValue} from '../state-serializer/state-serializer';
@@ -29,9 +31,11 @@ const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.Defer]: '@defer',
   [ControlFlowBlockType.For]: '@for',
   [ControlFlowBlockType.If]: '@if',
+  [ControlFlowBlockType.ElseIf]: '@else if',
+  [ControlFlowBlockType.Else]: '@else',
   [ControlFlowBlockType.Switch]: '@switch',
-  [ControlFlowBlockType.IfBranch]: '@else',
-  [ControlFlowBlockType.SwitchBranch]: '@case',
+  [ControlFlowBlockType.Case]: '@case',
+  [ControlFlowBlockType.Default]: '@default',
 };
 
 export function isControlFlowBlock(node: Node, iterator: ControlFlowBlocksIterator) {
@@ -81,11 +85,17 @@ export function mapToDevtoolsControlFlowModel(
         tDummy: block.tDummy,
       } satisfies IfBlock as IfBlock;
 
-    case ControlFlowBlockTypeInternal.IfBranch:
+    case ControlFlowBlockTypeInternal.ElseIf:
       return {
-        id: `ifBranchId-${rootId}-${iteratorCurrentIdx}`,
-        type: ControlFlowBlockType.IfBranch,
-      } satisfies IfBranchBlock as IfBranchBlock;
+        id: `elseIfId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.ElseIf,
+      } satisfies ElseIfBlock as ElseIfBlock;
+
+    case ControlFlowBlockTypeInternal.Else:
+      return {
+        id: `elseId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.Else,
+      } satisfies ElseBlock as ElseBlock;
 
     case ControlFlowBlockTypeInternal.Switch:
       return {
@@ -95,11 +105,17 @@ export function mapToDevtoolsControlFlowModel(
         tDummy: block.tDummy,
       } satisfies SwitchBlock as SwitchBlock;
 
-    case ControlFlowBlockTypeInternal.SwitchBranch:
+    case ControlFlowBlockTypeInternal.Case:
       return {
-        id: `switchBranchId-${rootId}-${iteratorCurrentIdx}`,
-        type: ControlFlowBlockType.SwitchBranch,
-      } satisfies SwitchBranchBlock as SwitchBranchBlock;
+        id: `caseId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.Case,
+      } satisfies CaseBlock as CaseBlock;
+
+    case ControlFlowBlockTypeInternal.Default:
+      return {
+        id: `defaultId-${rootId}-${iteratorCurrentIdx}`,
+        type: block.type,
+      } satisfies DefaultBlock as DefaultBlock;
   }
 }
 

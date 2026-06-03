@@ -84,9 +84,11 @@ export enum ControlFlowBlockType {
   Defer = 0,
   For = 1,
   If = 2,
-  IfBranch = 3,
-  Switch = 4,
-  SwitchBranch = 5,
+  ElseIf = 3,
+  Else = 4,
+  Switch = 5,
+  Case = 6,
+  Default = 7,
 }
 
 export interface ControlFlowBlock {
@@ -127,8 +129,12 @@ export interface IfBlock extends ControlFlowBlock {
   lDummy: string;
 }
 
-export interface IfBranchBlock extends ControlFlowBlock {
-  type: ControlFlowBlockType.IfBranch;
+export interface ElseIfBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.ElseIf;
+}
+
+export interface ElseBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.Else;
 }
 
 export interface SwitchBlock extends ControlFlowBlock {
@@ -137,8 +143,12 @@ export interface SwitchBlock extends ControlFlowBlock {
   lDummy: string;
 }
 
-export interface SwitchBranchBlock extends ControlFlowBlock {
-  type: ControlFlowBlockType.SwitchBranch;
+export interface CaseBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.Case;
+}
+
+export interface DefaultBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.Default;
 }
 
 export type ChangeDetection = 'ng-on-push' | 'ng-eager' | 'acx-on-push' | 'acx-default';
@@ -341,7 +351,7 @@ export interface DirectiveProfile {
 export interface ElementProfile {
   directives: DirectiveProfile[];
   children: ElementProfile[];
-  type: 'element' | 'defer' | 'for' | 'if' | 'if-branch' | 'switch' | 'switch-branch';
+  type: 'element' | 'defer' | 'for' | 'if' | 'else-if' | 'else' | 'switch' | 'case' | 'default';
 }
 
 export interface ProfilerFrame {

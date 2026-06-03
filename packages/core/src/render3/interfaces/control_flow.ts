@@ -9,6 +9,7 @@
 /**
  * Represents `conditionalCreate` control flow instruction type, i.e. `@if` or `@switch`.
  */
+// The type copy exists in compiler > template pipeline.
 export enum DebugConditionalCreateType {
   IfBlock = 0,
   SwitchBlock = 1,
@@ -17,7 +18,7 @@ export enum DebugConditionalCreateType {
 /**
  * Represents ConditionalBranchCreateOp type, i.e. `@else if`, `@else`, `@case` or `@default`.
  */
-// The type exists in
+// The type copy exists in compiler > template pipeline.
 export enum DebugConditionalBranchCreateType {
   ElseIfBlock = 0,
   ElseBlock = 1,
@@ -25,9 +26,19 @@ export enum DebugConditionalBranchCreateType {
   DefaultBlock = 3,
 }
 
+export enum DebugConditionalType {
+  Conditional = 0,
+  ConditionalBranch = 1,
+}
+
 export const CONDITIONAL_BLOCK_L_DUMMY = 0;
 
-export interface TConditionalBlockDetails {
+export interface TGenericConditionalBlockDetails {
+  __cond: DebugConditionalType;
+}
+
+export interface TConditionalBlockDetails extends TGenericConditionalBlockDetails {
+  __cond: DebugConditionalType.Conditional;
   type?: DebugConditionalCreateType;
   tDummy: string;
 }
@@ -36,7 +47,8 @@ export interface LConditionalBlockDetails extends Array<unknown> {
   [CONDITIONAL_BLOCK_L_DUMMY]: string;
 }
 
-export interface TConditionalBranchBlockDetails {
+export interface TConditionalBranchBlockDetails extends TGenericConditionalBlockDetails {
+  __cond: DebugConditionalType.ConditionalBranch;
   type?: DebugConditionalBranchCreateType;
 }
 
