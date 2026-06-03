@@ -35,11 +35,14 @@ import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
 import {
   CONDITIONAL_BLOCK_L_DUMMY,
+  DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
+  DebugConditionalType,
   LConditionalBlockDetails,
   LConditionalBranchBlockDetails,
   TConditionalBlockDetails,
   TConditionalBranchBlockDetails,
+  TGenericConditionalBlockDetails,
 } from '../interfaces/control_flow';
 import {isTNodeShape, TNode, TNodeFlags} from '../interfaces/node';
 
@@ -245,8 +248,8 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
     return null;
   }
 
-  const tDetails = getTGenericConditionalBlockDetails<TConditionalBlockDetails>(tView, tNode);
-  if (!tDetails) {
+  const tDetails = getTGenericConditionalBlockDetails(tView, tNode);
+  if (!tDetails || !isTConditionalBlockDetails(tDetails)) {
     return null;
   }
 
@@ -460,15 +463,16 @@ export function getGenericConditionalBlockDetailsSlotIndex(conditionalBlockIndex
   return conditionalBlockIndex + 1;
 }
 
-function getTGenericConditionalBlockDetails<
-  T = TConditionalBlockDetails | TConditionalBranchBlockDetails,
->(tView: TView, tNode: TNode): T | null {
+function getTGenericConditionalBlockDetails(
+  tView: TView,
+  tNode: TNode,
+): TGenericConditionalBlockDetails | null {
   const slotIndex = getGenericConditionalBlockDetailsSlotIndex(tNode.index);
   if (isNaN(slotIndex)) {
     return null;
   }
   ngDevMode && assertIndexInDeclRange(tView, slotIndex);
-  return tView.data[slotIndex] as T;
+  return tView.data[slotIndex] as TGenericConditionalBlockDetails;
 }
 
 function getLConditionalBlockDetails<T = LConditionalBlockDetails | LConditionalBranchBlockDetails>(
@@ -510,6 +514,18 @@ export function setDebugLGenericConditionalBlockDetails(
   lView[slotIndex] = lDetails;
 }
 
+function isTConditionalBlockDetails(
+  details: TGenericConditionalBlockDetails,
+): details is TConditionalBlockDetails {
+  return details.__cond === DebugConditionalType.Conditional;
+}
+
+function isTConditionalBranchBlockDetails(
+  details: TGenericConditionalBlockDetails,
+): details is TConditionalBranchBlockDetails {
+  return details.__cond === DebugConditionalType.ConditionalBranch;
+}
+
 function getTConditionalBlockType(tDetails: TConditionalBlockDetails): ControlFlowBlockType {
   switch (tDetails.type) {
     case DebugConditionalCreateType.IfBlock:
@@ -519,6 +535,15 @@ function getTConditionalBlockType(tDetails: TConditionalBlockDetails): ControlFl
       return ControlFlowBlockType.Switch;
   }
 }
+
+const CONDITIONAL_BRANCH_TYPES: {
+  [key in DebugConditionalBranchCreateType]: ControlFlowBlockType;
+} = {
+  [DebugConditionalBranchCreateType.ElseIfBlock]: ControlFlowBlockType.ElseIf,
+  [DebugConditionalBranchCreateType.ElseBlock]: ControlFlowBlockType.Else,
+  [DebugConditionalBranchCreateType.CaseBlock]: ControlFlowBlockType.Case,
+  [DebugConditionalBranchCreateType.DefaultBlock]: ControlFlowBlockType.Default,
+};
 
 /**
  * Extracts all conditional branch blocks from a `TView` based on the slot index
@@ -534,16 +559,22 @@ function getConditionalBranches(
 ): ConditionalBranchBlockData[] {
   const branches: ConditionalBranchBlockData[] = [];
   // Adjust the index in order to skip the conditional TDetails block.
-  const adjustedIndex = getGenericConditionalBlockDetailsSlotIndex(parentSlot);
+  const adjustedIndex = getGenericConditionalBlockDetailsSlotIndex(parentSlot) + 1;
 
-  for (let slot = adjustedIndex + 1; slot < tView.bindingStartIndex; slot++) {
-    const tViewEntry = tView.data[slot];
+  let slot = adjustedIndex;
+  // We start looking for any branches right after the control flow start block data.
+  // If we don't find any neighboring ones, we break the loop.
+  while (slot < tView.bindingStartIndex) {
+    const tNode = tView.data[slot];
     const isConditionalBranch =
-      tViewEntry != null &&
-      isTNodeShape(tViewEntry) &&
-      (tViewEntry.flags & TNodeFlags.isInControlFlow) !== 0;
+      tNode != null && isTNodeShape(tNode) && (tNode.flags & TNodeFlags.isInControlFlow) !== 0;
 
     if (!isConditionalBranch) {
+      break;
+    }
+
+    const tDetails = getTGenericConditionalBlockDetails(tView, tNode);
+    if (!tDetails || !isTConditionalBranchBlockDetails(tDetails) || tDetails.type == null) {
       break;
     }
 
@@ -561,22 +592,15 @@ function getConditionalBranches(
       );
     }
 
-    const isIfBlock = parentBlock.type === ControlFlowBlockType.If;
-    const branch: ConditionalBranchBlockData = isIfBlock
-      ? {
-          type: ControlFlowBlockType.IfBranch,
-          hostNode,
-          rootNodes,
-          parent: parentBlock,
-        }
-      : {
-          type: ControlFlowBlockType.SwitchBranch,
-          hostNode,
-          rootNodes,
-          parent: parentBlock,
-        };
+    branches.push({
+      type: CONDITIONAL_BRANCH_TYPES[tDetails.type],
+      hostNode,
+      rootNodes,
+      parent: parentBlock,
+    } as ConditionalBranchBlockData);
 
-    branches.push(branch);
+    // This will move the slot index to the next conditional block.
+    slot = getGenericConditionalBlockDetailsSlotIndex(slot) + 1;
   }
 
   return branches;

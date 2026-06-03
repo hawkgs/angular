@@ -7,14 +7,16 @@
  */
 
 import {
+  CaseBlock,
   ControlFlowBlock,
   ControlFlowBlockType,
+  DefaultBlock,
   DeferBlock,
+  ElseBlock,
+  ElseIfBlock,
   ForLoopBlock,
   IfBlock,
-  IfBranchBlock,
   SwitchBlock,
-  SwitchBranchBlock,
 } from '../../../../../protocol';
 
 export const BlockType = {
@@ -32,13 +34,15 @@ export const BlockType = {
 
   isConditionalBlock(
     node: ControlFlowBlock | null,
-  ): node is IfBlock | IfBranchBlock | SwitchBlock | SwitchBranchBlock {
+  ): node is IfBlock | ElseIfBlock | ElseBlock | SwitchBlock | CaseBlock | DefaultBlock {
     return (
       !!node &&
       (node.type === ControlFlowBlockType.If ||
-        node.type === ControlFlowBlockType.IfBranch ||
+        node.type === ControlFlowBlockType.ElseIf ||
+        node.type === ControlFlowBlockType.Else ||
         node.type === ControlFlowBlockType.Switch ||
-        node.type === ControlFlowBlockType.SwitchBranch)
+        node.type === ControlFlowBlockType.Case ||
+        node.type === ControlFlowBlockType.Default)
     );
   },
 };

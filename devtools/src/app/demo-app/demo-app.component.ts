@@ -36,6 +36,8 @@ import {ZippyComponent} from './zippy.component';
   template: `
     @if (flag()) {
       <p>TRUE</p>
+    } @else if (false) {
+      <p>NEVER</p>
     } @else {
       <p>FALSE</p>
     }

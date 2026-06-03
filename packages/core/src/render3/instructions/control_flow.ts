@@ -55,6 +55,7 @@ import {allLeavingAnimations} from '../../animation/longest_animation';
 import {
   DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
+  DebugConditionalType,
   LConditionalBlockDetails,
   LConditionalBranchBlockDetails,
   TConditionalBlockDetails,
@@ -106,6 +107,7 @@ export function ɵɵconditionalCreate(
 
   if (tView.firstCreatePass) {
     const tDetails: TConditionalBlockDetails = {
+      __cond: DebugConditionalType.Conditional,
       tDummy: 'tDevtools',
       type: debugConditionalCreateType,
     };
@@ -171,6 +173,7 @@ export function ɵɵconditionalBranchCreate(
 
   if (tView.firstCreatePass) {
     const tDetails: TConditionalBranchBlockDetails = {
+      __cond: DebugConditionalType.ConditionalBranch,
       type: debugConditionalBranchCreateType,
     };
     setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);

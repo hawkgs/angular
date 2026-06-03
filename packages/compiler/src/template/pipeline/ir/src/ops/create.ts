@@ -410,6 +410,7 @@ export function createTemplateOp(
 /**
  * Represents ConditionalCreateOp type, i.e. `@if` or `@switch`.
  */
+// Type copy exists in core > ivy.
 export enum DebugConditionalCreateType {
   IfBlock = 0,
   SwitchBlock = 1,
@@ -491,6 +492,7 @@ export function createConditionalCreateOp(
 /**
  * Represents ConditionalBranchCreateOp type, i.e. `@else if`, `@else`, `@case` or `@default`.
  */
+// Type copy exists in core > ivy.
 export enum DebugConditionalBranchCreateType {
   ElseIfBlock = 0,
   ElseBlock = 1,
