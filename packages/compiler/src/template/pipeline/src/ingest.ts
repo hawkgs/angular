@@ -612,6 +612,7 @@ function ingestIfBlock(unit: ViewCompilationUnit, ifBlock: t.IfBlock): void {
       ifCase.sourceSpan,
     ] as const;
 
+    // QUESTION(hawkgs): Can we insert the type data only in an optimized build?
     const conditionalCreateOp =
       i === 0
         ? ir.createConditionalCreateOp(...args, ir.DebugConditionalCreateType.IfBlock)
@@ -677,6 +678,7 @@ function ingestSwitchBlock(unit: ViewCompilationUnit, switchBlock: t.SwitchBlock
       switchCaseGroup.sourceSpan,
     ] as const;
 
+    // QUESTION(hawkgs): Can we insert the type data only in an optimized build?
     const conditionalCreateOp =
       i === 0
         ? ir.createConditionalCreateOp(...args, ir.DebugConditionalCreateType.SwitchBlock)
