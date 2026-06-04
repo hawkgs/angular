@@ -437,8 +437,8 @@ export function createConditionalCreateOp(
     wholeSourceSpan,
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
-    debugConditionalCreateType, // TODO(hawkgs): Should be appended only in dev mode.
-    numSlotsUsed: 2, // TODO/QUESTION(hawkgs): Can we increment the slot only in dev mode?
+    debugConditionalCreateType,
+    numSlotsUsed: 2, // QUESTION(hawkgs): Can we increment the slot only in an optimized build?
   };
 }
 
@@ -521,8 +521,8 @@ export function createConditionalBranchCreateOp(
     wholeSourceSpan,
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
-    debugConditionalBranchCreateType, // TODO(hawkgs): Should be appended only in dev mode.
-    numSlotsUsed: 2, // TODO/QUESTION(hawkgs): Can we increment the slot only in dev mode?
+    debugConditionalBranchCreateType,
+    numSlotsUsed: 2, // QUESTION(hawkgs): Can we increment the slot only in an optimized build?
   };
 }
 

@@ -460,9 +460,6 @@ function getTGenericConditionalBlockDetails(
   tNode: TNode,
 ): TGenericConditionalBlockDetails | null {
   const slotIndex = getGenericConditionalBlockDetailsSlotIndex(tNode.index);
-  if (isNaN(slotIndex)) {
-    return null;
-  }
   ngDevMode && assertIndexInDeclRange(tView, slotIndex);
   return tView.data[slotIndex] as TGenericConditionalBlockDetails;
 }
@@ -472,12 +469,8 @@ export function setDebugTGenericConditionalBlockDetails(
   conditionalBlockIndex: number,
   tDetails: TConditionalBlockDetails | TConditionalBranchBlockDetails,
 ) {
-  // Warning: Currently, the TDetails slot is allocated on all envs.
-  if (!ngDevMode) {
-    return;
-  }
   const slotIndex = getGenericConditionalBlockDetailsSlotIndex(conditionalBlockIndex);
-  assertIndexInDeclRange(tView, slotIndex);
+  ngDevMode && assertIndexInDeclRange(tView, slotIndex);
   tView.data[slotIndex] = tDetails;
 }
 

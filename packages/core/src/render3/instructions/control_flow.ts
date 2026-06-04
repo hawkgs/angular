@@ -97,8 +97,8 @@ export function ɵɵconditionalCreate(
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
-  // New
-  if (tView.firstCreatePass) {
+  // Debug data insertion START
+  if (ngDevMode && tView.firstCreatePass) {
     const adjustedIndex = HEADER_OFFSET + index;
     const tDetails: TConditionalBlockDetails = {
       __cond: DebugConditionalType.Conditional,
@@ -106,7 +106,7 @@ export function ɵɵconditionalCreate(
     };
     setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
   }
-  // New end
+  // Debug data insertion END
 
   declareNoDirectiveHostTemplate(
     lView,
@@ -158,8 +158,8 @@ export function ɵɵconditionalBranchCreate(
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
-  // New Start
-  if (tView.firstCreatePass) {
+  // Debug data insertion START
+  if (ngDevMode && tView.firstCreatePass) {
     const adjustedIndex = HEADER_OFFSET + index;
     const tDetails: TConditionalBranchBlockDetails = {
       __cond: DebugConditionalType.ConditionalBranch,
@@ -167,7 +167,7 @@ export function ɵɵconditionalBranchCreate(
     };
     setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
   }
-  // New end
+  // Debug data insertion END
 
   declareNoDirectiveHostTemplate(
     lView,
