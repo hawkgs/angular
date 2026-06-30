@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Route} from '../../../protocol';
+import {Route} from '../../../../protocol';
 import type {Route as AngularRoute, ActivatedRoute} from '@angular/router';
 
 export type RoutePropertyType =

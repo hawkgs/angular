@@ -12,7 +12,7 @@ import {
   getInjectorFromElementNode,
   findNodeFromSerializedPosition,
   queryDirectiveForest,
-} from '../../../ng-devtools-backend/src/lib/component-tree/component-tree';
+} from '../../../ng-devtools-backend/src/lib/directive-forest/component-tree/component-tree';
 
 import {ElementPosition, SignalNodePosition} from '../../../protocol';
 import {ngDebugClient} from '../../../ng-devtools-backend/src/lib/ng-debug-api/ng-debug-api';

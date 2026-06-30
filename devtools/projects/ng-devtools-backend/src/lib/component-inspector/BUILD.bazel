@@ -7,8 +7,8 @@ ts_project(
     srcs = ["component-inspector.ts"],
     deps = [
         "//devtools/projects/ng-devtools-backend/src/lib:interfaces",
-        "//devtools/projects/ng-devtools-backend/src/lib/component-tree",
         "//devtools/projects/ng-devtools-backend/src/lib/directive-forest:manager",
+        "//devtools/projects/ng-devtools-backend/src/lib/directive-forest/component-tree",
         "//devtools/projects/ng-devtools-backend/src/lib/highlighter",
         "//devtools/projects/ng-devtools-backend/src/lib/profiling",
         "//devtools/projects/protocol",

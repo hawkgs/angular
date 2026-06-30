@@ -31,25 +31,23 @@ import {
   SerializedInjector,
   SerializedProviderRecord,
   UpdatedStateData,
-} from '../../../../protocol';
-import {
-  buildDirectiveForestWithStrategy,
-  getLViewFromDirectiveOrElementInstance,
-} from '../directive-forest/index';
+} from '../../../../../protocol';
+import {buildDirectiveForestWithStrategy} from '..';
 import {
   ngDebugApiIsSupported,
   ngDebugClient,
   ngDebugDependencyInjectionApiIsSupported,
-} from '../ng-debug-api/ng-debug-api';
+} from '../../ng-debug-api/ng-debug-api';
 import {
   deeplySerializeSelectedProperties,
   serializeDirectiveState,
-} from '../state-serializer/state-serializer';
-import {mutateNestedProp} from '../property-mutation';
-import {ComponentTreeNode, DirectiveInstanceType, ComponentInstanceType} from '../interfaces';
+} from '../../state-serializer/state-serializer';
+import {mutateNestedProp} from '../property-mutation/property-mutation';
+import {ComponentTreeNode, DirectiveInstanceType, ComponentInstanceType} from '../../interfaces';
 import {getAppRoots} from './get-roots';
-import {AcxChangeDetectionStrategy, ChangeDetectionStrategy, Framework} from './core-enums';
-import {unwrapSignal} from '../utils/general';
+import {AcxChangeDetectionStrategy, ChangeDetectionStrategy, Framework} from '../core-enums';
+import {unwrapSignal} from '../../utils/general';
+import {getLViewFromDirectiveOrElementInstance} from '../tree-strategies/ltree';
 
 export const injectorToId = new WeakMap<Injector | HTMLElement, string>();
 export const nodeInjectorToResolutionPath = new WeakMap<HTMLElement, SerializedInjector[]>();

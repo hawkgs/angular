@@ -12,7 +12,7 @@ import {
   findComponentAndHost,
   findNodeInForest,
   getDirectiveName,
-} from '../component-tree/component-tree';
+} from '../directive-forest/component-tree/component-tree';
 import {getDirectiveForestManager} from '../directive-forest/manager';
 import {highlightElement} from '../highlighter';
 import {Highlight, inspectElementHighlightTemplate} from '../highlighter/highlights';

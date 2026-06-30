@@ -49,14 +49,18 @@ import {
   serializeProviderRecord,
   serializeResolutionPath,
   updateState,
-} from './component-tree/component-tree';
+} from './directive-forest/component-tree/component-tree';
 import {start as startProfiling, stop as stopProfiling} from './profiling/capture';
 import {disableTimingAPI, enableTimingAPI} from './profiling/timing-api';
 import {getProfiler, Profiler} from './profiling/profiler';
 import {ComponentTreeNode} from './interfaces';
 import {ngDebugClient, ngDebugDependencyInjectionApiIsSupported} from './ng-debug-api/ng-debug-api';
 import {getSupportedApis} from './ng-debug-api/supported-apis';
-import {getRouterCallableConstructRef, parseRoutes, RoutePropertyType} from './router-tree';
+import {
+  getRouterCallableConstructRef,
+  parseRoutes,
+  RoutePropertyType,
+} from './router-tree/router-tree';
 import {setConsoleReference} from './set-console-reference';
 import {serializeDirectiveState, serializeValue} from './state-serializer/state-serializer';
 import {runOutsideAngular, unwrapSignal} from './utils/general';
@@ -614,27 +618,6 @@ const getTransferStateCallback = (messageBus: MessageBus<Events>) => () => {
   }
 
   messageBus.emit('transferStateData', [collected ? merged : null]);
-};
-
-const getInjectorInstance = (
-  serializedInjector: SerializedInjector,
-  serializedProvider: SerializedProviderRecord,
-) => {
-  const injector = idToInjector.get(serializedInjector.id)?.deref();
-  if (!injector) {
-    return;
-  }
-
-  const providerRecords = getInjectorProviders(injector);
-
-  if (typeof serializedProvider.index === 'number') {
-    const provider = providerRecords[serializedProvider.index];
-    return injector.get(provider.token, null, {optional: true});
-  } else if (Array.isArray(serializedProvider.index)) {
-    const providers = serializedProvider.index.map((index) => providerRecords[index]);
-    return injector.get(providers[0].token, null, {optional: true});
-  }
-  return null;
 };
 
 const getSignalGraphCallback = (messageBus: MessageBus<Events>) => (element: ElementPosition) => {
