@@ -9,7 +9,7 @@
 import {ElementPosition, LifecycleProfile} from '../../../../../protocol';
 import {Subject} from 'rxjs';
 
-import {NodeArray} from '../../directive-forest/identity-tracker';
+import {NodeArray} from '../../directive-forest/identity-tracker/identity-tracker';
 import {ComponentInstance, DirectiveInstance} from '../../interfaces';
 
 type CreationHook = (

@@ -17,9 +17,9 @@ import {
   ForLoopBlock,
   DeferBlock,
   RenderedDeferBlock,
-} from '../../../../protocol';
-import {ComponentTreeNode} from '../interfaces';
-import {serializeValue} from '../state-serializer/state-serializer';
+} from '../../../../../protocol';
+import {ComponentTreeNode} from '../../interfaces';
+import {serializeValue} from '../../state-serializer/state-serializer';
 
 const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.Defer]: '@defer',

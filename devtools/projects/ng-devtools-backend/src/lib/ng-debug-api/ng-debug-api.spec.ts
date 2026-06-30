@@ -15,7 +15,7 @@ import {
   ngDebugSignalPropertiesInspectionApiIsSupported,
   ngDebugTransferStateApiIsSupported,
 } from './ng-debug-api';
-import {Framework} from '../component-tree/core-enums';
+import {Framework} from '../directive-forest/core-enums';
 
 type Ng = ɵFrameworkAgnosticGlobalUtils;
 

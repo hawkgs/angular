@@ -1,6 +1,6 @@
 load("//devtools/tools:defaults.bzl", "ng_project", "ts_test_library", "zoneless_web_test_suite")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//devtools:__subpackages__"])
 
 ng_project(
     name = "state-serializer",

@@ -15,7 +15,7 @@ import {
   HighlightType,
 } from './highlights';
 import {createOverlayWithLabels, getComponentRect} from './dom';
-import {findDirectiveAndHost} from '../component-tree/component-tree';
+import {findDirectiveAndHost} from '../directive-forest/component-tree/component-tree';
 
 // A global synchronous event emitter that handles all highlight destroy events.
 const highlightDestroyEvents = new EventEmitter<[highlight: Highlight]>();

@@ -9,7 +9,7 @@
 import {ElementPosition} from '../../../../protocol';
 import {ComponentTreeNode, DirectiveInstance} from '../interfaces';
 import {getProfiler} from '../profiling/profiler';
-import {IdentityTracker, IndexedNode, IndexingOutput} from './identity-tracker';
+import {IdentityTracker, IndexedNode, IndexingOutput} from './identity-tracker/identity-tracker';
 
 // Global reference.
 let directiveForestManager: DirectiveForestManager;

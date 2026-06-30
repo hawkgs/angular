@@ -8,20 +8,16 @@ ts_project(
 )
 
 ts_project(
-    name = "core-enums",
-    srcs = ["core-enums.ts"],
-)
-
-ts_project(
     name = "component-tree",
     srcs = ["component-tree.ts"],
     deps = [
-        ":core-enums",
         ":get-roots",
         "//:node_modules/@angular/core",
         "//devtools/projects/ng-devtools-backend/src/lib:interfaces",
-        "//devtools/projects/ng-devtools-backend/src/lib:property_mutation",
         "//devtools/projects/ng-devtools-backend/src/lib/directive-forest",
+        "//devtools/projects/ng-devtools-backend/src/lib/directive-forest:core-enums",
+        "//devtools/projects/ng-devtools-backend/src/lib/directive-forest/property-mutation",
+        "//devtools/projects/ng-devtools-backend/src/lib/directive-forest/tree-strategies",
         "//devtools/projects/ng-devtools-backend/src/lib/ng-debug-api",
         "//devtools/projects/ng-devtools-backend/src/lib/state-serializer",
         "//devtools/projects/ng-devtools-backend/src/lib/utils",

@@ -9,9 +9,9 @@
 import semver from 'semver';
 
 import {Type} from '@angular/core';
-import {ComponentInstanceType, ComponentTreeNode, DirectiveInstanceType} from '../interfaces';
-import {isCustomElement} from '../utils/general';
-import {VERSION} from '../version';
+import {ComponentInstanceType, ComponentTreeNode, DirectiveInstanceType} from '../../interfaces';
+import {isCustomElement} from '../../utils/general';
+import {VERSION} from '../../version';
 
 let HEADER_OFFSET = 19;
 

@@ -3,14 +3,12 @@ load("//devtools/tools:defaults.bzl", "ts_project", "ts_test_library", "zoneless
 package(default_visibility = ["//devtools:__subpackages__"])
 
 ts_project(
-    name = "highlighter",
+    name = "identity-tracker",
     srcs = [
-        "dom.ts",
-        "highlights.ts",
-        "index.ts",
+        "identity-tracker.ts",
     ],
     deps = [
-        "//:node_modules/@angular/core",
+        "//devtools/projects/ng-devtools-backend/src/lib:interfaces",
         "//devtools/projects/ng-devtools-backend/src/lib/directive-forest/component-tree",
         "//devtools/projects/protocol",
     ],
@@ -19,12 +17,10 @@ ts_project(
 ts_test_library(
     name = "test_lib",
     srcs = [
-        "highlighter.spec.ts",
-        "highlights.spec.ts",
+        "identity-tracker.spec.ts",
     ],
     deps = [
-        ":highlighter",
-        "//:node_modules/@angular/core",
+        ":identity-tracker",
     ],
 )
 
