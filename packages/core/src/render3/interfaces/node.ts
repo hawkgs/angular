@@ -197,6 +197,36 @@ export const enum TNodeFlags {
    * This is used to bind to a `ControlValueAccessor` from `@angular/forms`.
    */
   isPassThroughControl = 1 << 12,
+
+  /**
+   * Bits #8 and #13
+   */
+  isIfBlock = TNodeFlags.isControlFlowStart | (1 << 13),
+
+  /**
+   * Bits #8 and #14
+   */
+  isSwitchBlock = TNodeFlags.isControlFlowStart | (1 << 14),
+
+  /**
+   * Bits #9 and #13
+   */
+  isElseIfBlock = TNodeFlags.isInControlFlow | (1 << 13),
+
+  /**
+   * Bits #9 and #14
+   */
+  isElseBlock = TNodeFlags.isInControlFlow | (1 << 14),
+
+  /**
+   * Bits #9 and #15
+   */
+  isCaseBlock = TNodeFlags.isInControlFlow | (1 << 15),
+
+  /**
+   * Bits #9 and #16
+   */
+  isDefaultBlock = TNodeFlags.isInControlFlow | (1 << 16),
 }
 
 /**

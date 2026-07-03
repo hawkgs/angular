@@ -20,7 +20,6 @@ import type {ReactiveLViewConsumer} from '../reactive_lview_consumer';
 import type {ViewEffectNode} from '../reactivity/effect';
 
 import type {LContainer} from './container';
-import {TConditionalBlockDetails, TConditionalBranchBlockDetails} from './control_flow';
 import {
   ComponentDef,
   ComponentTemplate,
@@ -958,6 +957,4 @@ export type TData = (
   | null
   | string
   | TDeferBlockDetails
-  | TConditionalBlockDetails
-  | TConditionalBranchBlockDetails
 )[];

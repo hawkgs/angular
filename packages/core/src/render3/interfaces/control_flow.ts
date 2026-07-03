@@ -30,17 +30,3 @@ export enum DebugConditionalType {
   Conditional = 0,
   ConditionalBranch = 1,
 }
-
-export interface TGenericConditionalBlockDetails {
-  __cond: DebugConditionalType;
-}
-
-export interface TConditionalBlockDetails extends TGenericConditionalBlockDetails {
-  __cond: DebugConditionalType.Conditional;
-  type?: DebugConditionalCreateType;
-}
-
-export interface TConditionalBranchBlockDetails extends TGenericConditionalBlockDetails {
-  __cond: DebugConditionalType.ConditionalBranch;
-  type?: DebugConditionalBranchCreateType;
-}

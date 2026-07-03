@@ -485,7 +485,6 @@ export function createConditionalCreateOp(
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
     debugConditionalCreateType,
-    numSlotsUsed: 2, // QUESTION(hawkgs): Can we increment the slot only in an optimized build?
   };
 }
 
@@ -569,7 +568,6 @@ export function createConditionalBranchCreateOp(
     ...TRAIT_CONSUMES_SLOT,
     ...NEW_OP,
     debugConditionalBranchCreateType,
-    numSlotsUsed: 2, // QUESTION(hawkgs): Can we increment the slot only in an optimized build?
   };
 }
 

@@ -55,11 +55,7 @@ import {allLeavingAnimations} from '../../animation/longest_animation';
 import {
   DebugConditionalBranchCreateType,
   DebugConditionalCreateType,
-  DebugConditionalType,
-  TConditionalBlockDetails,
-  TConditionalBranchBlockDetails,
 } from '../interfaces/control_flow';
-import {setDebugTGenericConditionalBlockDetails} from '../util/control_flow';
 
 /**
  * Creates an LContainer for an ng-template representing a root node
@@ -97,16 +93,10 @@ export function ɵɵconditionalCreate(
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
-  // Debug data insertion START
-  if (ngDevMode && tView.firstCreatePass) {
-    const adjustedIndex = HEADER_OFFSET + index;
-    const tDetails: TConditionalBlockDetails = {
-      __cond: DebugConditionalType.Conditional,
-      type: debugConditionalCreateType,
-    };
-    setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
-  }
-  // Debug data insertion END
+  const tNodeFlag =
+    debugConditionalCreateType === DebugConditionalCreateType.IfBlock
+      ? TNodeFlags.isIfBlock
+      : TNodeFlags.isSwitchBlock;
 
   declareNoDirectiveHostTemplate(
     lView,
@@ -117,7 +107,7 @@ export function ɵɵconditionalCreate(
     vars,
     tagName,
     attrs,
-    TNodeFlags.isControlFlowStart,
+    tNodeFlag,
     localRefsIndex,
     localRefExtractor,
   );
@@ -158,16 +148,21 @@ export function ɵɵconditionalBranchCreate(
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
-  // Debug data insertion START
-  if (ngDevMode && tView.firstCreatePass) {
-    const adjustedIndex = HEADER_OFFSET + index;
-    const tDetails: TConditionalBranchBlockDetails = {
-      __cond: DebugConditionalType.ConditionalBranch,
-      type: debugConditionalBranchCreateType,
-    };
-    setDebugTGenericConditionalBlockDetails(tView, adjustedIndex, tDetails);
+  let tNodeFlag: TNodeFlags = TNodeFlags.isInControlFlow;
+  switch (debugConditionalBranchCreateType) {
+    case DebugConditionalBranchCreateType.ElseIfBlock:
+      tNodeFlag = TNodeFlags.isElseIfBlock;
+      break;
+    case DebugConditionalBranchCreateType.ElseBlock:
+      tNodeFlag = TNodeFlags.isElseBlock;
+      break;
+    case DebugConditionalBranchCreateType.CaseBlock:
+      tNodeFlag = TNodeFlags.isCaseBlock;
+      break;
+    case DebugConditionalBranchCreateType.DefaultBlock:
+      tNodeFlag = TNodeFlags.isDefaultBlock;
+      break;
   }
-  // Debug data insertion END
 
   declareNoDirectiveHostTemplate(
     lView,
@@ -178,7 +173,7 @@ export function ɵɵconditionalBranchCreate(
     vars,
     tagName,
     attrs,
-    TNodeFlags.isInControlFlow,
+    tNodeFlag,
     localRefsIndex,
     localRefExtractor,
   );

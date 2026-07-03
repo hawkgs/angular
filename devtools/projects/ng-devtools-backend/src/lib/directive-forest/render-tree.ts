@@ -58,9 +58,9 @@ function extractViewTree(
         name: dir.constructor.name,
       };
     }),
-    tagName: domNode.nodeName.toLowerCase(),
-    nativeElement: domNode,
-    hydration: hydrationStatus(domNode),
+    tagName: node.nodeName.toLowerCase(),
+    nativeElement: node,
+    hydration: hydrationStatus(node),
     static: false,
     controlFlowBlock: null,
   };
@@ -128,7 +128,7 @@ function groupControlFlowBlocksChildren(
   // has HTML-only content.
   if (!childrenTree.length && currentBlock.rootNodes.length) {
     childrenTree.push({
-      element: '<html_content>',
+      tagName: '<html_content>',
       static: true,
       controlFlowBlock: null,
       component: null,
