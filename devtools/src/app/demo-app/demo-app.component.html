@@ -13,7 +13,7 @@
 
 <ng-if-block-test />
 
-@let value = 'foo';
+@let value = 'bar';
 @switch ($any(value)) {
   @case ('foo') {
     <p>FOO</p>
@@ -21,10 +21,10 @@
   @case ('bar') {
     <p>BAR</p>
   }
-  @case ('baz') {
-    <p>BAZ</p>
-  }
   @default {
     <p>QUX</p>
+  }
+  @case ('baz') {
+    <p>BAZ</p>
   }
 }

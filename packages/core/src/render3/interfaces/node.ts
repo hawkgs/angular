@@ -206,7 +206,12 @@ export const enum TNodeFlags {
   /**
    * Bits #8 and #14
    */
-  isSwitchBlock = TNodeFlags.isControlFlowStart | (1 << 14),
+  isSwitchFollowedByCaseBlock = TNodeFlags.isControlFlowStart | (1 << 14),
+
+  /**
+   * Bits #8 and #15
+   */
+  isSwitchFollowedByDefaultBlock = TNodeFlags.isControlFlowStart | (1 << 15),
 
   /**
    * Bits #9 and #13

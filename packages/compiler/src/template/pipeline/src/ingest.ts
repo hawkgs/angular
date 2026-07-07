@@ -679,12 +679,18 @@ function ingestSwitchBlock(unit: ViewCompilationUnit, switchBlock: t.SwitchBlock
     ] as const;
 
     // QUESTION(hawkgs): Can we insert the type data only in an optimized build?
+    const hasExpression = switchCaseGroup.cases.find((c) => c.expression);
     const conditionalCreateOp =
       i === 0
-        ? ir.createConditionalCreateOp(...args, ir.DebugConditionalCreateType.SwitchBlock)
+        ? ir.createConditionalCreateOp(
+            ...args,
+            hasExpression
+              ? ir.DebugConditionalCreateType.SwitchFollowedByCaseBlock
+              : ir.DebugConditionalCreateType.SwitchFollowedByDefaultBlock,
+          )
         : ir.createConditionalBranchCreateOp(
             ...args,
-            switchCaseGroup.cases.find((c) => c.expression)
+            hasExpression
               ? ir.DebugConditionalBranchCreateType.CaseBlock
               : ir.DebugConditionalBranchCreateType.DefaultBlock,
           );

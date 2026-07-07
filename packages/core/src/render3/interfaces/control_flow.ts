@@ -12,7 +12,8 @@
 // The type copy exists in compiler > template pipeline.
 export enum DebugConditionalCreateType {
   IfBlock = 0,
-  SwitchBlock = 1,
+  SwitchFollowedByCaseBlock = 1,
+  SwitchFollowedByDefaultBlock = 2,
 }
 
 /**

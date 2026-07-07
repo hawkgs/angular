@@ -57,6 +57,13 @@ import {
   DebugConditionalCreateType,
 } from '../interfaces/control_flow';
 
+const TEMP_COND_MAP: {[key in DebugConditionalCreateType]: TNodeFlags} = {
+  [DebugConditionalCreateType.IfBlock]: TNodeFlags.isIfBlock,
+  [DebugConditionalCreateType.SwitchFollowedByCaseBlock]: TNodeFlags.isSwitchFollowedByCaseBlock,
+  [DebugConditionalCreateType.SwitchFollowedByDefaultBlock]:
+    TNodeFlags.isSwitchFollowedByDefaultBlock,
+};
+
 /**
  * Creates an LContainer for an ng-template representing a root node
  * of control flow (@if, @switch). We use this to explicitly set
@@ -93,11 +100,6 @@ export function ɵɵconditionalCreate(
   const tView = getTView();
   const attrs = getConstant<TAttributes>(tView.consts, attrsIndex);
 
-  const tNodeFlag =
-    debugConditionalCreateType === DebugConditionalCreateType.IfBlock
-      ? TNodeFlags.isIfBlock
-      : TNodeFlags.isSwitchBlock;
-
   declareNoDirectiveHostTemplate(
     lView,
     tView,
@@ -107,7 +109,7 @@ export function ɵɵconditionalCreate(
     vars,
     tagName,
     attrs,
-    tNodeFlag,
+    TEMP_COND_MAP[debugConditionalCreateType!],
     localRefsIndex,
     localRefExtractor,
   );

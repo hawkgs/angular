@@ -33,7 +33,6 @@ import {CONTAINER_HEADER_OFFSET, LContainer, NATIVE} from '../interfaces/contain
 import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET, TView} from '../interfaces/view';
 import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
-import {DebugConditionalBranchCreateType} from '../interfaces/control_flow';
 import {isTNodeShape, TNode, TNodeFlags} from '../interfaces/node';
 
 import {
@@ -48,6 +47,8 @@ import {
   SwitchBlockData,
   ConditionalBranchBlockData,
   ConditionalBlockData,
+  CaseBlockData,
+  DefaultBlockData,
 } from './control_flow_types';
 
 /**
@@ -214,7 +215,13 @@ const forLoopBlockFinder: ControlFlowBlockViewFinder = ({
   } satisfies ForLoopBlockData;
 };
 
-const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
+/**
+ * Finds and returns all `@if` blocks along its branches (`@else if` and `@else`) in a LView.
+ *
+ * @param config Finder configuration object.
+ * @returns
+ */
+const ifBlockFinder: ControlFlowBlockViewFinder = ({
   lView,
   tView,
   slotIdx,
@@ -231,12 +238,7 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
   }
 
   const tNode = tView.data[slotIdx];
-  const isTNode = tNode != null && isTNodeShape(tNode);
-  if (!isTNode) {
-    return null;
-  }
-  const conditionalCreateType = getConditionalBlockType(tNode.flags);
-  if (!conditionalCreateType) {
+  if (tNode == null || !isTNodeShape(tNode) || !areFlagsEqual(tNode.flags, TNodeFlags.isIfBlock)) {
     return null;
   }
 
@@ -247,9 +249,9 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
     return null;
   }
 
-  const rootNodes: Node[] = [];
   // Get comment node; There should always be a comment node
   const commentHostNode = lContainer[HOST];
+  const rootNodes: Node[] = [];
   const renderedLView = getRenderedLView(lContainer);
 
   if (renderedLView) {
@@ -261,37 +263,138 @@ const conditionalBlockFinder: ControlFlowBlockViewFinder = ({
     );
   }
 
-  let parentBlock: ControlFlowBlock;
-
-  switch (conditionalCreateType) {
-    case ControlFlowBlockType.If:
-      parentBlock = {
-        type: ControlFlowBlockType.If,
-        hostNode: commentHostNode as Node,
-        rootNodes,
-      } satisfies IfBlockData;
-      break;
-    case ControlFlowBlockType.Switch:
-      parentBlock = {
-        type: ControlFlowBlockType.Switch,
-        hostNode: commentHostNode as Node,
-        rootNodes,
-      } satisfies SwitchBlockData;
-      break;
-    default:
-      throw new Error('Conditional block not recognized');
-  }
+  const parentBlock = {
+    type: ControlFlowBlockType.If,
+    hostNode: commentHostNode as Node,
+    rootNodes,
+  } satisfies IfBlockData;
 
   const branches = getConditionalBranches(lView, tView, slotIdx, parentBlock);
 
   return [parentBlock, ...branches];
 };
 
+/**
+ * Finds and returns all `@switch` blocks along its branches (`@case` and `@default`) in a LView.
+ *
+ * @param config Finder configuration object.
+ * @returns
+ */
+const switchBlockFinder: ControlFlowBlockViewFinder = ({
+  lView,
+  tView,
+  slotIdx,
+  node,
+}: ControlFlowBlockViewFinderConfig) => {
+  const slot = lView[slotIdx];
+  if (!isLContainer(slot)) {
+    return null;
+  }
+
+  const isLast = slotIdx === tView.bindingStartIndex - 1;
+  if (isLast) {
+    return null;
+  }
+
+  const tNode = tView.data[slotIdx];
+  const isSwitchBlock =
+    tNode != null &&
+    isTNodeShape(tNode) &&
+    (areFlagsEqual(tNode.flags, TNodeFlags.isSwitchFollowedByCaseBlock) ||
+      areFlagsEqual(tNode.flags, TNodeFlags.isSwitchFollowedByDefaultBlock));
+
+  if (!isSwitchBlock) {
+    return null;
+  }
+
+  const lContainer = slot;
+  const nativeNode = getNativeByTNode(tNode, lView);
+
+  if (!node.contains(nativeNode as Node)) {
+    return null;
+  }
+
+  // Get comment node; There should always be a comment node
+  const commentHostNode = lContainer[HOST];
+  const rootNodes: Node[] = [];
+  const renderedLView = getRenderedLView(lContainer);
+
+  if (renderedLView) {
+    collectNativeNodes(
+      renderedLView[TVIEW],
+      renderedLView,
+      renderedLView[TVIEW].firstChild,
+      rootNodes,
+    );
+  }
+
+  // The construction of the switch block data presents a special case.
+  // As we know, both `@if` and `@switch` use the same internal Ivy
+  // mechanism for rendering the respective template, that is, a
+  // create and branch instructions. So, for example:
+  //
+  // @if {
+  //   <!--foo-->
+  // } @else if {
+  //   <!--bar-->
+  // } @else {
+  //   <!--baz-->
+  // }
+  // Note: We are showing only comment/host nodes.
+  //
+  // will result in:
+  //
+  // create(<!--foo-->) branch(<!--bar-->) branch(<!--baz-->)
+  //
+  // where each intruction represents a conditional block – if, else if and else.
+  // That instruction set can also represent a switch statement:
+  //
+  // @switch {
+  //   @case <foo>
+  //   @case <bar>
+  //   @default <baz>
+  // }
+  //
+  // However, in that case, it's evident that the wrapping `@switch`
+  // block does not have an actual DOM node, i.e. a comment/host node.
+  // This is why, in order to overcome this and be able to represent
+  // the original statement as descibed in the template code, we:
+  //
+  //   1. Use the host node of the leading branch for the `@switch` block.
+  //.  2. Set the host nodes of all switch branches as root children/notes
+  //      of the `@switch` block. This technically embeds all following case
+  //      and default blocks into the parent switch.
+
+  const parentBlock: ControlFlowBlock = {
+    type: ControlFlowBlockType.Switch,
+    hostNode: commentHostNode as Node, // Set the leading branch host node (pt. 1)
+    rootNodes: [],
+  } satisfies SwitchBlockData;
+
+  const leadingBranchBlock = {
+    type: areFlagsEqual(tNode.flags, TNodeFlags.isSwitchFollowedByCaseBlock)
+      ? ControlFlowBlockType.Case
+      : ControlFlowBlockType.Default,
+    parent: parentBlock,
+    hostNode: commentHostNode as Node,
+    rootNodes,
+  } satisfies CaseBlockData | DefaultBlockData;
+
+  const branches = getConditionalBranches(lView, tView, slotIdx, parentBlock);
+
+  // Setting the branch host nodes (pt. 2)
+  const branchesHosts = branches.map((b) => b.hostNode);
+  parentBlock.rootNodes = [commentHostNode as Node, ...branchesHosts];
+
+  return [parentBlock, leadingBranchBlock, ...branches];
+};
+
 // Represents all supported control flow block finders.
 const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [
   deferBlockFinder,
   forLoopBlockFinder,
-  conditionalBlockFinder,
+  ifBlockFinder,
+  switchBlockFinder,
 ];
 
 /**
@@ -439,20 +542,9 @@ function getTrackExpression(metadata: RepeaterMetadataShape): string {
   return 'function';
 }
 
-// DevTools-Conditionals code START
-
+/** Checks whether two `TNodeFlags` are equal. */
 function areFlagsEqual(a: TNodeFlags, b: TNodeFlags) {
   return (a & b) === b;
-}
-
-function getConditionalBlockType(flags: TNodeFlags): ControlFlowBlockType | null {
-  if (areFlagsEqual(flags, TNodeFlags.isIfBlock)) {
-    return ControlFlowBlockType.If;
-  }
-  if (areFlagsEqual(flags, TNodeFlags.isSwitchBlock)) {
-    return ControlFlowBlockType.Switch;
-  }
-  return null;
 }
 
 function getConditionalBranchBlockType(flags: TNodeFlags): ControlFlowBlockType | null {

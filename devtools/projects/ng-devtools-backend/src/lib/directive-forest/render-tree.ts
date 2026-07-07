@@ -111,7 +111,8 @@ function groupControlFlowBlocksChildren(
   }
 
   ctx.blocksIterator.advance();
-  // It's important to store the here index before the recursive call.
+  // It's important to store the current index before the recursive call
+  // because it might change at the time of the passing to `createControlFlowTreeNode`.
   const iteratorCurrentIdx = ctx.blocksIterator.currentIndex;
 
   const childrenTree: ComponentTreeNode[] = [];

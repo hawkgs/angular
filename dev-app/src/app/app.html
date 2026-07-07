@@ -11,17 +11,17 @@
 }
 
 @switch (switchCond()) {
+  @default {
+    <p>SWITCH default</p>
+  }
   @case ('a') {
     <h5>SWITCH A</h5>
   }
-  @case ('b') {
+  @case ('test') {
     <h6>SWITCH B</h6>
   }
   @case ('c') {
     <h6>SWITCH C</h6>
-  }
-  @default {
-    <p>SWITCH default</p>
   }
 }
 
