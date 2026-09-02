@@ -117,36 +117,14 @@ export class DevToolsComponent implements OnDestroy {
   private syncBackendWithSettings() {
     // Keep BE in sync with the performance track setting.
     effect(() => {
-      if (this.settings.performanceTrack()) {
-        this.messageBus.emit('enablePerformanceTrack');
-      } else {
-        this.messageBus.emit('disablePerformanceTrack');
-      }
-    });
-
-    // Keep BE in sync with hydration visualization.
-    effect(() => {
-      if (this.settings.showHydrationOverlays()) {
-        this.messageBus.emit('createHydrationOverlay');
-      } else {
-        this.messageBus.emit('removeHydrationOverlay');
-      }
-    });
-
-    effect(() => {
-      if (this.settings.highlightChangeDetection()) {
-        this.messageBus.emit('enableCdHighlighting');
-      } else {
-        this.messageBus.emit('disableCdHighlighting');
-      }
-    });
-
-    effect(() => {
-      if (this.settings.showCdInExplorer()) {
-        this.messageBus.emit('enableCdDataStream');
-      } else {
-        this.messageBus.emit('disableCdDataStream');
-      }
+      this.messageBus.emit('setConfig', [
+        {
+          performanceTrack: this.settings.performanceTrack(),
+          hydrationOverlays: this.settings.showHydrationOverlays(),
+          cdHighlighting: this.settings.highlightChangeDetection(),
+          cdDataStream: this.settings.showCdInExplorer(),
+        },
+      ]);
     });
   }
 }

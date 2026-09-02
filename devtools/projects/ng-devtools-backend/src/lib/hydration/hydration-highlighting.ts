@@ -7,6 +7,7 @@
  */
 
 import {HydrationStatus} from '../../../../protocol';
+import {getConfig} from '../config/config';
 import {getDirectiveForestManager} from '../directive-forest/manager';
 import {highlightElement, removeHighlightsByType} from '../shared/highlighter';
 import {
@@ -19,7 +20,17 @@ import {
 import {ComponentTreeNode} from '../shared/interfaces';
 import {AngularDevtoolsError} from '../shared/utils/error';
 
-export function highlightHydrationNodes(): void {
+export function loadHydrationHighlighting() {
+  getConfig().onChange('hydrationOverlays', (enabled) => {
+    if (enabled) {
+      highlightHydrationNodes();
+    } else {
+      removeHydrationHighlights();
+    }
+  });
+}
+
+function highlightHydrationNodes(): void {
   const forest: ComponentTreeNode[] = getDirectiveForestManager().getDirectiveForest();
 
   // drop the root nodes, we don't want to highlight it
@@ -39,7 +50,7 @@ export function highlightHydrationNodes(): void {
   }
 }
 
-export function removeHydrationHighlights() {
+function removeHydrationHighlights() {
   removeHighlightsByType(HighlightType.HydrationCompleted);
   removeHighlightsByType(HighlightType.HydrationMismatched);
   removeHighlightsByType(HighlightType.HydrationSkipped);
