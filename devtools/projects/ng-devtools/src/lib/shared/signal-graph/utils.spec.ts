@@ -109,6 +109,20 @@ describe('getNodeNames', () => {
     });
   });
 
+  it('should extract compound node names when the cluster is composed by multiple words (pascal case)', () => {
+    expect(
+      getNodeNames({
+        ...regularSignalNode,
+        clusterId: '',
+        label: 'FormField#foo.bar',
+      }),
+    ).toEqual({
+      clusterType: 'form-field',
+      clusterName: 'foo',
+      signalName: 'bar',
+    });
+  });
+
   it('should NOT extract compound node names if the cluster type is not recognized', () => {
     expect(
       getNodeNames({

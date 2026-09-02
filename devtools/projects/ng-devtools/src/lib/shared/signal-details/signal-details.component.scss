@@ -96,7 +96,9 @@
           background-color: var(--orange-02);
         }
 
-        &.type-resource {
+        &.type-resource,
+        &.type-form,
+        &.type-form-field {
           background-color: var(--yellow-02);
           color: black;
         }

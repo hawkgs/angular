@@ -26,6 +26,8 @@ interface Cluster {
 
 const PREVIEW_NODES: {[key in ClusterLabelFormatType]: string | null} = {
   'resource': 'value',
+  'form': 'state',
+  'form-field': 'value',
 };
 
 /**

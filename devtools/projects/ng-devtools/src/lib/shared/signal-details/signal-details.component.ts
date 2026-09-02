@@ -38,6 +38,8 @@ const TYPE_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
 
 const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'type-resource',
+  'form': 'type-form',
+  'form-field': 'type-form-field',
 };
 
 interface ResourceCluster {

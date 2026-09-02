@@ -14,7 +14,7 @@
 
 import {DebugSignalGraphEdge, DebugSignalGraphNode} from '../../../../../protocol';
 
-export type DevtoolsClusterNodeType = 'resource';
+export type DevtoolsClusterNodeType = 'resource' | 'form' | 'form-field';
 
 export interface DevtoolsSignalNode extends DebugSignalGraphNode {
   /**

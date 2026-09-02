@@ -43,10 +43,14 @@ const KIND_CLASS_MAP: {[key in DebugSignalGraphNode['kind']]: string} = {
 
 const CLUSTER_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'kind-resource',
+  'form': 'kind-form',
+  'form-field': 'kind-form-field',
 };
 
 const CLUSTER_CHILD_TYPE_CLASS_MAP: {[key in DevtoolsClusterNodeType]: string} = {
   'resource': 'resource-child',
+  'form': 'form-child',
+  'form-field': 'form-field-child',
 };
 
 const NODE_CLASS = 'node';

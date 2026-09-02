@@ -142,6 +142,18 @@ $cluster-expand-anim-duration: 1s;
             background-color: var(--yellow-02);
             color: black;
           }
+
+          &.form-child::before {
+            content: 'F';
+            background-color: var(--yellow-02);
+            color: black;
+          }
+
+          &.form-field-child::before {
+            content: 'FI';
+            background-color: var(--yellow-02);
+            color: black;
+          }
         }
 
         .body {
@@ -222,7 +234,9 @@ $cluster-expand-anim-duration: 1s;
         }
       }
 
-      .kind-resource {
+      .kind-resource,
+      .kind-form,
+      .kind-form-field {
         background-color: var(--yellow-02);
         color: black;
         outline: 1.5px solid var(--yellow-01);

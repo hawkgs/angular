@@ -23,10 +23,13 @@ export function isSignalNode(node: DevtoolsSignalGraphNode): node is DevtoolsSig
   return node.nodeType === 'signal';
 }
 
-// Intended for format: <Cluster_Type>#<Cluster_Name>.<Compound_Node_Name>
-export type ClusterLabelFormatType = 'resource';
+/** Represents a serialized cluster type. */
+export type ClusterLabelFormatType = 'resource' | 'form' | 'form-field';
 
-const CLUSTERS = ['Resource'];
+// Only cluster types mentioned in the array will be identified and grouped.
+// The type corresponds to the type in the debug name,
+// i.e. <CLUSTER_TYPE>#<Cluster_Name>.<Compound_Node_Name>
+const CLUSTERS = ['Resource', 'Form', 'FormField'];
 
 /**
  * Returns signal node and cluster node names (if part of a cluster).
@@ -55,7 +58,7 @@ export function getNodeNames(n: DebugSignalGraphNode | DevtoolsSignalGraphNode):
   }
 
   return {
-    clusterType: clusterType.toLowerCase() as ClusterLabelFormatType,
+    clusterType: convertPascalToKebabCase(clusterType) as ClusterLabelFormatType,
     clusterName,
     signalName,
   };
@@ -89,4 +92,27 @@ export function getNodeLabel(n: DevtoolsSignalGraphNode): string {
     return n.kind === 'effect' ? 'Effect' : 'Unnamed';
   }
   return getNodeNames(n).signalName;
+}
+
+function convertPascalToKebabCase(type: string) {
+  let output = '';
+  let currWord = '';
+
+  for (let i = 0; i < type.length; i++) {
+    const char = type[i];
+    const code = char.charCodeAt(0);
+
+    // Is uppercase
+    if (65 <= code && code <= 90) {
+      if (output.length) {
+        output += '-';
+      }
+      output += currWord;
+      currWord = char.toLowerCase();
+    } else {
+      currWord += char;
+    }
+  }
+
+  return output.length ? `${output}-${currWord}` : currWord;
 }

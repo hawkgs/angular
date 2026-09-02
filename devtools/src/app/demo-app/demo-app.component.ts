@@ -28,9 +28,11 @@ import {
 
 import {RouterModule, RouterOutlet} from '@angular/router';
 import {CookieRecipe} from './cookies.component';
+import {form, FormField} from '@angular/forms/signals';
+
+import {ZippyComponent} from './zippy.component';
 import {HeavyComponent} from './heavy.component';
 import {SamplePropertiesComponent} from './sample-properties.component';
-import {ZippyComponent} from './zippy.component';
 
 // structual directive example
 @Directive({
@@ -49,6 +51,36 @@ export class StructuralDirective {
   }
 }
 
+interface LoginData {
+  email: string;
+  // pass: string;
+}
+
+@Component({
+  selector: 'app-form',
+  imports: [FormField],
+  template: `
+    <form>
+      <label>
+        Email:
+        <input type="email" [formField]="loginForm.email" />
+      </label>
+      <!-- <label>
+        Pass:
+        <input type="password" [formField]="loginForm.pass" />
+      </label> -->
+      <p>Hello {{ loginForm.email().value() }}!</p>
+    </form>
+  `,
+})
+export class AppForm {
+  loginModel = signal<LoginData>({
+    email: 'def_email',
+    // pass: '',
+  });
+  loginForm = form(this.loginModel, {debugName: 'myForm'});
+}
+
 @Component({
   selector: 'app-demo-component',
   templateUrl: './demo-app.component.html',
@@ -62,6 +94,7 @@ export class StructuralDirective {
     RouterOutlet,
     RouterModule,
     CookieRecipe,
+    AppForm,
   ],
 })
 export class DemoAppComponent {
