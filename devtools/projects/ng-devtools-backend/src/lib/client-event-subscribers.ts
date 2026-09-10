@@ -141,7 +141,7 @@ export const subscribeToClientEvents = (
 
   messageBus.on('toggleWatchSignal', toggleWatchSignal(messageBus));
 
-  if (appIsAngularInDevMode() && appIsSupportedAngularVersion() && appIsAngularIvy()) {
+  if (appIsAngularIvy()) {
     inspector.ref = setupInspector(messageBus);
 
     // Often websites have `scroll` event listener which triggers
@@ -154,6 +154,9 @@ export const subscribeToClientEvents = (
         .subscribe(() => messageBus.emit('componentTreeDirty'));
     });
   }
+
+  getConfig().onChange('deferBlocks', () => messageBus.emit('componentTreeDirty'));
+  getConfig().onChange('forBlocks', () => messageBus.emit('componentTreeDirty'));
 };
 
 //

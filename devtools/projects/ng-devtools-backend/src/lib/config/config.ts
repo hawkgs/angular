@@ -17,6 +17,8 @@ class DevtoolsConfigState implements DevtoolsConfig {
     hydrationOverlays: false,
     cdHighlighting: false,
     cdDataStream: false,
+    deferBlocks: false,
+    forBlocks: false,
   };
   private readonly listeners = new Map<keyof DevtoolsConfig, ((v: any) => void)[]>();
 
@@ -34,6 +36,14 @@ class DevtoolsConfigState implements DevtoolsConfig {
 
   get cdDataStream() {
     return this.config.cdDataStream;
+  }
+
+  get deferBlocks() {
+    return this.config.deferBlocks;
+  }
+
+  get forBlocks() {
+    return this.config.forBlocks;
   }
 
   set(cfg: Partial<DevtoolsConfig>) {
