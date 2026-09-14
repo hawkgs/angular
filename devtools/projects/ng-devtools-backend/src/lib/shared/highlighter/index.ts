@@ -13,7 +13,7 @@ import {
   HighlightTemplate,
   HighlightLabelDefinition,
   HighlightType,
-} from './highlights';
+} from './highlight';
 import {createOverlayWithLabels, getComponentRect} from './dom';
 import {findDirectiveAndHost} from '../../directive-forest/component-tree/component-tree';
 import {runOutsideAngular} from '../utils/general';
@@ -108,40 +108,37 @@ runOutsideAngular(() => {
 
 // Clean up the references after `destroy` has been called.
 highlightDestroyEvents.subscribe(([highlight]) => {
-  forEachActiveHighlight((h, target) => {
-    if (highlight !== h) {
-      return;
+  const target = highlight.targetElement.deref();
+  if (!target) {
+    return;
+  }
+
+  const targetHighlights = activeHighlights.get(target);
+
+  if (!targetHighlights) {
+    return;
+  }
+
+  const idx = targetHighlights.indexOf(highlight);
+  if (idx > -1) {
+    targetHighlights.splice(idx, 1);
+    highlightsRegistry.unregister(highlight);
+
+    // Determine if there are any other highlights that can be rendered.
+    displayElementHighlights(target);
+  }
+
+  // In case there are no other highlights attached to that element,
+  // remove the target element from the global vars.
+  if (!targetHighlights.length) {
+    activeHighlights.delete(target);
+    resizeObserver.unobserve(target);
+
+    const targetElsIdx = targetElements.findIndex((wr) => wr.deref() === target);
+    if (targetElsIdx > -1) {
+      targetElements.splice(targetElsIdx, 1);
     }
-
-    const targetHighlights = activeHighlights.get(target);
-
-    if (!targetHighlights) {
-      return false;
-    }
-
-    const idx = targetHighlights.indexOf(highlight);
-    if (idx > -1) {
-      targetHighlights.splice(idx, 1);
-      highlightsRegistry.unregister(h);
-
-      // Determine if there are any other highlights that can be rendered.
-      displayElementHighlights(target);
-    }
-
-    // In case there are no other highlights attached to that element,
-    // remove the target element from the global vars.
-    if (!targetHighlights.length) {
-      activeHighlights.delete(target);
-      resizeObserver.unobserve(target);
-
-      const targetElsIdx = targetElements.findIndex((wr) => wr.deref() === target);
-      if (targetElsIdx > -1) {
-        targetElements.splice(targetElsIdx, 1);
-      }
-    }
-
-    return false;
-  });
+  }
 });
 
 /** Store the `Highlight` in the active highlights data structures. */
@@ -185,7 +182,7 @@ export function highlightElement<T extends HighlightLabelDefinition = HighlightL
   }
 
   const {overlay, labels} = createOverlayWithLabels(template, props);
-  const highlight = new Highlight(overlay, labels, template, highlightDestroyEvents);
+  const highlight = new Highlight(targetElement, overlay, labels, template, highlightDestroyEvents);
   storeHighlight(targetElement, highlight);
 
   highlight.position(rect);

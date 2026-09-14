@@ -13,12 +13,8 @@ import {
   removeHighlightsByType,
 } from '.';
 import {OVERLAY_CLASS} from './dom';
-import {
-  Highlight,
-  HighlightType,
-  hydrationCompletedHighlightTemplate,
-  inspectElementHighlightTemplate,
-} from './highlights';
+import {HighlightType} from './highlight';
+import {hydrationCompletedHighlightTemplate, inspectElementHighlightTemplate} from './templates';
 
 function getHighlightOverlays(): NodeListOf<Element> {
   return document.querySelectorAll('.' + OVERLAY_CLASS);

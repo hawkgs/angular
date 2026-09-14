@@ -7,7 +7,7 @@
  */
 
 import {EventEmitter} from '@angular/core';
-import {Highlight, HighlightLabelDefinition, HighlightTemplate, HighlightType} from './highlights';
+import {Highlight, HighlightLabelDefinition, HighlightTemplate, HighlightType} from './highlight';
 import {OVERLAY_CLASS} from './dom';
 import {debugLog} from '../utils/log';
 
@@ -32,10 +32,11 @@ function createHighlight<T extends HighlightLabelDefinition>(
   labelElements: Record<keyof T, HTMLElement>,
   destroyEvents = new EventEmitter<[highlight: Highlight]>(),
 ): Highlight<T> {
+  const target = document.createElement('div');
   const overlay = document.createElement('div');
   overlay.className = OVERLAY_CLASS;
 
-  return new Highlight(overlay, labelElements, template, destroyEvents);
+  return new Highlight(target, overlay, labelElements, template, destroyEvents);
 }
 
 function getOverlay(): HTMLElement | null {

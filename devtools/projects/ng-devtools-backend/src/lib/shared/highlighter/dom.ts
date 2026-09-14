@@ -11,7 +11,7 @@ import {
   HighlightTemplate,
   HighlightLabelDefinition,
   HighlightLabel,
-} from './highlights';
+} from './highlight';
 
 export const OVERLAY_CLASS = 'ng-devtools-highlight-overlay';
 export const OVERLAY_FADE_OUT_DUR = 100;
