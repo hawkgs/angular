@@ -7,9 +7,10 @@
  */
 
 import {EventEmitter} from '@angular/core';
-import {Highlight, HighlightLabelDefinition, HighlightTemplate, HighlightType} from './highlights';
-import {OVERLAY_CLASS} from './dom';
+import {Highlight, HighlightLabelDefinition, HighlightTemplate, HighlightType} from './types';
+import {OVERLAY_CLASS} from './rendering/_tbd_delete_dom';
 import {debugLog} from '../utils/log';
+import {HighlightImpl} from './highlight';
 
 function createTemplate(overrides?: Partial<HighlightTemplate<any>>): HighlightTemplate<any> {
   return {
@@ -32,10 +33,11 @@ function createHighlight<T extends HighlightLabelDefinition>(
   labelElements: Record<keyof T, HTMLElement>,
   destroyEvents = new EventEmitter<[highlight: Highlight]>(),
 ): Highlight<T> {
+  const target = document.createElement('div');
   const overlay = document.createElement('div');
   overlay.className = OVERLAY_CLASS;
 
-  return new Highlight(overlay, labelElements, template, destroyEvents);
+  return new HighlightImpl(target, overlay, labelElements, template, destroyEvents);
 }
 
 function getOverlay(): HTMLElement | null {
