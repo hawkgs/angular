@@ -12,9 +12,9 @@ import {
   removeElementHighlights,
   removeHighlightsByType,
 } from '.';
-import {OVERLAY_CLASS} from './dom';
-import {HighlightType} from './highlight';
+import {OVERLAY_CLASS} from './rendering/_tbd_delete_dom';
 import {hydrationCompletedHighlightTemplate, inspectElementHighlightTemplate} from './templates';
+import {HighlightType} from './types';
 
 function getHighlightOverlays(): NodeListOf<Element> {
   return document.querySelectorAll('.' + OVERLAY_CLASS);

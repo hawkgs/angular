@@ -8,116 +8,55 @@
 
 import {EventEmitter} from '@angular/core';
 import {AngularDevtoolsError} from '../utils/error';
-import {runOutsideAngular} from '../utils/general';
 import {debugLog} from '../utils/log';
-import {
-  fadeOutOverlay,
-  OVERLAY_FADE_OUT_DUR,
-  positionOverlayElement,
-  setLabelElementPosition,
-} from './dom';
-
-type LabelContentFn = (...props: any[]) => Element | string;
-export type HighlightLabelDefinition = Record<string, LabelContentFn>;
-
-export type RgbColor = readonly [red: number, green: number, blue: number];
-
-export type HighlightLabelProps<T extends HighlightLabelDefinition> = Record<
-  keyof T,
-  Parameters<T[keyof T]>
->;
-
-export interface HighlightLabel<T extends LabelContentFn> {
-  /** X axis position. */
-  x: 'left' | 'center' | 'right';
-
-  /** Offset placement of the label relative to the highlight container edge. */
-  offset: 'inset' | 'outset' | 'prefer-inset';
-
-  /** Label content template function. */
-  content: T;
-}
-
-export interface HighlightTemplate<T extends HighlightLabelDefinition = HighlightLabelDefinition> {
-  /** Highlight type. */
-  type: HighlightType;
-
-  /** Color of the highlight overlay. The labels are also based on it. */
-  overlayColor: RgbColor;
-
-  /** Select the style of the overlay – filled or an outline. Default: `fill` */
-  style?: 'fill' | 'outline';
-
-  /**
-   * Pick whether the labels should be visible/sticky
-   * or static relative to X axis.
-   */
-  labelsType: 'sticky' | 'static';
-
-  /**
-   * Represents all labels of the highlight.
-   * NOTE: A highlight can have a single label per position
-   * (e.g. a single `left`, a single `center` and a single `right`).
-   */
-  labels: Record<keyof T, HighlightLabel<T[keyof T]>>;
-
-  /** Time to live (in milliseconds). Default: unset */
-  ttl?: number;
-}
-
-// Add a new type for each new template.
-//
-// WARNING: The enum numeric value matters. It's used for establishing
-// a priority when a single target element has multiple highlights.
-// The smaller the number, the higher the priority.
-export enum HighlightType {
-  ChangeDetection = 0,
-  InspectElement = 1,
-  HydrationSkipped = 2,
-  HydrationMismatched = 3,
-  HydrationCompleted = 4,
-}
+import {Highlight, HighlightLabelDefinition, HighlightLabelProps, HighlightTemplate} from './types';
+import {Renderer} from './rendering/renderer';
 
 /** Provides a container of all highlight-related references and controls over the highlight. */
-export class Highlight<T extends HighlightLabelDefinition = HighlightLabelDefinition> {
-  readonly targetElement: WeakRef<Element>;
+export class HighlightImpl<
+  T extends HighlightLabelDefinition = HighlightLabelDefinition,
+> implements Highlight<T> {
+  public readonly targetElement: WeakRef<Element>;
+
   private destroyed = false;
   private ttlTimeout: ReturnType<typeof setTimeout> = 0;
+  private propsInternal: HighlightLabelProps<T>;
+  private displayed: boolean = false;
 
   constructor(
     targetElement: Element,
-    private readonly overlayElement: HTMLElement,
-    private readonly labelElements: Record<keyof T, HTMLElement>,
-    private readonly template: HighlightTemplate<T>,
+    public readonly template: HighlightTemplate<T>,
+    props: HighlightLabelProps<T>,
     private readonly destroyEvents: EventEmitter<[highlight: Highlight]>,
+    private readonly renderer: Renderer,
   ) {
     validateTemplateLabels(template);
     this.targetElement = new WeakRef(targetElement);
+    this.propsInternal = props;
   }
 
   get type() {
     return this.template.type;
   }
 
+  get props() {
+    return this.propsInternal;
+  }
+
   get isDestroyed() {
     return this.destroyed;
   }
 
-  /** Update a label of the highlight. */
-  updateLabel(labelId: keyof T, ...props: Parameters<T[keyof T]>) {
-    const labelContent = this.template.labels[labelId].content(...props);
-    const labelElement = this.labelElements[labelId];
-
-    if (typeof labelContent === 'string') {
-      labelElement.textContent = labelContent;
-    } else {
-      labelElement.replaceChildren(labelContent);
-    }
+  get isDisplayed() {
+    return this.displayed;
   }
 
-  /**
-   * Remove the highlight.
-   */
+  updateLabel(labelId: keyof T, ...props: Parameters<T[keyof T]>) {
+    this.props[labelId] = props;
+
+    this.renderer.renderHighlight(this);
+  }
+
   destroy() {
     // Since there is a chance that there are references
     // outside of `highlighter.ts`, we store the destroy state.
@@ -136,13 +75,13 @@ export class Highlight<T extends HighlightLabelDefinition = HighlightLabelDefini
       this.ttlTimeout = 0;
     }
     this.destroyEvents.emit([this]);
-    this.overlayElement.remove();
+    this.renderer.removeHighlight(this);
+    this.displayed = false;
     this.destroyed = true;
   }
 
-  /** Render/append the highlight to the DOM. */
   display() {
-    if (document.body.contains(this.overlayElement)) {
+    if (this.displayed) {
       return;
     }
     if (this.destroyed) {
@@ -150,41 +89,15 @@ export class Highlight<T extends HighlightLabelDefinition = HighlightLabelDefini
       return;
     }
 
-    document.body.appendChild(this.overlayElement);
-
-    // Initiate TTL, if it's set
-    const {ttl} = this.template;
-    if (ttl !== undefined && ttl > 0 && !this.ttlTimeout) {
-      runOutsideAngular(() => {
-        this.ttlTimeout = setTimeout(() => this.destroy(), ttl);
-      });
-
-      // Check whether there is enough time to fade out the
-      // element gracefully. If not, do not animate.
-      const timeUntilFadeOut = ttl - OVERLAY_FADE_OUT_DUR;
-      if (timeUntilFadeOut >= 0) {
-        fadeOutOverlay(this.overlayElement, timeUntilFadeOut);
-      }
-    }
+    this.renderer.renderHighlight(this);
+    this.displayed = true;
   }
 
-  /** Remove the highlight from the DOM. */
   hide() {
-    if (document.body.contains(this.overlayElement)) {
-      document.body.removeChild(this.overlayElement);
+    if (!this.displayed) {
+      return;
     }
-  }
-
-  /**
-   * Position the highlight by a provided `DOMRect`.
-   * If omitted, the current bounding client rect of the target element will be used.
-   */
-  position(dimensions: DOMRect) {
-    positionOverlayElement(dimensions, this.overlayElement);
-
-    for (const [id, label] of Object.entries(this.labelElements)) {
-      setLabelElementPosition(dimensions, label, this.template.labels[id].offset);
-    }
+    this.renderer.removeHighlight(this);
   }
 }
 

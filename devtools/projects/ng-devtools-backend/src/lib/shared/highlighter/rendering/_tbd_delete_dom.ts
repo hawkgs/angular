@@ -11,7 +11,7 @@ import {
   HighlightTemplate,
   HighlightLabelDefinition,
   HighlightLabel,
-} from './highlight';
+} from '../types';
 
 export const OVERLAY_CLASS = 'ng-devtools-highlight-overlay';
 export const OVERLAY_FADE_OUT_DUR = 100;
@@ -141,49 +141,6 @@ export function setLabelElementPosition(
   }
 }
 
-export function getComponentRect(el: Node): DOMRect | undefined {
-  if (!(el instanceof Element)) {
-    return;
-  }
-  if (!isInDoc(el)) {
-    return;
-  }
-  return el.getBoundingClientRect();
-}
-
-/**
- * Fades out the overlay element.
- *
- * Note: The element remains in the DOM.
- *
- * @param overlay Overlay
- * @param delay Animation delay (in ms)
- * @param duration Animation duration (in ms; Default: `OVERLAY_FADE_OUT_DUR`)
- */
-export function fadeOutOverlay(
-  overlay: HTMLElement,
-  delay: number,
-  duration: number = OVERLAY_FADE_OUT_DUR,
-) {
-  overlay.animate([{opacity: 1}, {opacity: 0}], {
-    delay,
-    duration,
-    easing: 'ease-in-out',
-    fill: 'forwards',
-  });
-}
-
 function toCSSColor(red: number, green: number, blue: number, alpha = 1): string {
   return `rgba(${red},${green},${blue},${alpha})`;
-}
-
-function isInDoc(node: Node): boolean {
-  if (!node || !node.ownerDocument) {
-    return false;
-  }
-  const doc = node.ownerDocument.documentElement;
-  const parent = node.parentNode;
-  return (
-    doc === node || doc === parent || !!(parent && parent.nodeType === 1 && doc.contains(parent))
-  );
 }

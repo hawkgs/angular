@@ -1,0 +1,17 @@
+load("//devtools/tools:defaults.bzl", "ts_project")
+
+package(default_visibility = ["//devtools:__subpackages__"])
+
+ts_project(
+    name = "rendering",
+    srcs = [
+        "operations.ts",
+        "renderer.ts",
+        "utils.ts",
+    ],
+    deps = [
+        "//devtools/projects/ng-devtools-backend/src/lib/shared/highlighter:types",
+        "//devtools/projects/ng-devtools-backend/src/lib/shared/utils:error",
+        "//devtools/projects/ng-devtools-backend/src/lib/shared/utils:general",
+    ],
+)
