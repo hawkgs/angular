@@ -16,10 +16,10 @@ import {
   hydrationCompletedHighlightTemplate,
   hydrationSkippedHighlightTemplate,
 } from '../shared/highlighter/templates';
-import {HighlightTemplate, HighlightType} from '../shared/highlighter/highlight';
 import {ComponentTreeNode} from '../shared/interfaces';
 import {AngularDevtoolsError} from '../shared/utils/error';
 import {runOutsideAngular} from '../shared/utils/general';
+import {HighlightTemplate, HighlightType} from '../shared/highlighter/types';
 
 let hydrationOverlaysEnabled = false;
 let profilerSubs: Subscription | undefined;

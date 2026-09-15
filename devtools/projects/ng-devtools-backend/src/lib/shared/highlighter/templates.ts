@@ -5,9 +5,10 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.dev/license
  */
+
 import {HydrationStatus} from '../../../../../protocol';
 import {AngularDevtoolsError} from '../utils/error';
-import {HighlightTemplate, HighlightType, RgbColor} from './highlight';
+import {HighlightTemplate, HighlightType, RgbColor} from './types';
 
 const COLORS = {
   blue: [104, 182, 255],
