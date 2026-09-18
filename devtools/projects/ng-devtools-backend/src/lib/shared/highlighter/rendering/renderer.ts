@@ -8,11 +8,11 @@
 
 import {runOutsideAngular} from '../../utils/general';
 import {Highlight} from '../types';
-import {RenderOp, StaticRenderOp} from './operations';
-import {createCanvas, getViewportData, ViewportData} from './utils';
+import {CANVAS_ID} from './consts';
+import {DynamicTtlBoundHighlightRenderOp, RenderOp, StaticHighlightRenderOp} from './operations';
+import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportData} from './utils';
 
-const CANVAS_ID = 'ng-devtools-highlighter-canvas';
-const WINDOW_RESIZE_DEBOUNCE = 200;
+const WINDOW_RESIZE_DEBOUNCE = 100;
 
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
@@ -22,7 +22,7 @@ export class Renderer {
   private resizeObserver!: ResizeObserver;
   private windowResizeCb!: () => void;
   private windowScrollCb!: () => void;
-  private renderQueued = false;
+  private animationFrame?: ReturnType<typeof requestAnimationFrame>;
 
   constructor() {
     const {canvas, ctx} = createCanvas(CANVAS_ID);
@@ -34,6 +34,10 @@ export class Renderer {
     this.initEvents();
   }
 
+  private get dpr() {
+    return window.devicePixelRatio ?? 1;
+  }
+
   renderHighlight(highlight: Highlight) {
     const targetEl = highlight.targetElement.deref();
     if (!targetEl) {
@@ -41,14 +45,18 @@ export class Renderer {
       return;
     }
 
-    const rect = targetEl.getBoundingClientRect();
+    const rect = getAbsoluteBoundingClientRect(targetEl);
     let op: RenderOp;
 
     if (!highlight.template.ttl) {
-      op = new StaticRenderOp(this.ctx, highlight.template, rect, this.viewportData);
+      op = new StaticHighlightRenderOp(this.ctx, highlight.template, rect, this.viewportData);
     } else {
-      // TBD DynamicRenderOp; Added for to cover the case
-      op = new StaticRenderOp(this.ctx, highlight.template, rect, this.viewportData);
+      op = new DynamicTtlBoundHighlightRenderOp(
+        this.ctx,
+        highlight.template,
+        rect,
+        this.viewportData,
+      );
     }
 
     this.operations.set(highlight, op);
@@ -120,7 +128,7 @@ export class Renderer {
 
       // Get the updated positions of all target elements.
       if (targetEl) {
-        const rect = targetEl.getBoundingClientRect();
+        const rect = getAbsoluteBoundingClientRect(targetEl);
         const op = this.operations.get(highlight);
         op!.update({rect, viewport: this.viewportData});
       }
@@ -132,35 +140,46 @@ export class Renderer {
   }
 
   private updateCanvasSize() {
-    const dpr = window.devicePixelRatio ?? 1;
+    const width = document.documentElement.scrollWidth;
+    const height = document.documentElement.scrollHeight;
 
     // Set the actual scaled size
-    this.canvas.width = window.innerWidth * dpr;
-    this.canvas.height = window.innerHeight * dpr;
+    this.canvas.width = width * this.dpr;
+    this.canvas.height = height * this.dpr;
 
     // Set the size in CSS (the visual size on the page)
-    this.canvas.style.width = `${window.innerWidth}px`;
-    this.canvas.style.height = `${window.innerHeight}px`;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
 
     // Normalize the coordinate system to use CSS pixels
-    this.ctx.scale(dpr, dpr);
+    this.ctx.scale(this.dpr, this.dpr);
+  }
+
+  private clearCanvas() {
+    const {width, height} = this.canvas;
+    this.ctx.clearRect(0, 0, width / this.dpr, height / this.dpr);
   }
 
   private render() {
-    if (this.renderQueued) {
-      return;
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
     }
-    this.renderQueued = true;
+    this.animationFrame = requestAnimationFrame((ts) => this.renderFrame(ts));
+  }
 
-    requestAnimationFrame(() => {
-      this.ctx.reset();
-      console.log('resetting and rendering', Array.from(this.operations));
+  private renderFrame(timestamp: number) {
+    this.clearCanvas();
+    let inProgress = false;
 
-      for (const op of this.operations.values()) {
-        op.render();
-      }
-      this.renderQueued = false;
-    });
+    for (const op of this.operations.values()) {
+      op.render(timestamp);
+      inProgress ||= op.state === 'in-progress';
+    }
+
+    // Continue the render cycle until there are still ops in progress.
+    if (inProgress) {
+      requestAnimationFrame((ts) => this.renderFrame(ts));
+    }
   }
 }
 
