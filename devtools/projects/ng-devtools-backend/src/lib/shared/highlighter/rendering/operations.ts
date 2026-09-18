@@ -7,51 +7,34 @@
  */
 
 import {HighlightTemplate} from '../types';
-import {toCSSColor, ViewportData} from './utils';
+import {OVERLAY_DEFAULT_OPACITY, OVERLAY_FADE_OUT_DUR} from './consts';
+import {drawOverlay, Rect, ViewportData} from './utils';
 
 type RenderJobState = 'non-executed' | 'in-progress' | 'standby';
 
 interface RenderJobUpdate {
-  rect?: DOMRect;
+  rect?: Rect;
   viewport?: ViewportData;
 }
 
 export abstract class RenderOp {
-  abstract get state(): RenderJobState;
-  abstract update(update: RenderJobUpdate): void;
-  abstract render(): void | Promise<void>;
+  abstract render(timestamp: number): void;
+
+  protected stateInternal: RenderJobState = 'non-executed';
+  protected start: number = -1;
 
   constructor(
     protected readonly ctx: CanvasRenderingContext2D,
     protected readonly template: HighlightTemplate,
-    protected rect: DOMRect,
+    protected rect: Rect,
     protected viewport: ViewportData,
   ) {}
-}
-
-export class StaticRenderOp extends RenderOp {
-  private stateInternal: RenderJobState = 'non-executed';
-
-  constructor(
-    ctx: CanvasRenderingContext2D,
-    template: HighlightTemplate,
-    rect: DOMRect,
-    viewport: ViewportData,
-  ) {
-    super(ctx, template, rect, viewport);
-  }
 
   get state() {
     return this.stateInternal;
   }
 
-  override render() {
-    this.stateInternal = 'in-progress';
-    this.handleOverlay();
-    this.stateInternal = 'standby';
-  }
-
-  override update({rect, viewport}: RenderJobUpdate) {
+  update({rect, viewport}: RenderJobUpdate) {
     if (rect) {
       this.rect = rect;
     }
@@ -59,26 +42,44 @@ export class StaticRenderOp extends RenderOp {
       this.viewport = viewport;
     }
   }
+}
 
-  private handleOverlay() {
-    const {x, y, width, height} = this.rect;
-    const color = toCSSColor(...this.template.overlayColor, 0.9);
+/** Use for static highlights that don't have a TTL. */
+export class StaticHighlightRenderOp extends RenderOp {
+  render(timestamp: number) {
+    this.start = timestamp;
+    drawOverlay(this.ctx, this.template, this.rect);
+    this.stateInternal = 'standby';
+  }
+}
 
-    switch (this.template.style) {
-      default:
-      case 'fill':
-        {
-          this.ctx.fillStyle = color;
-          this.ctx.fillRect(x, y, width, height);
-        }
-        break;
-      case 'outline':
-        {
-          this.ctx.lineWidth = 3;
-          this.ctx.strokeStyle = color;
-          this.ctx.strokeRect(x, y, width, height);
-        }
-        break;
+/** Use for TTL-based highlights ONLY. */
+export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
+  private readonly fadeOutStart = this.template.ttl! - OVERLAY_FADE_OUT_DUR;
+
+  render(timestamp: number) {
+    if (this.start === -1) {
+      this.start = timestamp;
+      this.stateInternal = 'in-progress';
+    }
+
+    const timePassed = timestamp - this.start;
+    // Calculate the diff between the fade out start TS and the passed time.
+    const fadeOutTimePassDiff = timePassed - this.fadeOutStart;
+    let opacity: number;
+
+    if (fadeOutTimePassDiff < 0) {
+      opacity = 1;
+    } else {
+      const progress = Math.min(fadeOutTimePassDiff / OVERLAY_FADE_OUT_DUR, 1);
+      // We have to invert the progress since we want to fade out, not fade in.
+      opacity = 1 - progress;
+    }
+
+    drawOverlay(this.ctx, this.template, this.rect, opacity);
+
+    if (timePassed >= this.template.ttl!) {
+      this.stateInternal = 'standby';
     }
   }
 }

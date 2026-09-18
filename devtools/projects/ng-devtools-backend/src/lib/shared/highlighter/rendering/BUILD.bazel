@@ -5,6 +5,7 @@ package(default_visibility = ["//devtools:__subpackages__"])
 ts_project(
     name = "rendering",
     srcs = [
+        "consts.ts",
         "operations.ts",
         "renderer.ts",
         "utils.ts",
