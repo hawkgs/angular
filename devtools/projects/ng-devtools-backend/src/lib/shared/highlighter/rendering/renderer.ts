@@ -12,16 +12,13 @@ import {CANVAS_ID} from './consts';
 import {DynamicTtlBoundHighlightRenderOp, RenderOp, StaticHighlightRenderOp} from './operations';
 import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportData} from './utils';
 
-const WINDOW_RESIZE_DEBOUNCE = 100;
-
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly operations = new Map<Highlight, RenderOp>();
   private viewportData: ViewportData = getViewportData();
-  private resizeObserver!: ResizeObserver;
-  private windowResizeCb!: () => void;
-  private windowScrollCb!: () => void;
+  private elementResizeObserver!: ResizeObserver;
+  private cleanUpFn?: () => void;
   private animationFrame?: ReturnType<typeof requestAnimationFrame>;
 
   constructor() {
@@ -29,9 +26,9 @@ export class Renderer {
     this.canvas = canvas;
     this.ctx = ctx;
 
-    this.updateCanvasSize();
     document.body.appendChild(this.canvas);
-    this.initEvents();
+    this.updateCanvasSize();
+    this.cleanUpFn = this.initEvents();
   }
 
   private get dpr() {
@@ -60,7 +57,7 @@ export class Renderer {
     }
 
     this.operations.set(highlight, op);
-    this.resizeObserver.observe(targetEl);
+    this.elementResizeObserver.observe(targetEl);
 
     this.render();
   }
@@ -68,7 +65,7 @@ export class Renderer {
   removeHighlight(highlight: Highlight) {
     const targetEl = highlight.targetElement.deref();
     if (targetEl) {
-      this.resizeObserver.unobserve(targetEl);
+      this.elementResizeObserver.unobserve(targetEl);
     }
     this.operations.delete(highlight);
 
@@ -76,50 +73,74 @@ export class Renderer {
   }
 
   destroy() {
-    window.removeEventListener('resize', this.windowResizeCb);
-    this.resizeObserver.disconnect();
-    document.body.removeChild(this.canvas);
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+    }
+    this.cleanUpFn?.();
   }
 
-  private initEvents() {
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-    let animationFrameId: ReturnType<typeof requestAnimationFrame>;
-    let isWindowResizing = false;
+  private initEvents(): () => void {
+    const root = document.documentElement;
+    let rootResizeObserver: ResizeObserver;
+    let rootMutationObserver: MutationObserver;
+    let elementFrame: ReturnType<typeof requestAnimationFrame> = 0;
+    let rootFrame: ReturnType<typeof requestAnimationFrame> = 0;
+    let lastSize: {width: number; height: number} = {
+      width: 0,
+      height: 0,
+    };
+
+    const rootHandler = () => {
+      rootFrame = requestAnimationFrame(() => {
+        rootFrame = 0;
+        const width = root.scrollWidth;
+        const height = root.scrollHeight;
+        const {width: lastWidth, height: lastHeight} = lastSize;
+
+        if (width !== lastWidth || height !== lastHeight) {
+          this.updateCanvasSize();
+          this.updateViewportData();
+          this.updateHighlightsRectData();
+          this.render();
+        }
+
+        lastSize = {width, height};
+      });
+    };
 
     // Wrap Zone.js monkey-patched code for Zone-based apps.
     runOutsideAngular(() => {
-      this.windowResizeCb = () => {
-        isWindowResizing = true;
-        if (resizeTimeout) {
-          clearTimeout(resizeTimeout);
-        }
-        resizeTimeout = setTimeout(() => {
-          requestAnimationFrame(() => {
-            this.updateCanvasSize();
-            this.updateViewportData();
-            this.updateHighlightsRectData();
-            this.render();
-            isWindowResizing = false;
-          });
-        }, WINDOW_RESIZE_DEBOUNCE);
-      };
+      rootResizeObserver = new ResizeObserver(rootHandler);
+      rootMutationObserver = new MutationObserver(rootHandler);
 
-      window.addEventListener('resize', this.windowResizeCb);
+      rootResizeObserver.observe(root);
+      rootResizeObserver.observe(document.body);
+      rootMutationObserver.observe(root, {childList: true, subtree: true, attributes: true});
 
-      this.resizeObserver = new ResizeObserver((entries) => {
-        // Ignore events that are already handled by window.resize.
-        if (isWindowResizing) {
+      this.elementResizeObserver = new ResizeObserver(() => {
+        if (elementFrame) {
           return;
         }
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
-        }
-        animationFrameId = requestAnimationFrame(() => {
+
+        elementFrame = requestAnimationFrame(() => {
+          elementFrame = 0;
           this.updateHighlightsRectData();
           this.render();
         });
       });
     });
+
+    return () => {
+      if (rootFrame) {
+        cancelAnimationFrame(rootFrame);
+      }
+      if (elementFrame) {
+        cancelAnimationFrame(elementFrame);
+      }
+      rootResizeObserver.disconnect();
+      rootMutationObserver.disconnect();
+      this.elementResizeObserver.disconnect();
+    };
   }
 
   private updateHighlightsRectData() {
@@ -184,5 +205,3 @@ export class Renderer {
 }
 
 // const labelContent = this.template.labels[labelId].content(...props);
-// // this.props
-// // tbd
