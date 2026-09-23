@@ -12,6 +12,8 @@ import {CANVAS_ID} from './consts';
 import {DynamicTtlBoundHighlightRenderOp, RenderOp, StaticHighlightRenderOp} from './operations';
 import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportData} from './utils';
 
+const WINDOW_RESIZE_DEBOUNCE = 200;
+
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -45,12 +47,21 @@ export class Renderer {
     const rect = getAbsoluteBoundingClientRect(targetEl);
     let op: RenderOp;
 
+    highlight.props;
+
     if (!highlight.template.ttl) {
-      op = new StaticHighlightRenderOp(this.ctx, highlight.template, rect, this.viewportData);
+      op = new StaticHighlightRenderOp(
+        this.ctx,
+        highlight.template,
+        highlight.props,
+        rect,
+        this.viewportData,
+      );
     } else {
       op = new DynamicTtlBoundHighlightRenderOp(
         this.ctx,
         highlight.template,
+        highlight.props,
         rect,
         this.viewportData,
       );
@@ -85,12 +96,13 @@ export class Renderer {
     let rootMutationObserver: MutationObserver;
     let elementFrame: ReturnType<typeof requestAnimationFrame> = 0;
     let rootFrame: ReturnType<typeof requestAnimationFrame> = 0;
+    let scrollTimeout: ReturnType<typeof setTimeout>;
     let lastSize: {width: number; height: number} = {
       width: 0,
       height: 0,
     };
 
-    const rootHandler = () => {
+    const rootUpdatesHandler = () => {
       rootFrame = requestAnimationFrame(() => {
         rootFrame = 0;
         const width = root.scrollWidth;
@@ -100,7 +112,7 @@ export class Renderer {
         if (width !== lastWidth || height !== lastHeight) {
           this.updateCanvasSize();
           this.updateViewportData();
-          this.updateHighlightsRectData();
+          this.updateHighlightsData('full');
           this.render();
         }
 
@@ -108,14 +120,29 @@ export class Renderer {
       });
     };
 
+    const scrollHandler = () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(() => {
+        requestAnimationFrame(() => {
+          this.updateViewportData();
+          this.updateHighlightsData('viewport');
+          this.render();
+        });
+      }, WINDOW_RESIZE_DEBOUNCE);
+    };
+
     // Wrap Zone.js monkey-patched code for Zone-based apps.
     runOutsideAngular(() => {
-      rootResizeObserver = new ResizeObserver(rootHandler);
-      rootMutationObserver = new MutationObserver(rootHandler);
+      rootResizeObserver = new ResizeObserver(rootUpdatesHandler);
+      rootMutationObserver = new MutationObserver(rootUpdatesHandler);
 
       rootResizeObserver.observe(root);
       rootResizeObserver.observe(document.body);
       rootMutationObserver.observe(root, {childList: true, subtree: true, attributes: true});
+
+      window.addEventListener('scroll', scrollHandler);
 
       this.elementResizeObserver = new ResizeObserver(() => {
         if (elementFrame) {
@@ -124,7 +151,7 @@ export class Renderer {
 
         elementFrame = requestAnimationFrame(() => {
           elementFrame = 0;
-          this.updateHighlightsRectData();
+          this.updateHighlightsData('full');
           this.render();
         });
       });
@@ -140,16 +167,19 @@ export class Renderer {
       rootResizeObserver.disconnect();
       rootMutationObserver.disconnect();
       this.elementResizeObserver.disconnect();
+      window.removeEventListener('scroll', scrollHandler);
     };
   }
 
-  private updateHighlightsRectData() {
+  private updateHighlightsData(config: 'full' | 'viewport') {
+    const fullData = config === 'full';
+
     for (const highlight of this.operations.keys()) {
       const targetEl = highlight.targetElement.deref();
 
       // Get the updated positions of all target elements.
       if (targetEl) {
-        const rect = getAbsoluteBoundingClientRect(targetEl);
+        const rect = fullData ? getAbsoluteBoundingClientRect(targetEl) : undefined;
         const op = this.operations.get(highlight);
         op!.update({rect, viewport: this.viewportData});
       }
@@ -203,5 +233,3 @@ export class Renderer {
     }
   }
 }
-
-// const labelContent = this.template.labels[labelId].content(...props);

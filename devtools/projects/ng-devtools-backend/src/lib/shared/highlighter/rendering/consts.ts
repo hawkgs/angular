@@ -9,5 +9,7 @@
 export const CANVAS_ID = 'ng-devtools-highlighter-canvas';
 
 export const OVERLAY_FADE_OUT_DUR = 300;
-export const OVERLAY_DEFAULT_OPACITY = 0.6;
+export const OVERLAY_DEFAULT_OPACITY = 0.35;
 export const OVERLAY_SHADOW_OPACITY = 0.2;
+
+export const TEXT_PADDING = 2;

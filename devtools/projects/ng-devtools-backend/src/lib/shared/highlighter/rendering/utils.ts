@@ -7,22 +7,31 @@
  */
 
 import {AngularDevtoolsError} from '../../utils/error';
-import {HighlightTemplate} from '../types';
-import {OVERLAY_DEFAULT_OPACITY, OVERLAY_SHADOW_OPACITY} from './consts';
+import {
+  HighlightLabel,
+  HighlightLabelDefinition,
+  HighlightLabelProps,
+  HighlightTemplate,
+  RgbColor,
+} from '../types';
+import {TEXT_PADDING} from './consts';
 
-export interface ViewportData {
+export interface Coor {
+  x: number;
+  y: number;
+}
+
+export interface Dimensions {
   width: number;
   height: number;
+}
+
+export interface ViewportData extends Dimensions {
   scrollX: number;
   scrollY: number;
 }
 
-export interface Rect {
-  width: number;
-  height: number;
-  x: number;
-  y: number;
-}
+export type Rect = Coor & Dimensions;
 
 export function createCanvas(canvasId: string): {
   canvas: HTMLCanvasElement;
@@ -61,8 +70,8 @@ export function getViewportData(): ViewportData {
   };
 }
 
-export function toCSSColor(red: number, green: number, blue: number, alpha = 1): string {
-  return `rgba(${red},${green},${blue},${alpha})`;
+export function toCSSColor([red, green, blue]: RgbColor, alpha = 1): string {
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 export function getAbsoluteBoundingClientRect(target: Element): Rect {
@@ -82,13 +91,11 @@ export function drawOverlay(
   {x, y, width, height}: Rect,
   opacity = 1,
 ) {
-  const color = toCSSColor(...template.overlayColor, OVERLAY_DEFAULT_OPACITY * opacity);
-
   switch (template.style) {
     default:
     case 'fill':
       {
-        ctx.fillStyle = color;
+        ctx.fillStyle = toCSSColor(template.overlayColor, 0.35 * opacity);
         ctx.fillRect(x, y, width, height);
       }
       break;
@@ -97,7 +104,7 @@ export function drawOverlay(
         // Outer border
         const outerStroke = 3;
         ctx.lineWidth = outerStroke;
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.5 * opacity);
         ctx.strokeRect(x, y, width, height);
 
         // Inner border
@@ -105,9 +112,114 @@ export function drawOverlay(
         // computationally-extensive alternative.
         const pad = outerStroke / 2;
         ctx.lineWidth = 4;
-        ctx.strokeStyle = toCSSColor(...template.overlayColor, OVERLAY_SHADOW_OPACITY * opacity);
+        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.2 * opacity);
         ctx.strokeRect(x + pad, y + pad, width - outerStroke, height - outerStroke);
       }
       break;
   }
+}
+
+export function drawLabels(
+  ctx: CanvasRenderingContext2D,
+  template: HighlightTemplate,
+  props: HighlightLabelProps<HighlightLabelDefinition>,
+  rect: Rect,
+  viewport: ViewportData,
+  opacity = 1,
+) {
+  const color = toCSSColor(template.overlayColor, 0.9 * opacity);
+  ctx.font = '11px monospace';
+
+  for (const [name, labelDefinition] of Object.entries(template.labels)) {
+    const content = labelDefinition.content(props[name]);
+
+    const labelBoxDim = getLabelDimensions(ctx, content);
+    const labelPos = calculateLabelPos(rect, viewport, labelBoxDim.size, labelDefinition);
+    if (!labelPos) {
+      continue;
+    }
+
+    drawLabel(
+      ctx,
+      content,
+      color,
+      Object.assign(labelPos, labelBoxDim.size),
+      labelBoxDim.fontBoundingBoxAscent,
+      opacity,
+    );
+  }
+}
+
+function getLabelDimensions(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+): {size: Dimensions; fontBoundingBoxAscent: number} {
+  const m = ctx.measureText(text);
+  const w = m.width;
+  const h = m.fontBoundingBoxAscent + m.fontBoundingBoxDescent;
+  const size = {width: w + TEXT_PADDING * 2, height: h + TEXT_PADDING * 2};
+
+  return {size, fontBoundingBoxAscent: m.fontBoundingBoxAscent};
+}
+
+function drawLabel(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  color: string,
+  {x, y, width, height}: Rect,
+  fontBoundingBoxAscent: number,
+  opacity: number,
+) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width, height);
+
+  ctx.fillStyle = toCSSColor([255, 255, 255], opacity);
+  ctx.fillText(text, x + TEXT_PADDING, y + TEXT_PADDING + fontBoundingBoxAscent);
+}
+
+function calculateLabelPos(
+  rect: Rect,
+  viewport: ViewportData,
+  labelSize: Dimensions,
+  {offset: labelOffset, x: labelX}: HighlightLabel<any>,
+): Coor | null {
+  let x = 0;
+  let y = 0;
+
+  let insetFallback = false;
+  const isInset = labelOffset === 'inset';
+  const isStrictInset = labelOffset === 'strict-inset';
+  const maxX = viewport.width + viewport.scrollX - labelSize.width;
+  const maxY = viewport.height + viewport.scrollY - labelSize.height;
+
+  if (isInset || isStrictInset) {
+    const isRectTooSmall = labelSize.width > rect.width || labelSize.height > rect.height;
+
+    if (isRectTooSmall) {
+      if (isInset) {
+        insetFallback = true;
+      } else {
+        return null;
+      }
+    }
+
+    const originY = rect.y + rect.height - labelSize.height;
+    y = isInset ? Math.min(originY, maxY) : originY;
+  }
+  if (labelOffset === 'outset' || insetFallback) {
+    y = Math.min(rect.y + rect.height, maxY);
+  }
+
+  switch (labelX) {
+    case 'left':
+      x = Math.min(rect.x, maxX);
+      break;
+    case 'center':
+      x = Math.min(rect.x + (rect.width / 2 - labelSize.width / 2), maxX);
+      break;
+    case 'right':
+      x = Math.min(rect.x + rect.width - labelSize.width, maxX);
+  }
+
+  return {x, y};
 }

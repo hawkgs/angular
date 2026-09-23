@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {HighlightTemplate} from '../types';
-import {OVERLAY_DEFAULT_OPACITY, OVERLAY_FADE_OUT_DUR} from './consts';
-import {drawOverlay, Rect, ViewportData} from './utils';
+import {HighlightLabelDefinition, HighlightLabelProps, HighlightTemplate} from '../types';
+import {OVERLAY_FADE_OUT_DUR} from './consts';
+import {drawLabels, drawOverlay, Rect, ViewportData} from './utils';
 
-type RenderJobState = 'non-executed' | 'in-progress' | 'standby';
+type RenderOpState = 'non-executed' | 'in-progress' | 'standby';
 
-interface RenderJobUpdate {
+interface RenderOpUpdate {
   rect?: Rect;
   viewport?: ViewportData;
 }
@@ -20,12 +20,13 @@ interface RenderJobUpdate {
 export abstract class RenderOp {
   abstract render(timestamp: number): void;
 
-  protected stateInternal: RenderJobState = 'non-executed';
+  protected stateInternal: RenderOpState = 'non-executed';
   protected start: number = -1;
 
   constructor(
     protected readonly ctx: CanvasRenderingContext2D,
     protected readonly template: HighlightTemplate,
+    protected readonly props: HighlightLabelProps<HighlightLabelDefinition>,
     protected rect: Rect,
     protected viewport: ViewportData,
   ) {}
@@ -34,7 +35,16 @@ export abstract class RenderOp {
     return this.stateInternal;
   }
 
-  update({rect, viewport}: RenderJobUpdate) {
+  get isVisible() {
+    const rect = this.rect;
+    const viewport = this.viewport;
+
+    return (
+      rect.y < viewport.height + viewport.scrollY && rect.x < viewport.width + viewport.scrollX
+    );
+  }
+
+  update({rect, viewport}: RenderOpUpdate) {
     if (rect) {
       this.rect = rect;
     }
@@ -47,8 +57,13 @@ export abstract class RenderOp {
 /** Use for static highlights that don't have a TTL. */
 export class StaticHighlightRenderOp extends RenderOp {
   render(timestamp: number) {
+    if (!this.isVisible) {
+      return;
+    }
+
     this.start = timestamp;
     drawOverlay(this.ctx, this.template, this.rect);
+    drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport);
     this.stateInternal = 'standby';
   }
 }
@@ -58,6 +73,10 @@ export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
   private readonly fadeOutStart = this.template.ttl! - OVERLAY_FADE_OUT_DUR;
 
   render(timestamp: number) {
+    if (!this.isVisible) {
+      return;
+    }
+
     if (this.start === -1) {
       this.start = timestamp;
       this.stateInternal = 'in-progress';
@@ -77,6 +96,7 @@ export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
     }
 
     drawOverlay(this.ctx, this.template, this.rect, opacity);
+    drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport, opacity);
 
     if (timePassed >= this.template.ttl!) {
       this.stateInternal = 'standby';

@@ -19,7 +19,7 @@ export enum HighlightType {
   HydrationCompleted = 4,
 }
 
-type LabelContentFn = (...props: any[]) => Element | string;
+type LabelContentFn = (...props: any[]) => string;
 export type HighlightLabelDefinition = Record<string, LabelContentFn>;
 
 export type RgbColor = readonly [red: number, green: number, blue: number];
@@ -34,7 +34,7 @@ export interface HighlightLabel<T extends LabelContentFn> {
   x: 'left' | 'center' | 'right';
 
   /** Offset placement of the label relative to the highlight container edge. */
-  offset: 'inset' | 'outset' | 'prefer-inset';
+  offset: 'inset' | 'outset' | 'strict-inset';
 
   /** Label content template function. */
   content: T;
