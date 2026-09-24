@@ -19,7 +19,7 @@ export enum HighlightType {
   HydrationCompleted = 4,
 }
 
-type LabelContentFn = (...props: any[]) => string;
+type LabelContentFn = (...props: any[]) => string | HTMLImageElement;
 export type HighlightLabelDefinition = Record<string, LabelContentFn>;
 
 export type RgbColor = readonly [red: number, green: number, blue: number];
@@ -33,7 +33,14 @@ export interface HighlightLabel<T extends LabelContentFn> {
   /** X axis position. */
   x: 'left' | 'center' | 'right';
 
-  /** Offset placement of the label relative to the highlight container edge. */
+  /**
+   * Offset placement of the label relative to the highlight container edge.
+   * - `outset` – the label is rendered outside the highlight.
+   * - `inset` – the label is rendered inside the highlight, if there is enough space to fit.
+   * Else, it fall backs to `outset` mode.
+   * - `strict-inset` – the label is rendered always inside the highlight.
+   * If there isn't enough space, the label won't be displayed.
+   */
   offset: 'inset' | 'outset' | 'strict-inset';
 
   /** Label content template function. */
@@ -51,8 +58,7 @@ export interface HighlightTemplate<T extends HighlightLabelDefinition = Highligh
   style?: 'fill' | 'outline';
 
   /**
-   * Pick whether the labels should be visible/sticky
-   * or static relative to X axis.
+   * Pick whether the labels should be visible/sticky or static.
    */
   labelsType: 'sticky' | 'static';
 
@@ -76,17 +82,15 @@ export interface Highlight<T extends HighlightLabelDefinition = HighlightLabelDe
   get isDestroyed(): boolean;
   get isDisplayed(): boolean;
 
-  /** Render/append the highlight to the DOM. */
+  /** Render/append the highlight. */
   display(): void;
 
-  /** Remove the highlight from the DOM. */
+  /** Remove the highlight without destroying it. */
   hide(): void;
 
   /** Update a label of the highlight. */
   updateLabel(labelId: keyof T, ...props: Parameters<T[keyof T]>): void;
 
-  /**
-   * Remove the highlight.
-   */
+  /** Remove and destroy the highlight. */
   destroy(): void;
 }

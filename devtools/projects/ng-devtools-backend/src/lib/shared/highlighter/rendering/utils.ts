@@ -14,7 +14,6 @@ import {
   HighlightTemplate,
   RgbColor,
 } from '../types';
-import {TEXT_PADDING} from './consts';
 
 export interface Coor {
   x: number;
@@ -33,6 +32,13 @@ export interface ViewportData extends Dimensions {
 
 export type Rect = Coor & Dimensions;
 
+const LABEL_PADDING = 2;
+const IMG_SIZE = 12;
+const IMG_LABEL_DIMENSIONS: Dimensions = {
+  width: IMG_SIZE + LABEL_PADDING * 2,
+  height: IMG_SIZE + LABEL_PADDING * 2,
+};
+
 export function createCanvas(canvasId: string): {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -42,13 +48,13 @@ export function createCanvas(canvasId: string): {
     canvas = document.createElement('canvas');
     canvas.id = canvasId;
     canvas.style.position = 'absolute';
+    canvas.style.display = 'block';
     canvas.style.pointerEvents = 'none';
+    canvas.style.width = '100%';
+    canvas.style.width = 'auto';
     canvas.style.top = '0';
     canvas.style.left = '0';
     canvas.style.zIndex = '99999999';
-    // TMP
-    canvas.style.border = '2px solid red';
-    canvas.style.boxSizing = 'border-box';
   }
   const ctx = canvas.getContext('2d');
   if (!ctx) {
@@ -63,10 +69,10 @@ export function createCanvas(canvasId: string): {
 
 export function getViewportData(): ViewportData {
   return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    scrollX: window.scrollX,
-    scrollY: window.scrollY,
+    width: ~~window.innerWidth,
+    height: ~~window.innerHeight,
+    scrollX: ~~window.scrollX,
+    scrollY: ~~window.scrollY,
   };
 }
 
@@ -78,24 +84,33 @@ export function getAbsoluteBoundingClientRect(target: Element): Rect {
   const {width, height, x, y} = target.getBoundingClientRect();
 
   return {
-    width,
-    height,
-    x: x + window.scrollX,
-    y: y + window.scrollY,
+    width: ~~width,
+    height: ~~height,
+    x: ~~(x + window.scrollX),
+    y: ~~(y + window.scrollY),
   };
 }
 
+export function setCanvasOpacity(ctx: CanvasRenderingContext2D, opacity: number) {
+  ctx.globalAlpha = opacity;
+}
+
+/**
+ * Draw a highlight overlay.
+ * @param ctx 2D context of the canvas
+ * @param template Highlight template
+ * @param rect The bounding rect of the target element
+ */
 export function drawOverlay(
   ctx: CanvasRenderingContext2D,
   template: HighlightTemplate,
   {x, y, width, height}: Rect,
-  opacity = 1,
 ) {
   switch (template.style) {
     default:
     case 'fill':
       {
-        ctx.fillStyle = toCSSColor(template.overlayColor, 0.35 * opacity);
+        ctx.fillStyle = toCSSColor(template.overlayColor, 0.35);
         ctx.fillRect(x, y, width, height);
       }
       break;
@@ -104,7 +119,7 @@ export function drawOverlay(
         // Outer border
         const outerStroke = 3;
         ctx.lineWidth = outerStroke;
-        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.5 * opacity);
+        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.5);
         ctx.strokeRect(x, y, width, height);
 
         // Inner border
@@ -112,75 +127,119 @@ export function drawOverlay(
         // computationally-extensive alternative.
         const pad = outerStroke / 2;
         ctx.lineWidth = 4;
-        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.2 * opacity);
+        ctx.strokeStyle = toCSSColor(template.overlayColor, 0.2);
         ctx.strokeRect(x + pad, y + pad, width - outerStroke, height - outerStroke);
       }
       break;
   }
 }
 
+/**
+ * Draw highlight labels.
+ * @param ctx 2D context of the canvas
+ * @param template Highlight template
+ * @param props Current highlight instance props
+ * @param rect The bounding rect of the target element
+ * @param viewport Viewport data
+ */
 export function drawLabels(
   ctx: CanvasRenderingContext2D,
   template: HighlightTemplate,
   props: HighlightLabelProps<HighlightLabelDefinition>,
   rect: Rect,
   viewport: ViewportData,
-  opacity = 1,
 ) {
-  const color = toCSSColor(template.overlayColor, 0.9 * opacity);
+  const bgColor = toCSSColor(template.overlayColor, 0.9);
   ctx.font = '11px monospace';
 
   for (const [name, labelDefinition] of Object.entries(template.labels)) {
-    const content = labelDefinition.content(props[name]);
+    const content = labelDefinition.content(...props[name]);
 
-    const labelBoxDim = getLabelDimensions(ctx, content);
-    const labelPos = calculateLabelPos(rect, viewport, labelBoxDim.size, labelDefinition);
-    if (!labelPos) {
-      continue;
+    if (typeof content === 'string') {
+      const labelBoxDim = getTextLabelDimensions(ctx, content);
+      const labelPos = calculateLabelPos(
+        rect,
+        viewport,
+        labelBoxDim.size,
+        template.labelsType,
+        labelDefinition,
+      );
+      if (!labelPos) {
+        continue;
+      }
+
+      drawTextLabel(
+        ctx,
+        content,
+        bgColor,
+        Object.assign(labelPos, labelBoxDim.size),
+        labelBoxDim.fontBoundingBoxAscent,
+      );
+    } else {
+      const labelPos = calculateLabelPos(
+        rect,
+        viewport,
+        IMG_LABEL_DIMENSIONS,
+        template.labelsType,
+        labelDefinition,
+      );
+      if (!labelPos) {
+        continue;
+      }
+
+      drawImgLabel(ctx, content, bgColor, Object.assign(labelPos, IMG_LABEL_DIMENSIONS));
     }
-
-    drawLabel(
-      ctx,
-      content,
-      color,
-      Object.assign(labelPos, labelBoxDim.size),
-      labelBoxDim.fontBoundingBoxAscent,
-      opacity,
-    );
   }
 }
 
-function getLabelDimensions(
+/**
+ * Returns the width and height (including `fontBoundingBoxAscent`) of the provided text.
+ */
+function getTextLabelDimensions(
   ctx: CanvasRenderingContext2D,
   text: string,
 ): {size: Dimensions; fontBoundingBoxAscent: number} {
   const m = ctx.measureText(text);
   const w = m.width;
   const h = m.fontBoundingBoxAscent + m.fontBoundingBoxDescent;
-  const size = {width: w + TEXT_PADDING * 2, height: h + TEXT_PADDING * 2};
+  const size = {width: w + LABEL_PADDING * 2, height: h + LABEL_PADDING * 2};
 
   return {size, fontBoundingBoxAscent: m.fontBoundingBoxAscent};
 }
 
-function drawLabel(
+function drawTextLabel(
   ctx: CanvasRenderingContext2D,
   text: string,
-  color: string,
+  bgColor: string,
   {x, y, width, height}: Rect,
   fontBoundingBoxAscent: number,
-  opacity: number,
 ) {
-  ctx.fillStyle = color;
+  ctx.fillStyle = bgColor;
   ctx.fillRect(x, y, width, height);
 
-  ctx.fillStyle = toCSSColor([255, 255, 255], opacity);
-  ctx.fillText(text, x + TEXT_PADDING, y + TEXT_PADDING + fontBoundingBoxAscent);
+  ctx.fillStyle = toCSSColor([255, 255, 255]);
+  ctx.fillText(text, x + LABEL_PADDING, y + LABEL_PADDING + fontBoundingBoxAscent);
+}
+
+async function drawImgLabel(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  bgColor: string,
+  {x, y, width, height}: Rect,
+) {
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(x, y, width, height);
+
+  await img.decode();
+  const doublePad = LABEL_PADDING * 2;
+  ctx.drawImage(img, x + LABEL_PADDING, y + LABEL_PADDING, width - doublePad, height - doublePad);
 }
 
 function calculateLabelPos(
   rect: Rect,
   viewport: ViewportData,
   labelSize: Dimensions,
+  labelType: HighlightTemplate['labelsType'],
   {offset: labelOffset, x: labelX}: HighlightLabel<any>,
 ): Coor | null {
   let x = 0;
@@ -189,16 +248,30 @@ function calculateLabelPos(
   let insetFallback = false;
   const isInset = labelOffset === 'inset';
   const isStrictInset = labelOffset === 'strict-inset';
-  const maxX = viewport.width + viewport.scrollX - labelSize.width;
-  const maxY = viewport.height + viewport.scrollY - labelSize.height;
+
+  // If the label type is set to `sticky`, we determine the max X and Y
+  // based on the viewport and current scroll. This way, the labels are kept
+  // always visible.
+  let maxX = Infinity;
+  let maxY = Infinity;
+
+  if (labelType === 'sticky') {
+    maxX = viewport.width + viewport.scrollX - labelSize.width;
+    maxY = viewport.height + viewport.scrollY - labelSize.height;
+  }
 
   if (isInset || isStrictInset) {
     const isRectTooSmall = labelSize.width > rect.width || labelSize.height > rect.height;
 
     if (isRectTooSmall) {
       if (isInset) {
+        // If there isn't enough space for the label to be
+        // rendered inside the overlay, we render it outside,
+        // so we are falling back to `outset` mode.
         insetFallback = true;
       } else {
+        // If we have a `strict-inset` mode, we just skip
+        // the rendering of that label.
         return null;
       }
     }

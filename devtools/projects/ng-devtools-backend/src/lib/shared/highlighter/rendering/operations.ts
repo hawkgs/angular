@@ -7,8 +7,9 @@
  */
 
 import {HighlightLabelDefinition, HighlightLabelProps, HighlightTemplate} from '../types';
-import {OVERLAY_FADE_OUT_DUR} from './consts';
-import {drawLabels, drawOverlay, Rect, ViewportData} from './utils';
+import {drawLabels, drawOverlay, Rect, setCanvasOpacity, ViewportData} from './utils';
+
+export const OVERLAY_FADE_OUT_DUR = 300;
 
 type RenderOpState = 'non-executed' | 'in-progress' | 'standby';
 
@@ -62,6 +63,7 @@ export class StaticHighlightRenderOp extends RenderOp {
     }
 
     this.start = timestamp;
+    setCanvasOpacity(this.ctx, 1);
     drawOverlay(this.ctx, this.template, this.rect);
     drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport);
     this.stateInternal = 'standby';
@@ -95,8 +97,9 @@ export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
       opacity = 1 - progress;
     }
 
-    drawOverlay(this.ctx, this.template, this.rect, opacity);
-    drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport, opacity);
+    setCanvasOpacity(this.ctx, opacity);
+    drawOverlay(this.ctx, this.template, this.rect);
+    drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport);
 
     if (timePassed >= this.template.ttl!) {
       this.stateInternal = 'standby';

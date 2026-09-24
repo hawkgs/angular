@@ -8,11 +8,11 @@
 
 import {runOutsideAngular} from '../../utils/general';
 import {Highlight} from '../types';
-import {CANVAS_ID} from './consts';
 import {DynamicTtlBoundHighlightRenderOp, RenderOp, StaticHighlightRenderOp} from './operations';
 import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportData} from './utils';
 
 const WINDOW_RESIZE_DEBOUNCE = 200;
+const CANVAS_ID = 'ng-devtools-highlighter-canvas';
 
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
@@ -46,8 +46,6 @@ export class Renderer {
 
     const rect = getAbsoluteBoundingClientRect(targetEl);
     let op: RenderOp;
-
-    highlight.props;
 
     if (!highlight.template.ttl) {
       op = new StaticHighlightRenderOp(
@@ -194,12 +192,10 @@ export class Renderer {
     const width = document.documentElement.scrollWidth;
     const height = document.documentElement.scrollHeight;
 
-    // Set the actual scaled size
     this.canvas.width = width * this.dpr;
     this.canvas.height = height * this.dpr;
 
-    // Set the size in CSS (the visual size on the page)
-    this.canvas.style.width = `${width}px`;
+    // Width is set by CSS (100%);
     this.canvas.style.height = `${height}px`;
 
     // Normalize the coordinate system to use CSS pixels
