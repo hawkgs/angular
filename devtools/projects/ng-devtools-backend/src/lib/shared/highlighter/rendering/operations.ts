@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {HighlightLabelDefinition, HighlightLabelProps, HighlightTemplate} from '../types';
+import {Highlight} from '../types';
 import {drawLabels, drawOverlay, Rect, setCanvasOpacity, ViewportData} from './utils';
 
 export const OVERLAY_FADE_OUT_DUR = 300;
 
-type RenderOpState = 'non-executed' | 'in-progress' | 'standby';
+type RenderOpState = 'non-executed' | 'in-progress' | 'standby' | 'completed';
 
 interface RenderOpUpdate {
   rect?: Rect;
@@ -25,9 +25,8 @@ export abstract class RenderOp {
   protected start: number = -1;
 
   constructor(
+    public readonly highlight: Highlight,
     protected readonly ctx: CanvasRenderingContext2D,
-    protected readonly template: HighlightTemplate,
-    protected readonly props: HighlightLabelProps<HighlightLabelDefinition>,
     protected rect: Rect,
     protected viewport: ViewportData,
   ) {}
@@ -43,6 +42,14 @@ export abstract class RenderOp {
     return (
       rect.y < viewport.height + viewport.scrollY && rect.x < viewport.width + viewport.scrollX
     );
+  }
+
+  protected get template() {
+    return this.highlight.template;
+  }
+
+  protected get props() {
+    return this.highlight.props;
   }
 
   update({rect, viewport}: RenderOpUpdate) {
@@ -102,7 +109,7 @@ export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
     drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport);
 
     if (timePassed >= this.template.ttl!) {
-      this.stateInternal = 'standby';
+      this.stateInternal = 'completed';
     }
   }
 }

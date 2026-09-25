@@ -51,7 +51,7 @@ export function createCanvas(canvasId: string): {
     canvas.style.display = 'block';
     canvas.style.pointerEvents = 'none';
     canvas.style.width = '100%';
-    canvas.style.width = 'auto';
+    canvas.style.height = 'auto';
     canvas.style.top = '0';
     canvas.style.left = '0';
     canvas.style.zIndex = '99999999';

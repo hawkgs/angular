@@ -11,8 +11,8 @@ import {Highlight} from '../types';
 import {DynamicTtlBoundHighlightRenderOp, RenderOp, StaticHighlightRenderOp} from './operations';
 import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportData} from './utils';
 
-const WINDOW_RESIZE_DEBOUNCE = 200;
 const CANVAS_ID = 'ng-devtools-highlighter-canvas';
+const WINDOW_RESIZE_DEBOUNCE = 100;
 
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
@@ -48,21 +48,9 @@ export class Renderer {
     let op: RenderOp;
 
     if (!highlight.template.ttl) {
-      op = new StaticHighlightRenderOp(
-        this.ctx,
-        highlight.template,
-        highlight.props,
-        rect,
-        this.viewportData,
-      );
+      op = new StaticHighlightRenderOp(highlight, this.ctx, rect, this.viewportData);
     } else {
-      op = new DynamicTtlBoundHighlightRenderOp(
-        this.ctx,
-        highlight.template,
-        highlight.props,
-        rect,
-        this.viewportData,
-      );
+      op = new DynamicTtlBoundHighlightRenderOp(highlight, this.ctx, rect, this.viewportData);
     }
 
     this.operations.set(highlight, op);
@@ -72,11 +60,7 @@ export class Renderer {
   }
 
   removeHighlight(highlight: Highlight) {
-    const targetEl = highlight.targetElement.deref();
-    if (targetEl) {
-      this.elementResizeObserver.unobserve(targetEl);
-    }
-    this.operations.delete(highlight);
+    this.cleanHighlight(highlight);
 
     this.render();
   }
@@ -207,6 +191,14 @@ export class Renderer {
     this.ctx.clearRect(0, 0, width / this.dpr, height / this.dpr);
   }
 
+  private cleanHighlight(highlight: Highlight) {
+    const targetEl = highlight.targetElement.deref();
+    if (targetEl) {
+      this.elementResizeObserver.unobserve(targetEl);
+    }
+    this.operations.delete(highlight);
+  }
+
   private render() {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -221,6 +213,13 @@ export class Renderer {
     for (const op of this.operations.values()) {
       op.render(timestamp);
       inProgress ||= op.state === 'in-progress';
+
+      // We are scheduling a clean up of the
+      // operations that are completed.
+      if (op.state === 'completed') {
+        this.cleanHighlight(op.highlight);
+        op.highlight.destroy();
+      }
     }
 
     // Continue the render cycle until there are still ops in progress.
