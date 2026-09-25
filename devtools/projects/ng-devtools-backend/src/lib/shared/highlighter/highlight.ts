@@ -98,6 +98,7 @@ export class HighlightImpl<
       return;
     }
     this.renderer.removeHighlight(this);
+    this.displayed = false;
   }
 }
 
