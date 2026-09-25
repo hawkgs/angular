@@ -11,6 +11,16 @@ import {drawLabels, drawOverlay, Rect, setCanvasOpacity, ViewportData} from './u
 
 export const OVERLAY_FADE_OUT_DUR = 300;
 
+/**
+ * Render operation state.
+ * - `non-executed` – the highlight hasn't been rendered.
+ * - `in-progress` – the highlight is undergoing rendering;
+ * usually used for dynamic highlights.
+ * - `standby` – the highlight has been rendered;
+ * usually used for when a static highlight rendering completes.
+ * - `completed` - the rendering process has completed;
+ * used to mark when a dynamic highlight rendering completes.
+ */
 type RenderOpState = 'non-executed' | 'in-progress' | 'standby' | 'completed';
 
 interface RenderOpUpdate {
@@ -18,10 +28,21 @@ interface RenderOpUpdate {
   viewport?: ViewportData;
 }
 
+/**
+ * Render operation.
+ * Describes the blueprint and the current rendering state of a highlight.
+ * The operations are consumed by the `Renderer`.
+ */
 export abstract class RenderOp {
+  /**
+   * Render the highlight.
+   * @param timestamp A timestamp usually provided by `requestAnimationFrame`.
+   */
   abstract render(timestamp: number): void;
 
   protected stateInternal: RenderOpState = 'non-executed';
+
+  /** Should mark the start timestamp of the rendering. */
   protected start: number = -1;
 
   constructor(
@@ -35,6 +56,7 @@ export abstract class RenderOp {
     return this.stateInternal;
   }
 
+  /** Tells whether the highlight is visible in the viewport. */
   get isVisible() {
     const rect = this.rect;
     const viewport = this.viewport;
@@ -52,6 +74,7 @@ export abstract class RenderOp {
     return this.highlight.props;
   }
 
+  /** Update the highlight rect and/or the viewport data. */
   update({rect, viewport}: RenderOpUpdate) {
     if (rect) {
       this.rect = rect;
@@ -73,6 +96,10 @@ export class StaticHighlightRenderOp extends RenderOp {
     setCanvasOpacity(this.ctx, 1);
     drawOverlay(this.ctx, this.template, this.rect);
     drawLabels(this.ctx, this.template, this.props, this.rect, this.viewport);
+
+    // Static highlights are directly marked as `standby`
+    // as it is unknown to the `Renderer` when they will be hidden
+    // (i.e. it/renderer requires an explicit instruction to hide it).
     this.stateInternal = 'standby';
   }
 }
@@ -92,7 +119,7 @@ export class DynamicTtlBoundHighlightRenderOp extends RenderOp {
     }
 
     const timePassed = timestamp - this.start;
-    // Calculate the diff between the fade out start TS and the passed time.
+    // Calculate the diff between the fade out start timestamp and the passed time.
     const fadeOutTimePassDiff = timePassed - this.fadeOutStart;
     let opacity: number;
 

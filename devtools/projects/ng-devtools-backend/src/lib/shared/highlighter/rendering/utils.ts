@@ -80,6 +80,7 @@ export function toCSSColor([red, green, blue]: RgbColor, alpha = 1): string {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
+/** Returns a `Rect` based on `getBoundingClientRect` + the scroll positions. */
 export function getAbsoluteBoundingClientRect(target: Element): Rect {
   const {width, height, x, y} = target.getBoundingClientRect();
 

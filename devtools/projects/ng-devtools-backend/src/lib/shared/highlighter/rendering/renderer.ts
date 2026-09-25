@@ -14,9 +14,18 @@ import {createCanvas, getAbsoluteBoundingClientRect, getViewportData, ViewportDa
 const CANVAS_ID = 'ng-devtools-highlighter-canvas';
 const WINDOW_RESIZE_DEBOUNCE = 100;
 
+/**
+ * Provides HTML5 Canvas rendering medium for highlights.
+ */
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
+
+  // NOTE: The highlighting mechanism is carefully handling
+  // `Highlight` instances. The `Renderer` doesn't use weak-references,
+  // so it's a important to ensure that each highlight goes through
+  // the standard "render -> remove/hide" cycle when you are a consumer
+  // of the `Renderer`.
   private readonly operations = new Map<Highlight, RenderOp>();
   private viewportData: ViewportData = getViewportData();
   private elementResizeObserver!: ResizeObserver;
@@ -72,6 +81,11 @@ export class Renderer {
     this.cleanUpFn?.();
   }
 
+  /**
+   * Initialize global events and observers that listen for
+   * page updates (e.g. page size and scroll changes).
+   * @returns A clean up function that unlistens all events.
+   */
   private initEvents(): () => void {
     const root = document.documentElement;
     let rootResizeObserver: ResizeObserver;
@@ -84,6 +98,8 @@ export class Renderer {
       height: 0,
     };
 
+    // We use this handler for all changes that
+    // happen to the root element.
     const rootUpdatesHandler = () => {
       rootFrame = requestAnimationFrame(() => {
         rootFrame = 0;
@@ -102,6 +118,7 @@ export class Renderer {
       });
     };
 
+    // The scroll handler takes care of viewport data updates.
     const scrollHandler = () => {
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
@@ -117,6 +134,10 @@ export class Renderer {
 
     // Wrap Zone.js monkey-patched code for Zone-based apps.
     runOutsideAngular(() => {
+      // NOTE: Along with the obvious `ResizeObserver`, we also
+      // `observe` to a `MutationObserver`. It covers some specific
+      // cases where absolutely-positioned content might change page
+      // scroll area without affecting the size of the root element.
       rootResizeObserver = new ResizeObserver(rootUpdatesHandler);
       rootMutationObserver = new MutationObserver(rootUpdatesHandler);
 
@@ -153,6 +174,11 @@ export class Renderer {
     };
   }
 
+  /**
+   * Update the highlights render ops.
+   * @param config Use `full` for a full update (rect and viewport),
+   * or `viewport` to update only the viewport data.
+   */
   private updateHighlightsData(config: 'full' | 'viewport') {
     const fullData = config === 'full';
 
@@ -172,6 +198,10 @@ export class Renderer {
     this.viewportData = getViewportData();
   }
 
+  /**
+   * Update and scale the canvas size based on
+   * the root page element and the screen DPR.
+   */
   private updateCanvasSize() {
     const width = document.documentElement.scrollWidth;
     const height = document.documentElement.scrollHeight;
@@ -179,7 +209,7 @@ export class Renderer {
     this.canvas.width = width * this.dpr;
     this.canvas.height = height * this.dpr;
 
-    // Width is set by CSS (100%);
+    // Width is set by CSS (100%)
     this.canvas.style.height = `${height}px`;
 
     // Normalize the coordinate system to use CSS pixels
@@ -191,6 +221,7 @@ export class Renderer {
     this.ctx.clearRect(0, 0, width / this.dpr, height / this.dpr);
   }
 
+  /** Clean all highlight-specific data from the renderer. */
   private cleanHighlight(highlight: Highlight) {
     const targetEl = highlight.targetElement.deref();
     if (targetEl) {
@@ -199,6 +230,7 @@ export class Renderer {
     this.operations.delete(highlight);
   }
 
+  /** Initiate rendering of all loaded `RenderOp`s. */
   private render() {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -206,6 +238,7 @@ export class Renderer {
     this.animationFrame = requestAnimationFrame((ts) => this.renderFrame(ts));
   }
 
+  /** Render the next frame. */
   private renderFrame(timestamp: number) {
     this.clearCanvas();
     let inProgress = false;
