@@ -36,6 +36,8 @@ import {ButtonComponent} from '../shared/button/button.component';
 import {APP_DATA} from '../application-providers/app_data';
 import {SettingsComponent} from './settings/settings.component';
 import {HorizontalScrollerComponent} from '../shared/horizontal-scroller/horizontal-scroller.component';
+import {DtLink} from '../../../../shared-utils';
+import {FeDtLink} from '../shared/types/types';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
 
@@ -75,6 +77,8 @@ export class DevToolsTabsComponent {
   protected readonly supportedApis = inject(SUPPORTED_APIS);
   protected readonly appData = inject(APP_DATA);
   private readonly deepLinkInstanceId = inject(DEEP_LINK_INSTANCE_ID);
+
+  private readonly dtlink = inject<FeDtLink>(DtLink);
 
   readonly frameSelected = output<Frame>();
 
@@ -149,6 +153,17 @@ export class DevToolsTabsComponent {
     if (typeof chrome !== 'undefined' && chrome.runtime !== undefined) {
       this.extensionVersion.set(chrome.runtime.getManifest().version);
     }
+
+    this.tmpDtLinkTestGround();
+  }
+
+  // TMP; DELETE
+  async tmpDtLinkTestGround() {
+    const resp = await this.dtlink.call.getFooData();
+    console.log(resp);
+
+    const resp2 = await this.dtlink.call.requestBarData('Baz');
+    console.log(resp2);
   }
 
   emitSelectedFrame(event: Event): void {

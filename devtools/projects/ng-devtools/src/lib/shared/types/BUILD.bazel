@@ -1,0 +1,12 @@
+load("//devtools/tools:defaults.bzl", "ts_project")
+
+package(default_visibility = ["//devtools:__subpackages__"])
+
+ts_project(
+    name = "types",
+    srcs = ["types.ts"],
+    deps = [
+        "//devtools/projects/ng-devtools-backend:types",
+        "//devtools/projects/shared-utils",
+    ],
+)

@@ -30,6 +30,7 @@ import {
   appIsAngularInDevMode,
   appIsAngularIvy,
   appIsSupportedAngularVersion,
+  DtLink,
   getAngularVersion,
   isHydrationEnabled,
 } from '../../../shared-utils';
@@ -97,7 +98,11 @@ export const subscribeToClientEvents = (
     loadPerformanceTrack(),
   ];
 
-  messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns));
+  // DTLINK INIT
+  const dtLink = new DtLink<DevtoolsDtLinkApi>(messageBus);
+  dtLink.expose(DTLINK_API);
+
+  messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns, dtLink));
 
   messageBus.on('devtoolsShutdown', devtoolsShutdownCallback(inspector));
 
@@ -165,12 +170,14 @@ export const subscribeToClientEvents = (
 // Callback Definitions
 //
 
-const shutdownCallback = (messageBus: MessageBus<Events>, cleanUpFns: (() => void)[]) => () => {
-  for (const fn of cleanUpFns) {
-    fn();
-  }
-  messageBus.destroy();
-};
+const shutdownCallback =
+  (messageBus: MessageBus<Events>, cleanUpFns: (() => void)[], dtLink: DtLink) => () => {
+    for (const fn of cleanUpFns) {
+      fn();
+    }
+    messageBus.destroy();
+    dtLink.destroy();
+  };
 
 const devtoolsShutdownCallback = (inspector: InspectorRef) => () => {
   inspector.ref?.stopInspecting();
@@ -719,3 +726,20 @@ export function sanitizeRouteData(route: Route): Route {
  * Note: If the element is destroyed, the graph is garbage collected.
  */
 const componentSignalGraphRef = new SignalGraphRef<Node>();
+
+// DTLINK TEST GROUND BELOW
+
+async function getFooData() {
+  return 'Hello, Foo!';
+}
+
+async function requestBarData(bar: string) {
+  return `Bar data: ` + bar;
+}
+
+const DTLINK_API = {
+  getFooData,
+  requestBarData,
+};
+
+export type DevtoolsDtLinkApi = typeof DTLINK_API;

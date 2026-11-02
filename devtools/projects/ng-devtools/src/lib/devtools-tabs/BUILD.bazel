@@ -38,7 +38,9 @@ ng_project(
         "//devtools/projects/ng-devtools/src/lib/devtools-tabs/transfer-state",
         "//devtools/projects/ng-devtools/src/lib/shared/button",
         "//devtools/projects/ng-devtools/src/lib/shared/horizontal-scroller",
+        "//devtools/projects/ng-devtools/src/lib/shared/types",
         "//devtools/projects/protocol",
+        "//devtools/projects/shared-utils",
     ],
 )
 
