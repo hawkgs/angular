@@ -37,7 +37,7 @@ import {APP_DATA} from '../application-providers/app_data';
 import {SettingsComponent} from './settings/settings.component';
 import {HorizontalScrollerComponent} from '../shared/horizontal-scroller/horizontal-scroller.component';
 import {DtLink} from '../../../../shared-utils';
-import {FeDtLink} from '../shared/types/types';
+import {BeDtLink} from '../shared/types/types';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
 
@@ -78,7 +78,7 @@ export class DevToolsTabsComponent {
   protected readonly appData = inject(APP_DATA);
   private readonly deepLinkInstanceId = inject(DEEP_LINK_INSTANCE_ID);
 
-  private readonly dtlink = inject<FeDtLink>(DtLink);
+  private readonly dtlink = inject<BeDtLink>(DtLink);
 
   readonly frameSelected = output<Frame>();
 
@@ -162,8 +162,12 @@ export class DevToolsTabsComponent {
     const resp = await this.dtlink.call.getFooData();
     console.log(resp);
 
-    const resp2 = await this.dtlink.call.requestBarData('Baz');
+    const resp2 = await this.dtlink.call.requestBarData('Baz', false);
     console.log(resp2);
+
+    for await (const ct of this.dtlink.call.countGenerator$()) {
+      console.log(ct);
+    }
   }
 
   emitSelectedFrame(event: Event): void {

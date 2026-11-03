@@ -6,4 +6,4 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-export type {DevtoolsDtLinkApi} from './src/lib/client-event-subscribers';
+export type {BackendDtLinkApi} from './src/lib/rpc';

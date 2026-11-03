@@ -77,6 +77,7 @@ import {debugLog, log, setupLogging} from './shared/utils/log';
 import {sanitizeObject} from './shared/utils/serialization';
 import {SignalGraphRef} from './shared/utils/signal-graph-ref';
 import {getConfig} from './config/config';
+import {BackendDtLinkApi, BACKEND_DTLINK_API} from './rpc';
 
 type InspectorRef = {ref: ComponentInspector | null};
 
@@ -99,8 +100,8 @@ export const subscribeToClientEvents = (
   ];
 
   // DTLINK INIT
-  const dtLink = new DtLink<DevtoolsDtLinkApi>(messageBus);
-  dtLink.expose(DTLINK_API);
+  const dtLink = new DtLink<BackendDtLinkApi>(messageBus);
+  dtLink.expose(BACKEND_DTLINK_API);
 
   messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns, dtLink));
 
@@ -726,20 +727,3 @@ export function sanitizeRouteData(route: Route): Route {
  * Note: If the element is destroyed, the graph is garbage collected.
  */
 const componentSignalGraphRef = new SignalGraphRef<Node>();
-
-// DTLINK TEST GROUND BELOW
-
-async function getFooData() {
-  return 'Hello, Foo!';
-}
-
-async function requestBarData(bar: string) {
-  return `Bar data: ` + bar;
-}
-
-const DTLINK_API = {
-  getFooData,
-  requestBarData,
-};
-
-export type DevtoolsDtLinkApi = typeof DTLINK_API;

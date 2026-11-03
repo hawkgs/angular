@@ -15,7 +15,7 @@ import {Events, MessageBus, PriorityAwareMessageBus} from '../../../projects/pro
 import {IFrameMessageBus} from '../../iframe-message-bus';
 import {DEVTOOLS_BACKEND_URI, DEVTOOLS_FRONTEND_URI} from '../../communication';
 import {DtLink} from '../../../projects/shared-utils';
-import {DevtoolsDtLinkApi} from '../../../projects/ng-devtools-backend/types';
+import {BackendDtLinkApi} from '../../../projects/ng-devtools-backend/types';
 
 export const DEVTOOL_ROUTES: Routes = [
   {
@@ -37,9 +37,9 @@ export const DEVTOOL_ROUTES: Routes = [
       },
       {
         provide: DtLink,
-        useFactory(): DtLink<DevtoolsDtLinkApi> {
+        useFactory(): DtLink<BackendDtLinkApi> {
           const messageBus = inject(MessageBus);
-          return new DtLink<DevtoolsDtLinkApi>(messageBus);
+          return new DtLink<BackendDtLinkApi>(messageBus);
         },
       },
       {provide: FrameManager, useFactory: () => FrameManager.initialize(null)},

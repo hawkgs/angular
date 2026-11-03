@@ -14,6 +14,6 @@ ts_project(
     name = "types",
     srcs = ["types.ts"],
     deps = [
-        "//devtools/projects/ng-devtools-backend/src/lib:client_event_subscribers",
+        "//devtools/projects/ng-devtools-backend/src/lib:rpc",
     ],
 )

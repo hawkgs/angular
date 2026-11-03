@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DevtoolsDtLinkApi} from '../../../../../ng-devtools-backend/types';
+import {BackendDtLinkApi} from '../../../../../ng-devtools-backend/types';
 import {DtLink} from '../../../../../shared-utils';
 
 /** @fileoverview Contains global helper types. */
 
-export type FeDtLink = DtLink<DevtoolsDtLinkApi>;
+export type BeDtLink = DtLink<BackendDtLinkApi>;
