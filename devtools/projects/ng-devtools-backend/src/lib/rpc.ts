@@ -24,10 +24,15 @@ async function* countGenerator$() {
   return 'over';
 }
 
+function getQuxResponse() {
+  return 'qux';
+}
+
 export const BACKEND_DTLINK_API = {
   getFooData,
   requestBarData,
   countGenerator$,
+  getQuxResponse,
 } satisfies DtLinkApi;
 
 export type BackendDtLinkApi = typeof BACKEND_DTLINK_API;

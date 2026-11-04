@@ -10,13 +10,14 @@ import {MessageBus} from '../../../protocol';
 
 export type DtLinkApi = Record<
   string,
-  (...args: any[]) => Promise<unknown> | AsyncGenerator<unknown>
+  (...args: any[]) => unknown | Promise<unknown> | AsyncGenerator<unknown>
 >;
 
-const requestTopic = (name: string) => `dtlink#${name}_request`;
-const responseTopic = (name: string) => `dtlink#${name}_response`;
-const isGeneratorFn = (name: string) => name.endsWith('$');
-const shouldFnReturn = (name: string) => name.startsWith('get') || name.startsWith('request');
+type Promisify<R> = R extends AsyncGenerator<unknown, unknown, unknown> ? R : Promise<Awaited<R>>;
+
+export type DtLinkCallApi<T extends DtLinkApi> = {
+  [K in keyof T]: (...args: Parameters<T[K]>) => Promisify<ReturnType<T[K]>>;
+};
 
 type GeneratorResponse = {d: boolean; v?: any};
 
@@ -25,7 +26,7 @@ export class DtLink<T extends DtLinkApi = any> {
 
   constructor(private messageBus: MessageBus<any>) {}
 
-  call: T = new Proxy({} as T, {
+  call: DtLinkCallApi<T> = new Proxy({} as DtLinkCallApi<T>, {
     get: (_, prop) => {
       return (...args: any[]) => {
         if (typeof prop === 'symbol') {
@@ -54,6 +55,9 @@ export class DtLink<T extends DtLinkApi = any> {
               await new Promise<void>((res) => (wake = res));
               wake = null;
             }
+            if (queue.length) {
+              return queue[0];
+            }
             cleanUp();
           })();
         }
@@ -73,20 +77,38 @@ export class DtLink<T extends DtLinkApi = any> {
 
   expose(api: DtLinkApi) {
     for (const [name, fn] of Object.entries(api)) {
-      const cleanUp = this.messageBus.on(requestTopic(name), async (...args: any[]) => {
-        if (isGeneratorFn(name)) {
-          const generator = fn(...args) as AsyncGenerator;
-          for await (const value of generator) {
-            this.messageBus.emit(responseTopic(name), [
-              {d: false, v: value} satisfies GeneratorResponse,
-            ]);
-          }
-          this.messageBus.emit(responseTopic(name), [{d: true} satisfies GeneratorResponse]);
-        } else {
-          const resp = await fn(...args);
-          if (resp !== undefined) {
-            this.messageBus.emit(responseTopic(name), [resp]);
-          }
+      const cleanUp = this.messageBus.on(requestTopic(name), (...args: any[]) => {
+        const fnResult = fn(...args);
+        const responseTopicStr = responseTopic(name);
+
+        if (isPromise(fnResult)) {
+          // Handle promises/async vals
+          fnResult.then((resp) => {
+            if (resp !== undefined) {
+              this.messageBus.emit(responseTopicStr, [resp]);
+            }
+          });
+        } else if (isAsyncGenerator(fnResult)) {
+          // Handle async generators
+          const step = (): Promise<void> =>
+            fnResult.next().then((result) => {
+              if (!result.done) {
+                this.messageBus.emit(responseTopicStr, [
+                  {d: false, v: result.value} satisfies GeneratorResponse,
+                ]);
+                return step();
+              }
+
+              this.messageBus.emit(responseTopicStr, [
+                {d: true, v: result.value} satisfies GeneratorResponse,
+              ]);
+              return;
+            });
+
+          step();
+        } else if (fnResult !== undefined) {
+          // Handle standard sync vals
+          this.messageBus.emit(responseTopicStr, [fnResult]);
         }
       });
 
@@ -100,4 +122,17 @@ export class DtLink<T extends DtLinkApi = any> {
     }
     this.cleanUpFns = [];
   }
+}
+
+const requestTopic = (name: string) => `dtlink#${name}_request`;
+const responseTopic = (name: string) => `dtlink#${name}_response`;
+const isGeneratorFn = (name: string) => name.endsWith('$');
+const shouldFnReturn = (name: string) => name.startsWith('get') || name.startsWith('request');
+
+function isPromise(result: any): result is Promise<any> {
+  return result != null && typeof result.then === 'function';
+}
+
+function isAsyncGenerator(result: any): result is AsyncGenerator<any> {
+  return result != null && typeof result[Symbol.asyncIterator] === 'function';
 }

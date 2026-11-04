@@ -165,9 +165,19 @@ export class DevToolsTabsComponent {
     const resp2 = await this.dtlink.call.requestBarData('Baz', false);
     console.log(resp2);
 
-    for await (const ct of this.dtlink.call.countGenerator$()) {
-      console.log(ct);
+    // for await (const ct of this.dtlink.call.countGenerator$()) {
+    //   console.log(ct);
+    // }
+
+    // Alternative with return value
+    const gen = this.dtlink.call.countGenerator$();
+    let result: IteratorResult<number, string>;
+    while (!(result = await gen.next()).done) {
+      console.log(result.value);
     }
+    console.log('iter end val:', result.value);
+
+    console.log(await this.dtlink.call.getQuxResponse());
   }
 
   emitSelectedFrame(event: Event): void {
