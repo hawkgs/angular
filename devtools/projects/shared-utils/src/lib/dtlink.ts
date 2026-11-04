@@ -8,6 +8,8 @@
 
 import {MessageBus} from '../../../protocol';
 
+// Conventional RPC
+
 export type DtLinkApi = Record<
   string,
   (...args: any[]) => unknown | Promise<unknown> | AsyncGenerator<unknown>
@@ -106,6 +108,10 @@ export class DtLink<T extends DtLinkApi = any> {
             });
 
           step();
+        } else if (isRemoteSignal(fnResult)) {
+          // Patch remote signals
+          const signal = fnResult as RemoteSignalInternal<unknown>;
+          signal.__patch(this.messageBus, new Set());
         } else if (fnResult !== undefined) {
           // Handle standard sync vals
           this.messageBus.emit(responseTopicStr, [fnResult]);
@@ -135,4 +141,71 @@ function isPromise(result: any): result is Promise<any> {
 
 function isAsyncGenerator(result: any): result is AsyncGenerator<any> {
   return result != null && typeof result[Symbol.asyncIterator] === 'function';
+}
+
+// Remote signals (WORK IN PROGRESS)
+
+interface RemoteSignalInternal<T> {
+  (): T;
+  set(value: T): void;
+  update(updater: (value: T) => T): void;
+  __patch: (messageBus: MessageBus<any>, registry: Set<string>) => void;
+  __patched: () => boolean;
+  __NG_REMOTE_SIGNAL: true;
+}
+
+export type RemoteSignal<T> = Omit<
+  RemoteSignalInternal<T>,
+  Extract<keyof RemoteSignalInternal<T>, `__${string}`>
+>;
+
+const signalResponseTopic = (name: string) => `dtlink_remote_signal#${name}_response`;
+const signalRequestTopic = (name: string) => `dtlink_remote_signal#${name}_request`;
+
+export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> {
+  // if (name) {
+  //   throw new AngularDevtoolsError(`A remote signal with the name "${name}" already exists.`);
+  // }
+  // this.registered.add(name);
+
+  let value: T = initialValue;
+  let messageBus: MessageBus<any> | undefined;
+
+  const signal = () => value;
+  const responseTopic = signalResponseTopic(name);
+
+  signal.__NG_REMOTE_SIGNAL = true;
+
+  signal.set = (newValue: T) => {
+    if (!messageBus) {
+      throw new Error('Not patched');
+    }
+    value = newValue;
+    messageBus?.emit(responseTopic, [value]);
+  };
+
+  signal.update = (updater: Parameters<RemoteSignal<T>['update']>[0]) => {
+    if (!messageBus) {
+      throw new Error('Not patched');
+    }
+    value = updater(value);
+    messageBus?.emit(responseTopic, [value]);
+  };
+
+  signal.__patch = (bus: MessageBus<any>, registry: Set<string>) => {
+    messageBus = bus;
+
+    // This will be leaking
+    messageBus.on(signalRequestTopic(name), () => {
+      messageBus!.emit(responseTopic, [value]);
+    });
+  };
+
+  signal.__patched = () => !!messageBus;
+
+  return signal;
+}
+
+function isRemoteSignal(value: any): value is RemoteSignal<unknown> {
+  return value.__NG_REMOTE_SIGNAL;
 }

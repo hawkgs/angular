@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DtLinkApi} from '../../../shared-utils';
+import {DtLinkApi, remoteSignal} from '../../../shared-utils';
 
 async function getFooData() {
   return 'Hello, Foo!';
@@ -26,6 +26,19 @@ async function* countGenerator$() {
 
 function getQuxResponse() {
   return 'qux';
+}
+
+// Remote signals playground
+const buildings = remoteSignal('buildings', 'empire state');
+
+export function testRemoteSignalsAfterPatch() {
+  setTimeout(() => {
+    buildings.set('Test');
+
+    setTimeout(() => {
+      buildings.set('Test 2');
+    });
+  }, 2000);
 }
 
 export const BACKEND_DTLINK_API = {
