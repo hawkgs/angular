@@ -6,7 +6,14 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {asyncFn, asyncGeneratorFn, DtLinkApi, remoteSignal, syncFn} from '../../../shared-utils';
+import {
+  asyncFn,
+  asyncGeneratorFn,
+  DtLinkApi,
+  remoteSignal,
+  remoteSignalObj,
+  syncFn,
+} from '../../../shared-utils';
 
 async function getFooData() {
   return 'Hello, Foo!';
@@ -46,6 +53,7 @@ export const BACKEND_DTLINK_API = [
   asyncFn({barData}),
   asyncGeneratorFn({countGenerator}),
   syncFn({getQuxResponse}),
+  remoteSignalObj({buildings}),
 ] satisfies DtLinkApi;
 
 export type BackendDtLinkApi = typeof BACKEND_DTLINK_API;
