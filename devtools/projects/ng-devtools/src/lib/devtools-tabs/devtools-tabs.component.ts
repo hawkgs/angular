@@ -162,7 +162,7 @@ export class DevToolsTabsComponent {
     const resp = await this.dtlink.call.getFooData();
     console.log(resp);
 
-    const resp2 = await this.dtlink.call.requestBarData('Baz', false);
+    const resp2 = await this.dtlink.call.barData('Baz', false);
     console.log(resp2);
 
     // for await (const ct of this.dtlink.call.countGenerator$()) {
@@ -170,7 +170,7 @@ export class DevToolsTabsComponent {
     // }
 
     // Alternative with return value
-    const gen = this.dtlink.call.countGenerator$();
+    const gen = await this.dtlink.call.countGenerator();
     let result: IteratorResult<number, string>;
     while (!(result = await gen.next()).done) {
       console.log(result.value);
