@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, effect, inject, Injector, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, output, signal} from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {MatTabLink, MatTabNav, MatTabNavPanel} from '@angular/material/tabs';
@@ -77,7 +77,6 @@ export class DevToolsTabsComponent {
   protected readonly supportedApis = inject(SUPPORTED_APIS);
   protected readonly appData = inject(APP_DATA);
   private readonly deepLinkInstanceId = inject(DEEP_LINK_INSTANCE_ID);
-  private readonly injector = inject(Injector);
 
   private readonly dtlink = inject<BeDtLink>(DtLink);
 
@@ -155,7 +154,12 @@ export class DevToolsTabsComponent {
       this.extensionVersion.set(chrome.runtime.getManifest().version);
     }
 
+    // TMP test
     this.tmpDtLinkTestGround();
+
+    effect(() => {
+      console.log('BUILDINGS SIGNAL EFFECT:', this.dtlink.api.$buildings());
+    });
   }
 
   // TMP; DELETE
@@ -165,15 +169,6 @@ export class DevToolsTabsComponent {
 
     const resp2 = await this.dtlink.api.barData('Baz', false);
     console.log(resp2);
-
-    const buildings = await this.dtlink.api.buildings();
-
-    effect(
-      () => {
-        console.log('BUILDINGS SIGNAL EFFECT:', buildings());
-      },
-      {injector: this.injector},
-    );
 
     // Alternative with return value
     const gen = await this.dtlink.api.countGenerator();

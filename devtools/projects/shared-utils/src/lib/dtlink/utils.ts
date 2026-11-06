@@ -19,7 +19,16 @@ import {
   VoidAsyncFn,
   VoidSyncFn,
   RemoteSignalInternal,
+  DestinationCallType,
+  DtLinkApi,
+  RemoteApiMetadata,
 } from './types';
+
+//
+// Consts
+//
+
+export const REMOTE_SIGNAL_PREFIX = '$';
 
 //
 // `MessageBus` topics
@@ -138,4 +147,31 @@ export function isRemoteSignalMetadata(data: ApiMetadata): data is RemoteSignalM
 /** Checks whether a async/sync function or an async generator metadata. */
 export function isCallableMetadata(data: ApiMetadata): data is CallableMetadata {
   return !!(data as CallableMetadata).fn;
+}
+
+export function isRemoteSignalDest(name: string) {
+  return name.startsWith(REMOTE_SIGNAL_PREFIX);
+}
+
+export function remoteSignalName(name: string) {
+  return REMOTE_SIGNAL_PREFIX + name;
+}
+
+//
+// Mapping
+//
+
+const TO_DEST_CALLABLE: {[key in SourceCallType]: DestinationCallType} = {
+  [SourceCallType.Sync]: DestinationCallType.Async,
+  [SourceCallType.Async]: DestinationCallType.Async,
+  [SourceCallType.VoidSync]: DestinationCallType.VoidAsync,
+  [SourceCallType.VoidAsync]: DestinationCallType.VoidAsync,
+  [SourceCallType.AsyncGenerator]: DestinationCallType.AsyncGenerator,
+  [SourceCallType.RemoteSignal]: DestinationCallType.RemoteSignal,
+};
+
+export function serializeApiMetadata(api: DtLinkApi): RemoteApiMetadata {
+  return api.reduce((map, metadata) => {
+    return map.set(metadata.name, TO_DEST_CALLABLE[metadata.type]);
+  }, new Map<string, DestinationCallType>());
 }

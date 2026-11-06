@@ -23,12 +23,14 @@ export enum SourceCallType {
 
 /**
  * Describes all types of remote calls on the destination.
+ * All sync calls are converted to async.
+ * Remote signals are split into sync or async.
  */
 export enum DestinationCallType {
   Async = 1,
+  VoidAsync = 3,
   AsyncGenerator = 4,
-  AsyncRemoteSignal = 6,
-  SyncRemoteSignal = 7,
+  RemoteSignal = 5,
 }
 
 // These types describe the actual callables that reside on the source.
@@ -75,9 +77,9 @@ export type ApiMetadata<
 > = CallableMetadata<N, F> | RemoteSignalMetadata<N, T>;
 
 /**
- * Serialized `ApiMetadata` ready to be consumed by the destination.
+ * Serialized remote `ApiMetadata` ready to be consumed by the destination.
  */
-export type SerializedApiMetadata = Map<string, SourceCallType>;
+export type RemoteApiMetadata = Map<string, DestinationCallType>;
 
 /**
  * `DtLink` exposed API as observed on the source.
@@ -91,17 +93,20 @@ export type DtLinkApi = ApiMetadata[];
 // It converts the DtLinkApi to a consumable on the destination
 // DtLinkRemoteApi. Basically:
 // - The RemoteSignal<T> types are converted to read-only Signals<T | undefined>
+// and their names are prefixed with `$`
 // - Sync callables on the origin are converted to Promises on the destination,
 // including async generators
 export type DtLinkRemoteApi<T extends DtLinkApi> = {
-  [M in T[number] as M['name']]: M extends CallableMetadata
+  [
+    M in T[number] as M extends RemoteSignalMetadata ? `$${M['name']}` : M['name']
+  ]: M extends CallableMetadata
     ? (
         ...args: Parameters<M['fn']>
       ) => ReturnType<M['fn']> extends Promise<unknown>
         ? ReturnType<M['fn']>
         : Promise<ReturnType<M['fn']>>
     : M extends RemoteSignalMetadata<string, infer V>
-      ? () => Promise<Signal<V | undefined>>
+      ? Signal<V | undefined>
       : never;
 };
 

@@ -8,7 +8,12 @@
 
 import {MessageBus} from '../../../../protocol';
 import {RemoteSignal, RemoteSignalInternal} from './types';
-import {DTLINK_DISPOSE_SIGNALS, dtlinkRequestTopic, dtlinkResponseTopic} from './utils';
+import {
+  DTLINK_DISPOSE_SIGNALS,
+  dtlinkRequestTopic,
+  dtlinkResponseTopic,
+  remoteSignalName,
+} from './utils';
 
 /**
  * Creates a `RemoteSignal` on the source.
@@ -22,7 +27,9 @@ export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> 
   let cleanUpFn: (() => void) | undefined;
 
   const signal = () => value;
-  const responseTopic = dtlinkResponseTopic(name);
+  const prefixedName = remoteSignalName(name);
+  const responseTopic = dtlinkResponseTopic(prefixedName);
+  const requestTopic = dtlinkRequestTopic(prefixedName);
 
   signal.__NG_DTLINK_REMOTE_SIGNAL = true as const;
 
@@ -53,7 +60,7 @@ export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> 
   signal.__patch = (bus: MessageBus<any>) => {
     messageBus = bus;
 
-    cleanUpFn = messageBus.on(dtlinkRequestTopic(name), () => {
+    cleanUpFn = messageBus.on(requestTopic, () => {
       messageBus!.emit(responseTopic, [value]);
     });
     messageBus.once(DTLINK_DISPOSE_SIGNALS, () => signal.dispose());

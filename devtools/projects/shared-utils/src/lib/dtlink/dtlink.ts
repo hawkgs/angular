@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {signal} from '@angular/core';
+import {signal as createSignal, Signal} from '@angular/core';
 import {MessageBus} from '../../../../protocol';
 import {
-  SourceCallType,
   DtLinkApi,
   DtLinkRemoteApi,
   RemoteSignalInternal,
-  SerializedApiMetadata,
+  RemoteApiMetadata,
+  DestinationCallType,
 } from './types';
 import {
   isAsyncFn,
@@ -26,6 +26,8 @@ import {
   DTLINK_API_REQUEST,
   DTLINK_DISPOSE_SIGNALS,
   isRemoteSignalMetadata,
+  serializeApiMetadata,
+  isRemoteSignalDest,
 } from './utils';
 
 const API_REQUEST_RETRY = 2500;
@@ -35,15 +37,18 @@ type GeneratorResponse = {d: boolean; v?: any};
 /** RPC abstraction layer over a `MessageBus`. */
 export class DtLink<T extends DtLinkApi = any> {
   private cleanUpFns: (() => void)[] = [];
-  private remoteApiResolver?: (d: SerializedApiMetadata) => void;
-  private remoteApi = new Promise<SerializedApiMetadata>((res) => (this.remoteApiResolver = res));
+  private remoteApiMetadataResolver?: (d: RemoteApiMetadata) => void;
+  private remoteApiMetadata = new Promise<RemoteApiMetadata>(
+    (res) => (this.remoteApiMetadataResolver = res),
+  );
   private apiRequestRetryInterval?: ReturnType<typeof setInterval>;
+  private remoteSignalsCache = new Map<string, Signal<unknown>>();
 
   constructor(private messageBus: MessageBus<any>) {
     // Request the remote API from the source.
-    messageBus.once(DTLINK_API_RESPONSE, (remoteApi: SerializedApiMetadata) => {
+    messageBus.once(DTLINK_API_RESPONSE, (remoteApi: RemoteApiMetadata) => {
       clearInterval(this.apiRequestRetryInterval);
-      this.remoteApiResolver?.(remoteApi);
+      this.remoteApiMetadataResolver?.(remoteApi);
     });
     messageBus.emit(DTLINK_API_REQUEST);
 
@@ -55,12 +60,29 @@ export class DtLink<T extends DtLinkApi = any> {
   /** API on the destination available to call from the source. */
   api: DtLinkRemoteApi<T> = new Proxy({} as any, {
     get: (_, prop) => {
-      return async (...args: any[]) => {
-        if (typeof prop === 'symbol') {
-          return;
+      if (typeof prop === 'symbol') {
+        return;
+      }
+      if (isRemoteSignalDest(prop)) {
+        let readOnly = this.remoteSignalsCache.get(prop);
+
+        if (!readOnly) {
+          const signal = createSignal<unknown>(undefined);
+          const cleanUp = this.messageBus.on(dtlinkResponseTopic(prop), (value: unknown) => {
+            signal.set(value);
+          });
+          this.messageBus.emit(dtlinkRequestTopic(prop));
+          this.cleanUpFns.push(cleanUp);
+
+          readOnly = signal.asReadonly();
+          this.remoteSignalsCache.set(prop, readOnly);
         }
 
-        const type = (await this.remoteApi).get(prop);
+        return readOnly;
+      }
+
+      return async (...args: any[]) => {
+        const type = (await this.remoteApiMetadata).get(prop);
 
         if (type === undefined) {
           // TBD: Use AngularDevtoolsError
@@ -69,16 +91,7 @@ export class DtLink<T extends DtLinkApi = any> {
           );
         }
 
-        if (type === SourceCallType.RemoteSignal) {
-          const sig = signal<any>(undefined);
-          const cleanUp = this.messageBus.on(dtlinkResponseTopic(prop), (value: any) => {
-            sig.set(value);
-          });
-          this.messageBus.emit(dtlinkRequestTopic(prop));
-          this.cleanUpFns.push(cleanUp);
-
-          return sig.asReadonly();
-        } else if (type === SourceCallType.AsyncGenerator) {
+        if (type === DestinationCallType.AsyncGenerator) {
           const that = this;
 
           return (async function* () {
@@ -110,7 +123,7 @@ export class DtLink<T extends DtLinkApi = any> {
           })();
         }
 
-        const shouldReturn = type === SourceCallType.Async || type === SourceCallType.Sync;
+        const shouldReturn = type === DestinationCallType.Async;
 
         return new Promise((resolve) => {
           if (shouldReturn) {
@@ -127,22 +140,22 @@ export class DtLink<T extends DtLinkApi = any> {
   expose(api: DtLinkApi) {
     const names = new Set<string>();
 
-    for (const data of api) {
-      if (names.has(data.name)) {
+    for (const metadata of api) {
+      if (names.has(metadata.name)) {
         // TBD: Use AngularDevtoolsError
         throw new Error(
-          `AngularDevTools: API with name "${data.name}" already exists. Please pick a different name`,
+          `AngularDevTools: API with name "${metadata.name}" already exists. Please pick a different name`,
         );
       }
-      names.add(data.name);
+      names.add(metadata.name);
 
       // Handle remote signals
-      if (isRemoteSignalMetadata(data)) {
-        (data.signal as RemoteSignalInternal<unknown>).__patch(this.messageBus);
+      if (isRemoteSignalMetadata(metadata)) {
+        (metadata.signal as RemoteSignalInternal<unknown>).__patch(this.messageBus);
         continue;
       }
 
-      const {name, fn, type} = data;
+      const {name, fn, type} = metadata;
       const requestTopic = dtlinkRequestTopic(name);
       const responseTopic = dtlinkResponseTopic(name);
       let cleanUpFn: () => void | undefined;
@@ -190,16 +203,7 @@ export class DtLink<T extends DtLinkApi = any> {
       this.cleanUpFns.push(cleanUpFn);
     }
 
-    // Emit the exposed API to the destination.
-    const apiRequestCleanUpFn = this.messageBus.on(DTLINK_API_REQUEST, () => {
-      const serialized: SerializedApiMetadata = api.reduce(
-        (map, b) => map.set(b.name, b.type),
-        new Map<string, SourceCallType>(),
-      );
-
-      this.messageBus.emit(DTLINK_API_RESPONSE, [serialized]);
-    });
-    this.cleanUpFns.push(apiRequestCleanUpFn);
+    this.listenForApiRequests(api);
   }
 
   /** Destroys and disposes the DtLink instance along with all remote signals. */
@@ -210,5 +214,14 @@ export class DtLink<T extends DtLinkApi = any> {
     this.cleanUpFns = [];
     this.messageBus.emit(DTLINK_DISPOSE_SIGNALS);
     clearInterval(this.apiRequestRetryInterval);
+  }
+
+  private listenForApiRequests(api: DtLinkApi) {
+    // Emit the exposed API to the destination.
+    const apiRequestCleanUpFn = this.messageBus.on(DTLINK_API_REQUEST, () => {
+      const serialized = serializeApiMetadata(api);
+      this.messageBus.emit(DTLINK_API_RESPONSE, [serialized]);
+    });
+    this.cleanUpFns.push(apiRequestCleanUpFn);
   }
 }
