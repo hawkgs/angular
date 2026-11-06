@@ -14,6 +14,12 @@ import {
   RemoteSignalInternal,
   RemoteApiMetadata,
   DestinationCallType,
+  AsyncFn,
+  VoidAsyncFn,
+  ApiMetadata,
+  AsyncGeneratorFn,
+  SyncFn,
+  VoidSyncFn,
 } from './types';
 import {
   isAsyncFn,
@@ -37,12 +43,12 @@ type GeneratorResponse = {d: boolean; v?: any};
 /** RPC abstraction layer over a `MessageBus`. */
 export class DtLink<T extends DtLinkApi = any> {
   private cleanUpFns: (() => void)[] = [];
+  private apiRequestRetryInterval?: ReturnType<typeof setInterval>;
+  private remoteSignalsCache = new Map<string, Signal<unknown>>();
   private remoteApiMetadataResolver?: (d: RemoteApiMetadata) => void;
   private remoteApiMetadata = new Promise<RemoteApiMetadata>(
     (res) => (this.remoteApiMetadataResolver = res),
   );
-  private apiRequestRetryInterval?: ReturnType<typeof setInterval>;
-  private remoteSignalsCache = new Map<string, Signal<unknown>>();
 
   constructor(private messageBus: MessageBus<any>) {
     // Request the remote API from the source.
@@ -64,21 +70,7 @@ export class DtLink<T extends DtLinkApi = any> {
         return;
       }
       if (isRemoteSignalDest(prop)) {
-        let readOnly = this.remoteSignalsCache.get(prop);
-
-        if (!readOnly) {
-          const signal = createSignal<unknown>(undefined);
-          const cleanUp = this.messageBus.on(dtlinkResponseTopic(prop), (value: unknown) => {
-            signal.set(value);
-          });
-          this.messageBus.emit(dtlinkRequestTopic(prop));
-          this.cleanUpFns.push(cleanUp);
-
-          readOnly = signal.asReadonly();
-          this.remoteSignalsCache.set(prop, readOnly);
-        }
-
-        return readOnly;
+        return this.constructRemoteSignal(prop);
       }
 
       return async (...args: any[]) => {
@@ -92,46 +84,10 @@ export class DtLink<T extends DtLinkApi = any> {
         }
 
         if (type === DestinationCallType.AsyncGenerator) {
-          const that = this;
-
-          return (async function* () {
-            const queue: any[] = [];
-            let wake: (() => void) | null = null;
-            let done = false;
-
-            const cleanUp = that.messageBus.on(
-              dtlinkResponseTopic(prop),
-              ({d, v}: GeneratorResponse) => {
-                queue.push(v);
-                done = d;
-                wake?.();
-              },
-            );
-            that.messageBus.emit(dtlinkRequestTopic(prop), args);
-
-            while (!done) {
-              while (queue.length) {
-                yield queue.shift();
-              }
-              await new Promise<void>((res) => (wake = res));
-              wake = null;
-            }
-            if (queue.length) {
-              return queue[0];
-            }
-            cleanUp();
-          })();
+          return this.constructAsyncGenerator(prop, ...args);
         }
 
-        const shouldReturn = type === DestinationCallType.Async;
-
-        return new Promise((resolve) => {
-          if (shouldReturn) {
-            this.messageBus.once(dtlinkResponseTopic(prop), resolve);
-          }
-
-          this.messageBus.emit(dtlinkRequestTopic(prop), args);
-        });
+        return this.constructAsyncFn(type, prop, ...args);
       };
     },
   });
@@ -155,52 +111,15 @@ export class DtLink<T extends DtLinkApi = any> {
         continue;
       }
 
-      const {name, fn, type} = metadata;
-      const requestTopic = dtlinkRequestTopic(name);
-      const responseTopic = dtlinkResponseTopic(name);
-      let cleanUpFn: () => void | undefined;
+      const {fn, type} = metadata;
 
       if (isAsyncFn(fn, type) || isVoidAsyncFn(fn, type)) {
-        // Handle promises/async callables
-        cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-          fn(...args).then((resp) => {
-            if (isAsyncFn(fn, type)) {
-              this.messageBus.emit(responseTopic, [resp]);
-            }
-          });
-        });
+        this.exposeAsyncFn(metadata, fn);
       } else if (isAsyncGeneratorFn(fn, type)) {
-        // Handle async generators
-        cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-          const generator = fn(...args);
-          const step = (): Promise<void> =>
-            generator.next().then((result) => {
-              if (!result.done) {
-                this.messageBus.emit(responseTopic, [
-                  {d: false, v: result.value} satisfies GeneratorResponse,
-                ]);
-                return step();
-              }
-
-              this.messageBus.emit(responseTopic, [
-                {d: true, v: result.value} satisfies GeneratorResponse,
-              ]);
-              return;
-            });
-
-          step();
-        });
+        this.exposeAsyncGenerator(metadata, fn);
       } else {
-        // Handle standard sync callables
-        cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-          const response = fn(...args);
-          if (isSyncFn(fn, type)) {
-            this.messageBus.emit(responseTopic, [response]);
-          }
-        });
+        this.exposeSyncFn(metadata, fn);
       }
-
-      this.cleanUpFns.push(cleanUpFn);
     }
 
     this.listenForApiRequests(api);
@@ -214,6 +133,120 @@ export class DtLink<T extends DtLinkApi = any> {
     this.cleanUpFns = [];
     this.messageBus.emit(DTLINK_DISPOSE_SIGNALS);
     clearInterval(this.apiRequestRetryInterval);
+  }
+
+  private constructRemoteSignal(name: string) {
+    let readOnly = this.remoteSignalsCache.get(name);
+
+    if (!readOnly) {
+      const signal = createSignal<unknown>(undefined);
+      const cleanUp = this.messageBus.on(dtlinkResponseTopic(name), (value: unknown) => {
+        signal.set(value);
+      });
+      this.messageBus.emit(dtlinkRequestTopic(name));
+      this.cleanUpFns.push(cleanUp);
+
+      readOnly = signal.asReadonly();
+      this.remoteSignalsCache.set(name, readOnly);
+    }
+
+    return readOnly;
+  }
+
+  private constructAsyncGenerator(name: string, ...args: any[]) {
+    const that = this;
+
+    return (async function* () {
+      const queue: any[] = [];
+      let wake: (() => void) | null = null;
+      let done = false;
+
+      const cleanUp = that.messageBus.on(dtlinkResponseTopic(name), ({d, v}: GeneratorResponse) => {
+        queue.push(v);
+        done = d;
+        wake?.();
+      });
+      that.messageBus.emit(dtlinkRequestTopic(name), args);
+
+      while (!done) {
+        while (queue.length) {
+          yield queue.shift();
+        }
+        await new Promise<void>((res) => (wake = res));
+        wake = null;
+      }
+      if (queue.length) {
+        return queue[0];
+      }
+      cleanUp();
+    })();
+  }
+
+  private constructAsyncFn(type: DestinationCallType, name: string, ...args: any[]) {
+    return new Promise((resolve) => {
+      // Should return
+      if (type === DestinationCallType.Async) {
+        this.messageBus.once(dtlinkResponseTopic(name), resolve);
+      }
+
+      this.messageBus.emit(dtlinkRequestTopic(name), args);
+    });
+  }
+
+  private exposeAsyncFn({name, type}: ApiMetadata, fn: AsyncFn | VoidAsyncFn) {
+    const requestTopic = dtlinkRequestTopic(name);
+    const responseTopic = dtlinkResponseTopic(name);
+
+    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
+      fn(...args).then((resp) => {
+        if (isAsyncFn(fn, type)) {
+          this.messageBus.emit(responseTopic, [resp]);
+        }
+      });
+    });
+
+    this.cleanUpFns.push(cleanUpFn);
+  }
+
+  private exposeAsyncGenerator({name}: ApiMetadata, fn: AsyncGeneratorFn) {
+    const requestTopic = dtlinkRequestTopic(name);
+    const responseTopic = dtlinkResponseTopic(name);
+
+    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
+      const generator = fn(...args);
+      const step = (): Promise<void> =>
+        generator.next().then((result) => {
+          if (!result.done) {
+            this.messageBus.emit(responseTopic, [
+              {d: false, v: result.value} satisfies GeneratorResponse,
+            ]);
+            return step();
+          }
+
+          this.messageBus.emit(responseTopic, [
+            {d: true, v: result.value} satisfies GeneratorResponse,
+          ]);
+          return;
+        });
+
+      step();
+    });
+
+    this.cleanUpFns.push(cleanUpFn);
+  }
+
+  private exposeSyncFn({name, type}: ApiMetadata, fn: SyncFn | VoidSyncFn) {
+    const requestTopic = dtlinkRequestTopic(name);
+    const responseTopic = dtlinkResponseTopic(name);
+
+    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
+      const response = fn(...args);
+      if (isSyncFn(fn, type)) {
+        this.messageBus.emit(responseTopic, [response]);
+      }
+    });
+
+    this.cleanUpFns.push(cleanUpFn);
   }
 
   private listenForApiRequests(api: DtLinkApi) {
