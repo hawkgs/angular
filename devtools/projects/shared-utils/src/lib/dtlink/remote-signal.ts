@@ -7,49 +7,57 @@
  */
 
 import {MessageBus} from '../../../../protocol';
-import {RemoteSignal} from './types';
-import {requestTopic, responseTopic} from './utils';
+import {RemoteSignal, RemoteSignalInternal} from './types';
+import {DTLINK_DISPOSE_SIGNALS, dtlinkRequestTopic, dtlinkResponseTopic} from './utils';
 
+/**
+ * Creates a `RemoteSignal` on the source.
+ *
+ * NOTE: The developer MUST dispose it manually when
+ * no longer needed via `.dispose()`.
+ */
 export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> {
   let value: T = initialValue;
   let messageBus: MessageBus<any> | undefined;
   let cleanUpFn: (() => void) | undefined;
 
   const signal = () => value;
-  const responseTopicStr = responseTopic(name);
+  const responseTopic = dtlinkResponseTopic(name);
 
-  signal.__NG_REMOTE_SIGNAL = true;
-  signal.__name = name;
+  signal.__NG_DTLINK_REMOTE_SIGNAL = true as const;
 
   signal.set = (newValue: T) => {
     if (!messageBus) {
-      throw new Error('DevTools: Not patched');
+      // TBD: Use AngularDevtoolsError
+      throw new Error(
+        `AngularDevtoolsError: Cannot set. Remote signal "${name}" is not exposed to the DtLink API.`,
+      );
     }
     value = newValue;
-    messageBus?.emit(responseTopicStr, [value]);
+    messageBus?.emit(responseTopic, [value]);
   };
 
   signal.update = (updater: Parameters<RemoteSignal<T>['update']>[0]) => {
     if (!messageBus) {
-      throw new Error('DevTools: Not patched');
+      // TBD: Use AngularDevtoolsError
+      throw new Error(
+        `AngularDevtoolsError: Cannot update. Remote signal "${name}" is not exposed to the DtLink API.`,
+      );
     }
     value = updater(value);
-    messageBus?.emit(responseTopicStr, [value]);
+    messageBus?.emit(responseTopic, [value]);
   };
 
-  signal.dispose = () => {
-    cleanUpFn?.();
-  };
+  signal.dispose = () => cleanUpFn?.();
 
   signal.__patch = (bus: MessageBus<any>) => {
     messageBus = bus;
 
-    cleanUpFn = messageBus.on(requestTopic(name), () => {
-      messageBus!.emit(responseTopicStr, [value]);
+    cleanUpFn = messageBus.on(dtlinkRequestTopic(name), () => {
+      messageBus!.emit(responseTopic, [value]);
     });
+    messageBus.once(DTLINK_DISPOSE_SIGNALS, () => signal.dispose());
   };
 
-  signal.__patched = () => !!messageBus;
-
-  return signal;
+  return signal satisfies RemoteSignalInternal<T>;
 }

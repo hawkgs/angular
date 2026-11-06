@@ -166,22 +166,22 @@ export class DevToolsTabsComponent {
     const resp2 = await this.dtlink.api.barData('Baz', false);
     console.log(resp2);
 
-    // Alternative with return value
-    // const gen = await this.dtlink.api.countGenerator();
-    // let result: IteratorResult<number, string>;
-    // while (!(result = await gen.next()).done) {
-    //   console.log(result.value);
-    // }
-    // console.log('iter end val:', result.value);
-
-    const buildingsSig = await this.dtlink.api.buildings();
+    const buildings = await this.dtlink.api.buildings();
 
     effect(
       () => {
-        console.log('build changes', buildingsSig());
+        console.log('BUILDINGS SIGNAL EFFECT:', buildings());
       },
       {injector: this.injector},
     );
+
+    // Alternative with return value
+    const gen = await this.dtlink.api.countGenerator();
+    let result: IteratorResult<number, string>;
+    while (!(result = await gen.next()).done) {
+      console.log(result.value);
+    }
+    console.log('iter end val:', result.value);
 
     console.log(await this.dtlink.api.getQuxResponse());
   }
