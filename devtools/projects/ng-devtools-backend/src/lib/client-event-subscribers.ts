@@ -77,7 +77,7 @@ import {debugLog, log, setupLogging} from './shared/utils/log';
 import {sanitizeObject} from './shared/utils/serialization';
 import {SignalGraphRef} from './shared/utils/signal-graph-ref';
 import {getConfig} from './config/config';
-import {BackendDtLinkApi, BACKEND_DTLINK_API} from './rpc';
+import {BackendDtLinkApi, BACKEND_DTLINK_API, testRemoteSignalsAfterPatch} from './rpc';
 
 type InspectorRef = {ref: ComponentInspector | null};
 
@@ -102,6 +102,8 @@ export const subscribeToClientEvents = (
   // DTLINK INIT
   const dtLink = new DtLink<BackendDtLinkApi>(messageBus);
   dtLink.expose(BACKEND_DTLINK_API);
+  testRemoteSignalsAfterPatch();
+  // DTLINK
 
   messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns, dtLink));
 

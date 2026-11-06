@@ -6,24 +6,32 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
+import {signal} from '@angular/core';
 import {MessageBus} from '../../../../protocol';
 import {
-  CallType,
+  OriginCallType,
   DtLinkApi,
   DtLinkCallApi,
   GeneratorResponse,
+  RemoteSignalInternal,
   SerializedApiMetadata,
 } from './types';
-import {isAsyncFn, isAsyncGeneratorFn, isCallableMetadata, isSyncFn, isVoidAsyncFn} from './utils';
+import {
+  isAsyncFn,
+  isAsyncGeneratorFn,
+  isCallableMetadata,
+  isRemoteSignal,
+  isSyncFn,
+  isVoidAsyncFn,
+  requestTopic,
+  responseTopic,
+} from './utils';
 
 // Conventional RPC
 
 const DTLINK_API_REQUEST = 'dtlink#api-list-request';
 const DTLINK_API_RESPONSE = 'dtlink#api-list-response';
 const RETRY = 3000;
-
-const requestTopic = (name: string) => `dtlink#${name}_request`;
-const responseTopic = (name: string) => `dtlink#${name}_response`;
 
 export class DtLink<T extends DtLinkApi = any> {
   private cleanUpFns: (() => void)[] = [];
@@ -44,7 +52,7 @@ export class DtLink<T extends DtLinkApi = any> {
     }, RETRY);
   }
 
-  call: DtLinkCallApi<T> = new Proxy({} as any, {
+  api: DtLinkCallApi<T> = new Proxy({} as any, {
     get: (_, prop) => {
       return async (...args: any[]) => {
         if (typeof prop === 'symbol') {
@@ -57,7 +65,16 @@ export class DtLink<T extends DtLinkApi = any> {
           throw new Error(`DevTools: Call ${prop} is missing`);
         }
 
-        if (callType === CallType.AsyncGenerator) {
+        if (callType === OriginCallType.RemoteSignal) {
+          const sig = signal<any>(undefined);
+          const cleanUp = this.messageBus.on(responseTopic(prop), (value: any) => {
+            sig.set(value);
+          });
+          this.messageBus.emit(requestTopic(prop));
+          this.cleanUpFns.push(cleanUp);
+
+          return sig.asReadonly();
+        } else if (callType === OriginCallType.AsyncGenerator) {
           const that = this;
 
           return (async function* () {
@@ -86,7 +103,7 @@ export class DtLink<T extends DtLinkApi = any> {
           })();
         }
 
-        const shouldReturn = callType === CallType.Async || callType === CallType.Sync;
+        const shouldReturn = callType === OriginCallType.Async || callType === OriginCallType.Sync;
 
         return new Promise((resolve) => {
           if (shouldReturn) {
@@ -110,6 +127,7 @@ export class DtLink<T extends DtLinkApi = any> {
 
       // DOESN'T SUPPORT SIGNALS ATM
       if (!isCallableMetadata(data)) {
+        (data.signal as RemoteSignalInternal<unknown>).__patch(this.messageBus);
         continue;
       }
 
@@ -159,7 +177,7 @@ export class DtLink<T extends DtLinkApi = any> {
     const cleanUp = this.messageBus.on(DTLINK_API_REQUEST, () => {
       const serialized: SerializedApiMetadata = api.reduce(
         (map, b) => map.set(b.name, b.type),
-        new Map<string, CallType>(),
+        new Map<string, OriginCallType>(),
       );
 
       this.messageBus.emit(DTLINK_API_RESPONSE, [serialized]);

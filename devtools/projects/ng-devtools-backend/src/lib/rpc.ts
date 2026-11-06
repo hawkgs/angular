@@ -40,11 +40,11 @@ const buildings = remoteSignal('buildings', 'empire state');
 
 export function testRemoteSignalsAfterPatch() {
   setTimeout(() => {
-    buildings.set('Test');
+    buildings.set('crysler');
 
     setTimeout(() => {
-      buildings.set('Test 2');
-    });
+      buildings.set('one wtc');
+    }, 3000);
   }, 2000);
 }
 

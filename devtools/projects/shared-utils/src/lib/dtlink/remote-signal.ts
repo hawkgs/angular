@@ -8,19 +8,15 @@
 
 import {MessageBus} from '../../../../protocol';
 import {RemoteSignal} from './types';
-import {signalRequestTopic, signalResponseTopic} from './utils';
+import {requestTopic, responseTopic} from './utils';
 
 export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> {
-  // if (name) {
-  //   throw new AngularDevtoolsError(`A remote signal with the name "${name}" already exists.`);
-  // }
-  // this.registered.add(name);
-
   let value: T = initialValue;
   let messageBus: MessageBus<any> | undefined;
+  let cleanUpFn: (() => void) | undefined;
 
   const signal = () => value;
-  const responseTopic = signalResponseTopic(name);
+  const responseTopicStr = responseTopic(name);
 
   signal.__NG_REMOTE_SIGNAL = true;
   signal.__name = name;
@@ -30,7 +26,7 @@ export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> 
       throw new Error('DevTools: Not patched');
     }
     value = newValue;
-    messageBus?.emit(responseTopic, [value]);
+    messageBus?.emit(responseTopicStr, [value]);
   };
 
   signal.update = (updater: Parameters<RemoteSignal<T>['update']>[0]) => {
@@ -38,15 +34,18 @@ export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> 
       throw new Error('DevTools: Not patched');
     }
     value = updater(value);
-    messageBus?.emit(responseTopic, [value]);
+    messageBus?.emit(responseTopicStr, [value]);
   };
 
-  signal.__patch = (bus: MessageBus<any>, registry: Set<string>) => {
+  signal.dispose = () => {
+    cleanUpFn?.();
+  };
+
+  signal.__patch = (bus: MessageBus<any>) => {
     messageBus = bus;
 
-    // This will be leaking
-    messageBus.on(signalRequestTopic(name), () => {
-      messageBus!.emit(responseTopic, [value]);
+    cleanUpFn = messageBus.on(requestTopic(name), () => {
+      messageBus!.emit(responseTopicStr, [value]);
     });
   };
 

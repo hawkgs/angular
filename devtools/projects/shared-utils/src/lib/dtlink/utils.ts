@@ -12,7 +12,7 @@ import {
   AsyncFn,
   AsyncGeneratorFn,
   CallableMetadata,
-  CallType,
+  OriginCallType,
   RemoteSignal,
   RemoteSignalMetadata,
   SyncFn,
@@ -24,7 +24,7 @@ type NamedFn<N extends string, F> = Record<N, F>;
 
 function fnMetadata<N extends string, F extends ApiCallable>(
   namedFn: NamedFn<N, F>,
-  type: CallType,
+  type: OriginCallType,
 ): CallableMetadata<N, F> {
   const name = Object.keys(namedFn)[0] as N;
   return {
@@ -37,65 +37,63 @@ function fnMetadata<N extends string, F extends ApiCallable>(
 export function syncFn<N extends string, F extends SyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, CallType.Sync);
+  return fnMetadata(namedFn, OriginCallType.Sync);
 }
 
 export function asyncFn<N extends string, F extends AsyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, CallType.Async);
+  return fnMetadata(namedFn, OriginCallType.Async);
 }
 
 export function voidSyncFn<N extends string, F extends VoidSyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, CallType.VoidSync);
+  return fnMetadata(namedFn, OriginCallType.VoidSync);
 }
 
 export function voidAsyncFn<N extends string, F extends VoidAsyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, CallType.VoidAsync);
+  return fnMetadata(namedFn, OriginCallType.VoidAsync);
 }
 
 export function asyncGeneratorFn<N extends string, F extends AsyncGeneratorFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, CallType.AsyncGenerator);
+  return fnMetadata(namedFn, OriginCallType.AsyncGenerator);
 }
 
 export function remoteSignalObj<N extends string, T>(
-  signal: Record<N, RemoteSignal<T>>,
+  signalObj: Record<N, RemoteSignal<T>>,
 ): RemoteSignalMetadata<N, T> {
-  const name = Object.keys(signal)[0] as N;
+  const name = Object.keys(signalObj)[0] as N;
   return {
     name,
-    type: CallType.RemoteSignal,
+    type: OriginCallType.RemoteSignal,
+    signal: signalObj[name],
   };
 }
 
-export function isSyncFn(fn: ApiCallable, type: CallType): fn is SyncFn {
-  return type === CallType.Sync;
+export function isSyncFn(fn: ApiCallable, type: OriginCallType): fn is SyncFn {
+  return type === OriginCallType.Sync;
 }
 
-export function isAsyncFn(fn: ApiCallable, type: CallType): fn is AsyncFn {
-  return type === CallType.Async;
+export function isAsyncFn(fn: ApiCallable, type: OriginCallType): fn is AsyncFn {
+  return type === OriginCallType.Async;
 }
 
-export function isVoidSyncFn(fn: ApiCallable, type: CallType): fn is VoidSyncFn {
-  return type === CallType.VoidSync;
+export function isVoidSyncFn(fn: ApiCallable, type: OriginCallType): fn is VoidSyncFn {
+  return type === OriginCallType.VoidSync;
 }
 
-export function isVoidAsyncFn(fn: ApiCallable, type: CallType): fn is VoidAsyncFn {
-  return type === CallType.VoidAsync;
+export function isVoidAsyncFn(fn: ApiCallable, type: OriginCallType): fn is VoidAsyncFn {
+  return type === OriginCallType.VoidAsync;
 }
 
-export function isAsyncGeneratorFn(fn: ApiCallable, type: CallType): fn is AsyncGeneratorFn {
-  return type === CallType.AsyncGenerator;
+export function isAsyncGeneratorFn(fn: ApiCallable, type: OriginCallType): fn is AsyncGeneratorFn {
+  return type === OriginCallType.AsyncGenerator;
 }
-
-export const signalResponseTopic = (name: string) => `dtlink_remote_signal#${name}_response`;
-export const signalRequestTopic = (name: string) => `dtlink_remote_signal#${name}_request`;
 
 export function isRemoteSignal(value: any): value is RemoteSignal<unknown> {
   return value.__NG_REMOTE_SIGNAL;
@@ -104,3 +102,6 @@ export function isRemoteSignal(value: any): value is RemoteSignal<unknown> {
 export function isCallableMetadata(data: ApiMetadata): data is CallableMetadata {
   return !!(data as CallableMetadata).callable;
 }
+
+export const requestTopic = (name: string) => `dtlink#${name}_request`;
+export const responseTopic = (name: string) => `dtlink#${name}_response`;

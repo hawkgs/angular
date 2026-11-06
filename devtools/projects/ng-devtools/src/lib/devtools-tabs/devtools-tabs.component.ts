@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, computed, effect, inject, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, Injector, output, signal} from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {MatTabLink, MatTabNav, MatTabNavPanel} from '@angular/material/tabs';
@@ -77,6 +77,7 @@ export class DevToolsTabsComponent {
   protected readonly supportedApis = inject(SUPPORTED_APIS);
   protected readonly appData = inject(APP_DATA);
   private readonly deepLinkInstanceId = inject(DEEP_LINK_INSTANCE_ID);
+  private readonly injector = inject(Injector);
 
   private readonly dtlink = inject<BeDtLink>(DtLink);
 
@@ -159,23 +160,30 @@ export class DevToolsTabsComponent {
 
   // TMP; DELETE
   async tmpDtLinkTestGround() {
-    const resp = await this.dtlink.call.getFooData();
+    const resp = await this.dtlink.api.getFooData();
     console.log(resp);
 
-    const resp2 = await this.dtlink.call.barData('Baz', false);
+    const resp2 = await this.dtlink.api.barData('Baz', false);
     console.log(resp2);
 
     // Alternative with return value
-    const gen = await this.dtlink.call.countGenerator();
-    let result: IteratorResult<number, string>;
-    while (!(result = await gen.next()).done) {
-      console.log(result.value);
-    }
-    console.log('iter end val:', result.value);
+    // const gen = await this.dtlink.api.countGenerator();
+    // let result: IteratorResult<number, string>;
+    // while (!(result = await gen.next()).done) {
+    //   console.log(result.value);
+    // }
+    // console.log('iter end val:', result.value);
 
-    // const signal = await this.dtlink.call.buildings;
+    const buildingsSig = await this.dtlink.api.buildings();
 
-    console.log(await this.dtlink.call.getQuxResponse());
+    effect(
+      () => {
+        console.log('build changes', buildingsSig());
+      },
+      {injector: this.injector},
+    );
+
+    console.log(await this.dtlink.api.getQuxResponse());
   }
 
   emitSelectedFrame(event: Event): void {
