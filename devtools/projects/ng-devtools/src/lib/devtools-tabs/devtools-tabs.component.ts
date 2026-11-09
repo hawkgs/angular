@@ -154,31 +154,28 @@ export class DevToolsTabsComponent {
       this.extensionVersion.set(chrome.runtime.getManifest().version);
     }
 
-    // TMP test
-    this.tmpDtLinkTestGround();
+    // DtLink examples
+    this.tmpTestDtLink();
 
     effect(() => {
-      console.log('BUILDINGS SIGNAL EFFECT:', this.dtlink.api.$buildings());
+      console.log('Buildings signal:', this.dtlink.api.$buildings());
     });
   }
 
   // TMP; DELETE
-  async tmpDtLinkTestGround() {
-    const resp = await this.dtlink.api.getFooData();
-    console.log(resp);
+  async tmpTestDtLink() {
+    const foo = await this.dtlink.api.getFooData();
+    console.log(foo);
 
-    const resp2 = await this.dtlink.api.barData('Baz', false);
-    console.log(resp2);
+    const bar = await this.dtlink.api.requestBarData('Bar', 1337);
+    console.log(bar);
 
-    // Alternative with return value
     const gen = await this.dtlink.api.countGenerator();
     let result: IteratorResult<number, string>;
     while (!(result = await gen.next()).done) {
-      console.log(result.value);
+      console.log('Counter:', result.value);
     }
-    console.log('iter end val:', result.value);
-
-    console.log(await this.dtlink.api.getQuxResponse());
+    console.log('Counter:', result.value);
   }
 
   emitSelectedFrame(event: Event): void {

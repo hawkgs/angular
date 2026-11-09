@@ -15,45 +15,52 @@ import {
   syncFn,
 } from '../../../shared-utils';
 
-async function getFooData() {
+//
+// DtLink examples
+//
+
+// Sync function
+function getFooData() {
   return 'Hello, Foo!';
 }
 
-async function barData(bar: string, flag: boolean) {
-  return `Bar data: ${bar}; Flag: ${flag}`;
+// Async function
+async function requestBarData(bar: string, num: number) {
+  return `Hello, ${bar}! Number: ${num}`;
 }
 
+// Async generator
 async function* countGenerator() {
   for (let i = 0; i < 10; i++) {
     await new Promise((r) => setTimeout(r, 500));
     yield i;
   }
-  return 'over';
+  return 'done';
 }
 
-function getQuxResponse() {
-  return 'qux';
-}
+// Remote signals
+const buildings = remoteSignal('buildings', 'Empire State');
 
-// Remote signals playground
-const buildings = remoteSignal('buildings', 'empire state');
-
-export function testRemoteSignalsAfterPatch() {
+export function testRemoteSignalChanges() {
   setTimeout(() => {
-    buildings.set('crysler');
+    buildings.set('Chrysler');
 
     setTimeout(() => {
-      buildings.set('one wtc');
+      buildings.set('One WTC');
     }, 3000);
   }, 2000);
 }
 
+// Exposed BE API.
+// Add all exposed functions, generators or remote signals to the array.
+// The items should be decorated with one of the available function
+// decorators that corresponds to the features of the exposable.
 export const BACKEND_DTLINK_API = [
-  asyncFn({getFooData}),
-  asyncFn({barData}),
+  syncFn({getFooData}),
+  asyncFn({requestBarData}),
   asyncGeneratorFn({countGenerator}),
-  syncFn({getQuxResponse}),
   remoteSignalObj({buildings}),
 ] satisfies DtLinkApi;
 
+/** Exposed DtLink backend API. */
 export type BackendDtLinkApi = typeof BACKEND_DTLINK_API;
