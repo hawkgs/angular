@@ -7,8 +7,8 @@
  */
 
 import {BackendDtLinkApi} from '../../../../../ng-devtools-backend/types';
-import {DtLink} from '../../../../../shared-utils';
+import {DtLinkInitiator} from '../../../../../shared-utils';
 
 /** @fileoverview Contains global helper types. */
 
-export type BeDtLink = DtLink<BackendDtLinkApi>;
+export type BeDtLink = DtLinkInitiator<BackendDtLinkApi>;

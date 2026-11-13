@@ -36,7 +36,7 @@ import {ButtonComponent} from '../shared/button/button.component';
 import {APP_DATA} from '../application-providers/app_data';
 import {SettingsComponent} from './settings/settings.component';
 import {HorizontalScrollerComponent} from '../shared/horizontal-scroller/horizontal-scroller.component';
-import {DtLink} from '../../../../shared-utils';
+import {DtLinkInitiator} from '../../../../shared-utils';
 import {BeDtLink} from '../shared/types/types';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
@@ -78,7 +78,7 @@ export class DevToolsTabsComponent {
   protected readonly appData = inject(APP_DATA);
   private readonly deepLinkInstanceId = inject(DEEP_LINK_INSTANCE_ID);
 
-  private readonly dtlink = inject<BeDtLink>(DtLink);
+  private readonly dtlink = inject<BeDtLink>(DtLinkInitiator);
 
   readonly frameSelected = output<Frame>();
 

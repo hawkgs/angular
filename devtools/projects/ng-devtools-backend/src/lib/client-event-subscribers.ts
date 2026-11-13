@@ -30,7 +30,6 @@ import {
   appIsAngularInDevMode,
   appIsAngularIvy,
   appIsSupportedAngularVersion,
-  DtLink,
   getAngularVersion,
   isHydrationEnabled,
 } from '../../../shared-utils';
@@ -77,7 +76,8 @@ import {debugLog, log, setupLogging} from './shared/utils/log';
 import {sanitizeObject} from './shared/utils/serialization';
 import {SignalGraphRef} from './shared/utils/signal-graph-ref';
 import {getConfig} from './config/config';
-import {BackendDtLinkApi, BACKEND_DTLINK_API, testRemoteSignalChanges} from './rpc';
+import {BACKEND_DTLINK_API, testRemoteSignalChanges} from './rpc';
+import {exposeDtLinkApi} from '../../../shared-utils/src/lib/dtlink/dtlink';
 
 type InspectorRef = {ref: ComponentInspector | null};
 
@@ -93,19 +93,19 @@ export const subscribeToClientEvents = (
   setupLogging(config?.devtoolsDevMode ?? false);
 
   const cleanUpFns: (() => void)[] = [
+    exposeDtLinkApi(messageBus, BACKEND_DTLINK_API), // DTLINK
+
     loadCdDataStream(messageBus),
     loadCdHighlighting(),
     loadHydrationOverlays(),
     loadPerformanceTrack(),
   ];
 
-  // DTLINK Start
-  const dtLink = new DtLink<BackendDtLinkApi>(messageBus);
-  dtLink.expose(BACKEND_DTLINK_API);
+  // DTLINK-TEST Start
   testRemoteSignalChanges();
-  // DTLINK End
+  // DTLINK-TEST End
 
-  messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns, dtLink));
+  messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns));
 
   messageBus.on('devtoolsShutdown', devtoolsShutdownCallback(inspector));
 
@@ -173,14 +173,12 @@ export const subscribeToClientEvents = (
 // Callback Definitions
 //
 
-const shutdownCallback =
-  (messageBus: MessageBus<Events>, cleanUpFns: (() => void)[], dtLink: DtLink) => () => {
-    for (const fn of cleanUpFns) {
-      fn();
-    }
-    messageBus.destroy();
-    dtLink.destroy();
-  };
+const shutdownCallback = (messageBus: MessageBus<Events>, cleanUpFns: (() => void)[]) => () => {
+  for (const fn of cleanUpFns) {
+    fn();
+  }
+  messageBus.destroy();
+};
 
 const devtoolsShutdownCallback = (inspector: InspectorRef) => () => {
   inspector.ref?.stopInspecting();

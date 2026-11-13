@@ -10,9 +10,9 @@ import type {Signal} from '@angular/core';
 import {MessageBus} from '../../../../protocol';
 
 /**
- * Describes all types of remote calls on the source.
+ * Describes all types of remote calls on the target.
  */
-export enum SourceCallType {
+export enum TargetCallType {
   Sync = 0,
   Async = 1,
   VoidSync = 2,
@@ -22,18 +22,19 @@ export enum SourceCallType {
 }
 
 /**
- * Describes all types of remote calls on the destination.
+ * Describes all types of remote calls on the target
+ * available to call from the initiator.
  * All sync calls are converted to async.
  * Remote signals are split into sync or async.
  */
-export enum DestinationCallType {
+export enum InitiatorApiType {
   Async = 1,
   VoidAsync = 3,
   AsyncGenerator = 4,
   RemoteSignal = 5,
 }
 
-// These types describe the actual callables that reside on the source.
+// These types describe the actual callables that reside on the target.
 export type SyncFn = (...args: any[]) => unknown;
 export type AsyncFn = (...args: any[]) => Promise<unknown>;
 export type VoidSyncFn = (...args: any[]) => void;
@@ -41,7 +42,7 @@ export type VoidAsyncFn = (...args: any[]) => Promise<void>;
 export type AsyncGeneratorFn = (...args: any[]) => AsyncGenerator<unknown>;
 
 /**
- * Describes all types of callables on the source (e.g. sync/async functions, generators, etc.)
+ * Describes all types of callables on the target (e.g. sync/async functions, generators, etc.)
  */
 export type ApiCallable = SyncFn | AsyncFn | VoidSyncFn | VoidAsyncFn | AsyncGeneratorFn;
 
@@ -52,7 +53,7 @@ export type ApiCallable = SyncFn | AsyncFn | VoidSyncFn | VoidAsyncFn | AsyncGen
 // convert a DtLinkApi to a DtLinkRemoteApi.
 export interface CallableMetadata<N extends string = string, F extends ApiCallable = ApiCallable> {
   name: N;
-  type: SourceCallType;
+  type: TargetCallType;
   fn: F;
 }
 
@@ -63,12 +64,12 @@ export interface CallableMetadata<N extends string = string, F extends ApiCallab
 // convert a DtLinkApi to a DtLinkRemoteApi.
 export interface RemoteSignalMetadata<N extends string = string, T = unknown> {
   name: N;
-  type: SourceCallType;
+  type: TargetCallType;
   signal: RemoteSignal<T>;
 }
 
 /**
- * API metadata entry on the source.
+ * API metadata entry on the target.
  */
 export type ApiMetadata<
   N extends string = string,
@@ -77,24 +78,23 @@ export type ApiMetadata<
 > = CallableMetadata<N, F> | RemoteSignalMetadata<N, T>;
 
 /**
- * Serialized remote `ApiMetadata` ready to be consumed by the destination.
+ * Serialized remote `ApiMetadata` ready to be consumed by the initiator.
  */
-export type RemoteApiMetadata = Map<string, DestinationCallType>;
+export type RemoteApiMetadata = Map<string, InitiatorApiType>;
 
 /**
- * `DtLink` exposed API as observed on the source.
+ * `DtLink` exposed API as observed on the target.
  */
 export type DtLinkApi = ApiMetadata[];
 
 /**
- * `DtLink` exposed API as observed on the destination.
+ * `DtLink` exposed API as observed by the initiator.
  */
 // What the type does?:
-// It converts the DtLinkApi to a consumable on the destination
-// DtLinkRemoteApi. Basically:
+// It converts the DtLinkApi to initiator-consumable DtLinkRemoteApi. Basically:
 // - The RemoteSignal<T> types are converted to read-only Signals<T | undefined>
 // and their names are prefixed with `$`
-// - Sync callables on the origin are converted to Promises on the destination,
+// - Sync callables on the target are converted to Promises on the initiator,
 // including async generators
 export type DtLinkRemoteApi<T extends DtLinkApi> = {
   [
@@ -125,8 +125,8 @@ export interface RemoteSignalInternal<T> {
 }
 
 /**
- * Remote signal. Acts as a proxy, on the source, of a
- * standard Angular signal on the destination.
+ * Remote signal. Acts as a proxy, on the target, of a
+ * standard Angular signal on the initiator.
  *
  * NOTE: The developer MUST dispose it manually when
  * no longer needed via `.dispose()`.

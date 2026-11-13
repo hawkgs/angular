@@ -16,13 +16,13 @@ import {
 } from './utils';
 
 /**
- * Creates a `RemoteSignal` on the source.
+ * Creates a `RemoteSignal` on the target.
  *
  * NOTE: The developer MUST dispose it manually when
  * no longer needed via `.dispose()`.
  *
- * @param name A unique name of the signal. It will be available as `$<name>` on the destination.
- * @param initialValue Initial value of the signal. By default, the destination always receives an `undefined`.
+ * @param name A unique name of the signal. It will be available as `$<name>` on the initiator.
+ * @param initialValue Initial value of the signal. By default, the initiator always receives an `undefined`.
  * @returns The remote signal.
  */
 export function remoteSignal<T>(name: string, initialValue: T): RemoteSignal<T> {

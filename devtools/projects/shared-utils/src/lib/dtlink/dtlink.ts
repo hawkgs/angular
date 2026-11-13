@@ -13,7 +13,7 @@ import {
   DtLinkRemoteApi,
   RemoteSignalInternal,
   RemoteApiMetadata,
-  DestinationCallType,
+  InitiatorApiType,
   AsyncFn,
   VoidAsyncFn,
   ApiMetadata,
@@ -33,15 +33,14 @@ import {
   DTLINK_DISPOSE_SIGNALS,
   isRemoteSignalMetadata,
   serializeApiMetadata,
-  isRemoteSignalDest,
+  isRemoteSignalInitiator,
 } from './utils';
 
 const API_REQUEST_RETRY = 2500;
 
 type GeneratorResponse = {d: boolean; v?: any};
 
-/** RPC abstraction layer over a `MessageBus`. */
-export class DtLink<T extends DtLinkApi = any> {
+export class DtLinkInitiator<T extends DtLinkApi = any> {
   private cleanUpFns: (() => void)[] = [];
   private apiRequestRetryInterval?: ReturnType<typeof setInterval>;
   private remoteSignalsCache = new Map<string, Signal<unknown>>();
@@ -51,7 +50,7 @@ export class DtLink<T extends DtLinkApi = any> {
   );
 
   constructor(private messageBus: MessageBus<any>) {
-    // Request the remote API from the source.
+    // Request the remote API from the target.
     messageBus.once(DTLINK_API_RESPONSE, (remoteApi: RemoteApiMetadata) => {
       clearInterval(this.apiRequestRetryInterval);
       this.remoteApiMetadataResolver?.(remoteApi);
@@ -63,13 +62,13 @@ export class DtLink<T extends DtLinkApi = any> {
     }, API_REQUEST_RETRY);
   }
 
-  /** API on the destination available to call from the source. */
+  /** Initiator API that allows remote calls to the target. */
   api: DtLinkRemoteApi<T> = new Proxy({} as any, {
     get: (_, prop) => {
       if (typeof prop === 'symbol') {
         return;
       }
-      if (isRemoteSignalDest(prop)) {
+      if (isRemoteSignalInitiator(prop)) {
         return this.constructRemoteSignal(prop);
       }
 
@@ -79,11 +78,11 @@ export class DtLink<T extends DtLinkApi = any> {
         if (type === undefined) {
           // TBD: Use AngularDevtoolsError
           throw new Error(
-            `AngularDevtoolsError: "${prop}" remote API is not available to call from the destination. Check what is exposed on the source.`,
+            `AngularDevtoolsError: "${prop}" remote API is not available to call from the initiator. Check what is exposed on the target.`,
           );
         }
 
-        if (type === DestinationCallType.AsyncGenerator) {
+        if (type === InitiatorApiType.AsyncGenerator) {
           return this.constructAsyncGenerator(prop, ...args);
         }
 
@@ -91,39 +90,6 @@ export class DtLink<T extends DtLinkApi = any> {
       };
     },
   });
-
-  /** Exposes the provided API to be callable from the destination. */
-  expose(api: DtLinkApi) {
-    const names = new Set<string>();
-
-    for (const metadata of api) {
-      if (names.has(metadata.name)) {
-        // TBD: Use AngularDevtoolsError
-        throw new Error(
-          `AngularDevTools: API with name "${metadata.name}" already exists. Please pick a different name`,
-        );
-      }
-      names.add(metadata.name);
-
-      // Handle remote signals
-      if (isRemoteSignalMetadata(metadata)) {
-        (metadata.signal as RemoteSignalInternal<unknown>).__patch(this.messageBus);
-        continue;
-      }
-
-      const {fn, type} = metadata;
-
-      if (isAsyncFn(fn, type) || isVoidAsyncFn(fn, type)) {
-        this.exposeAsyncFn(metadata, fn);
-      } else if (isAsyncGeneratorFn(fn, type)) {
-        this.exposeAsyncGenerator(metadata, fn);
-      } else {
-        this.exposeSyncFn(metadata, fn);
-      }
-    }
-
-    this.listenForApiRequests(api);
-  }
 
   /** Destroys and disposes the DtLink instance along with all remote signals. */
   destroy() {
@@ -182,79 +148,125 @@ export class DtLink<T extends DtLinkApi = any> {
     })();
   }
 
-  private constructAsyncFn(type: DestinationCallType, name: string, ...args: any[]) {
+  private constructAsyncFn(type: InitiatorApiType, name: string, ...args: any[]) {
     return new Promise((resolve) => {
       // Should return
-      if (type === DestinationCallType.Async) {
+      if (type === InitiatorApiType.Async) {
         this.messageBus.once(dtlinkResponseTopic(name), resolve);
       }
 
       this.messageBus.emit(dtlinkRequestTopic(name), args);
     });
   }
+}
 
-  private exposeAsyncFn({name, type}: ApiMetadata, fn: AsyncFn | VoidAsyncFn) {
-    const requestTopic = dtlinkRequestTopic(name);
-    const responseTopic = dtlinkResponseTopic(name);
+/**
+ * Exposes the provided API to be callable from the initiator.
+ */
+export function exposeDtLinkApi(messageBus: MessageBus<any>, api: DtLinkApi) {
+  const names = new Set<string>();
+  const cleanUpFns: (() => void)[] = [];
 
-    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-      fn(...args).then((resp) => {
-        if (isAsyncFn(fn, type)) {
-          this.messageBus.emit(responseTopic, [resp]);
-        }
-      });
-    });
+  for (const metadata of api) {
+    if (names.has(metadata.name)) {
+      // TBD: Use AngularDevtoolsError
+      throw new Error(
+        `AngularDevTools: API with name "${metadata.name}" already exists. Please pick a different name`,
+      );
+    }
+    names.add(metadata.name);
 
-    this.cleanUpFns.push(cleanUpFn);
+    // Handle remote signals
+    if (isRemoteSignalMetadata(metadata)) {
+      (metadata.signal as RemoteSignalInternal<unknown>).__patch(messageBus);
+      continue;
+    }
+
+    const {fn, type} = metadata;
+    let exposeCleanUp: () => void;
+
+    if (isAsyncFn(fn, type) || isVoidAsyncFn(fn, type)) {
+      exposeCleanUp = exposeAsyncFn(messageBus, metadata, fn);
+    } else if (isAsyncGeneratorFn(fn, type)) {
+      exposeCleanUp = exposeAsyncGenerator(messageBus, metadata, fn);
+    } else {
+      exposeCleanUp = exposeSyncFn(messageBus, metadata, fn);
+    }
+    cleanUpFns.push(exposeCleanUp);
   }
 
-  private exposeAsyncGenerator({name}: ApiMetadata, fn: AsyncGeneratorFn) {
-    const requestTopic = dtlinkRequestTopic(name);
-    const responseTopic = dtlinkResponseTopic(name);
+  const metadataCleanUp = listenForApiRequests(messageBus, api);
 
-    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-      const generator = fn(...args);
-      const step = (): Promise<void> =>
-        generator.next().then((result) => {
-          if (!result.done) {
-            this.messageBus.emit(responseTopic, [
-              {d: false, v: result.value} satisfies GeneratorResponse,
-            ]);
-            return step();
-          }
+  return () => {
+    for (const fn of cleanUpFns) {
+      fn();
+    }
+    metadataCleanUp();
+  };
+}
 
-          this.messageBus.emit(responseTopic, [
-            {d: true, v: result.value} satisfies GeneratorResponse,
-          ]);
-          return;
-        });
+function exposeAsyncFn(
+  messageBus: MessageBus<any>,
+  {name, type}: ApiMetadata,
+  fn: AsyncFn | VoidAsyncFn,
+) {
+  const requestTopic = dtlinkRequestTopic(name);
+  const responseTopic = dtlinkResponseTopic(name);
 
-      step();
-    });
-
-    this.cleanUpFns.push(cleanUpFn);
-  }
-
-  private exposeSyncFn({name, type}: ApiMetadata, fn: SyncFn | VoidSyncFn) {
-    const requestTopic = dtlinkRequestTopic(name);
-    const responseTopic = dtlinkResponseTopic(name);
-
-    const cleanUpFn = this.messageBus.on(requestTopic, (...args: any[]) => {
-      const response = fn(...args);
-      if (isSyncFn(fn, type)) {
-        this.messageBus.emit(responseTopic, [response]);
+  return messageBus.on(requestTopic, (...args: any[]) => {
+    fn(...args).then((resp) => {
+      if (isAsyncFn(fn, type)) {
+        messageBus.emit(responseTopic, [resp]);
       }
     });
+  });
+}
 
-    this.cleanUpFns.push(cleanUpFn);
-  }
+function exposeAsyncGenerator(
+  messageBus: MessageBus<any>,
+  {name}: ApiMetadata,
+  fn: AsyncGeneratorFn,
+) {
+  const requestTopic = dtlinkRequestTopic(name);
+  const responseTopic = dtlinkResponseTopic(name);
 
-  private listenForApiRequests(api: DtLinkApi) {
-    // Emit the exposed API to the destination.
-    const apiRequestCleanUpFn = this.messageBus.on(DTLINK_API_REQUEST, () => {
-      const serialized = serializeApiMetadata(api);
-      this.messageBus.emit(DTLINK_API_RESPONSE, [serialized]);
-    });
-    this.cleanUpFns.push(apiRequestCleanUpFn);
-  }
+  return messageBus.on(requestTopic, (...args: any[]) => {
+    const generator = fn(...args);
+    const step = (): Promise<void> =>
+      generator.next().then((result) => {
+        if (!result.done) {
+          messageBus.emit(responseTopic, [{d: false, v: result.value} satisfies GeneratorResponse]);
+          return step();
+        }
+
+        messageBus.emit(responseTopic, [{d: true, v: result.value} satisfies GeneratorResponse]);
+        return;
+      });
+
+    step();
+  });
+}
+
+function exposeSyncFn(
+  messageBus: MessageBus<any>,
+  {name, type}: ApiMetadata,
+  fn: SyncFn | VoidSyncFn,
+) {
+  const requestTopic = dtlinkRequestTopic(name);
+  const responseTopic = dtlinkResponseTopic(name);
+
+  return messageBus.on(requestTopic, (...args: any[]) => {
+    const response = fn(...args);
+    if (isSyncFn(fn, type)) {
+      messageBus.emit(responseTopic, [response]);
+    }
+  });
+}
+
+function listenForApiRequests(messageBus: MessageBus<any>, api: DtLinkApi) {
+  // Emit the exposed API to the initiator.
+  return messageBus.on(DTLINK_API_REQUEST, () => {
+    const serialized = serializeApiMetadata(api);
+    messageBus.emit(DTLINK_API_RESPONSE, [serialized]);
+  });
 }

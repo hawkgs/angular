@@ -12,14 +12,14 @@ import {
   AsyncFn,
   AsyncGeneratorFn,
   CallableMetadata,
-  SourceCallType,
+  TargetCallType,
   RemoteSignal,
   RemoteSignalMetadata,
   SyncFn,
   VoidAsyncFn,
   VoidSyncFn,
   RemoteSignalInternal,
-  DestinationCallType,
+  InitiatorApiType,
   DtLinkApi,
   RemoteApiMetadata,
 } from './types';
@@ -54,7 +54,7 @@ type NamedFn<N extends string, F> = Record<N, F>;
 
 function fnMetadata<N extends string, F extends ApiCallable>(
   namedFn: NamedFn<N, F>,
-  type: SourceCallType,
+  type: TargetCallType,
 ): CallableMetadata<N, F> {
   const name = Object.keys(namedFn)[0] as N;
   return {
@@ -68,35 +68,35 @@ function fnMetadata<N extends string, F extends ApiCallable>(
 export function syncFn<N extends string, F extends SyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, SourceCallType.Sync);
+  return fnMetadata(namedFn, TargetCallType.Sync);
 }
 
 /** Decorate an asynchronous function when exposing to DtLink. */
 export function asyncFn<N extends string, F extends AsyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, SourceCallType.Async);
+  return fnMetadata(namedFn, TargetCallType.Async);
 }
 
 /** Decorate a synchronous function that doesn't return a value when exposing to DtLink. */
 export function voidSyncFn<N extends string, F extends VoidSyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, SourceCallType.VoidSync);
+  return fnMetadata(namedFn, TargetCallType.VoidSync);
 }
 
 /** Decorate an asynchronous function that doesn't return a value when exposing to DtLink. */
 export function voidAsyncFn<N extends string, F extends VoidAsyncFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, SourceCallType.VoidAsync);
+  return fnMetadata(namedFn, TargetCallType.VoidAsync);
 }
 
 /** Decorate an asynchronous generator when exposing to DtLink. */
 export function asyncGeneratorFn<N extends string, F extends AsyncGeneratorFn>(
   namedFn: NamedFn<N, F>,
 ): CallableMetadata<N, F> {
-  return fnMetadata(namedFn, SourceCallType.AsyncGenerator);
+  return fnMetadata(namedFn, TargetCallType.AsyncGenerator);
 }
 
 /** Decorate a remote signal when exposing to DtLink. */
@@ -106,7 +106,7 @@ export function remoteSignalObj<N extends string, T>(
   const name = Object.keys(signalObj)[0] as N;
   return {
     name,
-    type: SourceCallType.RemoteSignal,
+    type: TargetCallType.RemoteSignal,
     signal: signalObj[name],
   };
 }
@@ -115,24 +115,24 @@ export function remoteSignalObj<N extends string, T>(
 // Callable/signal checkers
 //
 
-export function isSyncFn(fn: ApiCallable, type: SourceCallType): fn is SyncFn {
-  return type === SourceCallType.Sync;
+export function isSyncFn(fn: ApiCallable, type: TargetCallType): fn is SyncFn {
+  return type === TargetCallType.Sync;
 }
 
-export function isAsyncFn(fn: ApiCallable, type: SourceCallType): fn is AsyncFn {
-  return type === SourceCallType.Async;
+export function isAsyncFn(fn: ApiCallable, type: TargetCallType): fn is AsyncFn {
+  return type === TargetCallType.Async;
 }
 
-export function isVoidSyncFn(fn: ApiCallable, type: SourceCallType): fn is VoidSyncFn {
-  return type === SourceCallType.VoidSync;
+export function isVoidSyncFn(fn: ApiCallable, type: TargetCallType): fn is VoidSyncFn {
+  return type === TargetCallType.VoidSync;
 }
 
-export function isVoidAsyncFn(fn: ApiCallable, type: SourceCallType): fn is VoidAsyncFn {
-  return type === SourceCallType.VoidAsync;
+export function isVoidAsyncFn(fn: ApiCallable, type: TargetCallType): fn is VoidAsyncFn {
+  return type === TargetCallType.VoidAsync;
 }
 
-export function isAsyncGeneratorFn(fn: ApiCallable, type: SourceCallType): fn is AsyncGeneratorFn {
-  return type === SourceCallType.AsyncGenerator;
+export function isAsyncGeneratorFn(fn: ApiCallable, type: TargetCallType): fn is AsyncGeneratorFn {
+  return type === TargetCallType.AsyncGenerator;
 }
 
 export function isRemoteSignal(value: unknown): value is RemoteSignal<unknown> {
@@ -149,7 +149,7 @@ export function isCallableMetadata(data: ApiMetadata): data is CallableMetadata 
   return !!(data as CallableMetadata).fn;
 }
 
-export function isRemoteSignalDest(name: string) {
+export function isRemoteSignalInitiator(name: string) {
   return name.startsWith(REMOTE_SIGNAL_PREFIX);
 }
 
@@ -161,17 +161,17 @@ export function remoteSignalName(name: string) {
 // Mapping
 //
 
-const TO_DEST_CALLABLE: {[key in SourceCallType]: DestinationCallType} = {
-  [SourceCallType.Sync]: DestinationCallType.Async,
-  [SourceCallType.Async]: DestinationCallType.Async,
-  [SourceCallType.VoidSync]: DestinationCallType.VoidAsync,
-  [SourceCallType.VoidAsync]: DestinationCallType.VoidAsync,
-  [SourceCallType.AsyncGenerator]: DestinationCallType.AsyncGenerator,
-  [SourceCallType.RemoteSignal]: DestinationCallType.RemoteSignal,
+const TO_INITIATOR_API: {[key in TargetCallType]: InitiatorApiType} = {
+  [TargetCallType.Sync]: InitiatorApiType.Async,
+  [TargetCallType.Async]: InitiatorApiType.Async,
+  [TargetCallType.VoidSync]: InitiatorApiType.VoidAsync,
+  [TargetCallType.VoidAsync]: InitiatorApiType.VoidAsync,
+  [TargetCallType.AsyncGenerator]: InitiatorApiType.AsyncGenerator,
+  [TargetCallType.RemoteSignal]: InitiatorApiType.RemoteSignal,
 };
 
 export function serializeApiMetadata(api: DtLinkApi): RemoteApiMetadata {
   return api.reduce((map, metadata) => {
-    return map.set(metadata.name, TO_DEST_CALLABLE[metadata.type]);
-  }, new Map<string, DestinationCallType>());
+    return map.set(metadata.name, TO_INITIATOR_API[metadata.type]);
+  }, new Map<string, InitiatorApiType>());
 }

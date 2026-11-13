@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-export {DtLink} from './dtlink';
+export {DtLinkInitiator} from './dtlink';
 export {remoteSignal} from './remote-signal';
 export {DtLinkApi, RemoteSignal} from './types';
 export {asyncFn, asyncGeneratorFn, syncFn, voidAsyncFn, voidSyncFn, remoteSignalObj} from './utils';
