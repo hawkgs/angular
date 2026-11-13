@@ -7,6 +7,6 @@
  */
 
 export {DtLinkInitiator} from './dtlink';
-export {remoteSignal} from './remote-signal';
-export {DtLinkApi, RemoteSignal} from './types';
-export {asyncFn, asyncGeneratorFn, syncFn, voidAsyncFn, voidSyncFn, remoteSignalObj} from './utils';
+export {DtLinkApi} from './types';
+export {asyncFn, asyncGeneratorFn, syncFn, voidAsyncFn, voidSyncFn} from './utils';
+export {convertGeneratorToSignal} from './signal-utils';

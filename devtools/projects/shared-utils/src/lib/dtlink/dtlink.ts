@@ -11,7 +11,6 @@ import {MessageBus} from '../../../../protocol';
 import {
   DtLinkApi,
   DtLinkRemoteApi,
-  RemoteSignalInternal,
   RemoteApiMetadata,
   InitiatorApiType,
   AsyncFn,
@@ -30,10 +29,7 @@ import {
   dtlinkResponseTopic,
   DTLINK_API_RESPONSE,
   DTLINK_API_REQUEST,
-  DTLINK_DISPOSE_SIGNALS,
-  isRemoteSignalMetadata,
   serializeApiMetadata,
-  isRemoteSignalInitiator,
 } from './utils';
 
 const API_REQUEST_RETRY = 2500;
@@ -68,9 +64,6 @@ export class DtLinkInitiator<T extends DtLinkApi = any> {
       if (typeof prop === 'symbol') {
         return;
       }
-      if (isRemoteSignalInitiator(prop)) {
-        return this.constructRemoteSignal(prop);
-      }
 
       return async (...args: any[]) => {
         const type = (await this.remoteApiMetadata).get(prop);
@@ -97,26 +90,7 @@ export class DtLinkInitiator<T extends DtLinkApi = any> {
       cleanUp();
     }
     this.cleanUpFns = [];
-    this.messageBus.emit(DTLINK_DISPOSE_SIGNALS);
     clearInterval(this.apiRequestRetryInterval);
-  }
-
-  private constructRemoteSignal(name: string) {
-    let readOnly = this.remoteSignalsCache.get(name);
-
-    if (!readOnly) {
-      const signal = createSignal<unknown>(undefined);
-      const cleanUp = this.messageBus.on(dtlinkResponseTopic(name), (value: unknown) => {
-        signal.set(value);
-      });
-      this.messageBus.emit(dtlinkRequestTopic(name));
-      this.cleanUpFns.push(cleanUp);
-
-      readOnly = signal.asReadonly();
-      this.remoteSignalsCache.set(name, readOnly);
-    }
-
-    return readOnly;
   }
 
   private constructAsyncGenerator(name: string, ...args: any[]) {
@@ -175,12 +149,6 @@ export function exposeDtLinkApi(messageBus: MessageBus<any>, api: DtLinkApi) {
       );
     }
     names.add(metadata.name);
-
-    // Handle remote signals
-    if (isRemoteSignalMetadata(metadata)) {
-      (metadata.signal as RemoteSignalInternal<unknown>).__patch(messageBus);
-      continue;
-    }
 
     const {fn, type} = metadata;
     let exposeCleanUp: () => void;

@@ -36,7 +36,7 @@ import {ButtonComponent} from '../shared/button/button.component';
 import {APP_DATA} from '../application-providers/app_data';
 import {SettingsComponent} from './settings/settings.component';
 import {HorizontalScrollerComponent} from '../shared/horizontal-scroller/horizontal-scroller.component';
-import {DtLinkInitiator} from '../../../../shared-utils';
+import {convertGeneratorToSignal, DtLinkInitiator} from '../../../../shared-utils';
 import {BeDtLink} from '../shared/types/types';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
@@ -120,6 +120,11 @@ export class DevToolsTabsComponent {
   protected readonly extensionVersion = signal('dev-build');
   protected readonly settingsOpened = signal(false);
 
+  private buildings = convertGeneratorToSignal<string | undefined, string>(
+    this.dtlink.api.buildings,
+    undefined,
+  );
+
   constructor() {
     this.messageBus.on('updateRouterTree', (routes: any[]) => {
       this.routes.set(routes || []);
@@ -154,12 +159,12 @@ export class DevToolsTabsComponent {
       this.extensionVersion.set(chrome.runtime.getManifest().version);
     }
 
+    effect(() => {
+      console.log('buildings:', this.buildings());
+    });
+
     // DtLink examples
     this.tmpTestDtLink();
-
-    effect(() => {
-      console.log('Buildings signal:', this.dtlink.api.$buildings());
-    });
   }
 
   // TMP; DELETE

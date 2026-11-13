@@ -76,7 +76,7 @@ import {debugLog, log, setupLogging} from './shared/utils/log';
 import {sanitizeObject} from './shared/utils/serialization';
 import {SignalGraphRef} from './shared/utils/signal-graph-ref';
 import {getConfig} from './config/config';
-import {BACKEND_DTLINK_API, testRemoteSignalChanges} from './rpc';
+import {BACKEND_DTLINK_API} from './rpc';
 import {exposeDtLinkApi} from '../../../shared-utils/src/lib/dtlink/dtlink';
 
 type InspectorRef = {ref: ComponentInspector | null};
@@ -100,10 +100,6 @@ export const subscribeToClientEvents = (
     loadHydrationOverlays(),
     loadPerformanceTrack(),
   ];
-
-  // DTLINK-TEST Start
-  testRemoteSignalChanges();
-  // DTLINK-TEST End
 
   messageBus.on('shutdown', shutdownCallback(messageBus, cleanUpFns));
 

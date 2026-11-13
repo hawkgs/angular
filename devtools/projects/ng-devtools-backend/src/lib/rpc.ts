@@ -6,14 +6,7 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {
-  asyncFn,
-  asyncGeneratorFn,
-  DtLinkApi,
-  remoteSignal,
-  remoteSignalObj,
-  syncFn,
-} from '../../../shared-utils';
+import {asyncFn, asyncGeneratorFn, DtLinkApi, syncFn} from '../../../shared-utils';
 
 //
 // DtLink examples
@@ -38,17 +31,10 @@ async function* countGenerator() {
   return 'done';
 }
 
-// Remote signals
-const buildings = remoteSignal('buildings', 'Empire State');
-
-export function testRemoteSignalChanges() {
-  setTimeout(() => {
-    buildings.set('Chrysler');
-
-    setTimeout(() => {
-      buildings.set('One WTC');
-    }, 3000);
-  }, 2000);
+async function* buildings() {
+  yield 'Empire State';
+  yield await new Promise<string>((r) => setTimeout(() => r('Chrysler'), 2000));
+  return await new Promise<string>((r) => setTimeout(() => r('One WTC'), 3000));
 }
 
 // Exposed BE API.
@@ -59,7 +45,7 @@ export const BACKEND_DTLINK_API = [
   syncFn({getFooData}),
   asyncFn({requestBarData}),
   asyncGeneratorFn({countGenerator}),
-  remoteSignalObj({buildings}),
+  asyncGeneratorFn({buildings}),
 ] satisfies DtLinkApi;
 
 /** Exposed DtLink backend API. */
