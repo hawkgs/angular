@@ -8,7 +8,7 @@
 
 import {EventEmitter} from '@angular/core';
 import {HydrationStatus} from '../../../../../protocol';
-import {AngularDevtoolsError} from '../utils/error';
+import {AngularDevtoolsError} from '../../../../../shared-utils';
 import {runOutsideAngular} from '../utils/general';
 import {debugLog} from '../utils/log';
 import {

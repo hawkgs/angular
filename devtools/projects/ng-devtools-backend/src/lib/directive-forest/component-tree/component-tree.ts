@@ -53,7 +53,7 @@ import {mutateNestedProp} from '../property-mutation/property-mutation';
 import {getLViewFromDirectiveOrElementInstance} from '../tree-strategies/ltree';
 import {getAppRoots} from './get-roots';
 import {log} from '../../shared/utils/log';
-import {AngularDevtoolsError} from '../../shared/utils/error';
+import {AngularDevtoolsError} from '../../../../../shared-utils';
 
 export const injectorToId = new WeakMap<Injector | HTMLElement, string>();
 export const nodeInjectorToResolutionPath = new WeakMap<HTMLElement, SerializedInjector[]>();

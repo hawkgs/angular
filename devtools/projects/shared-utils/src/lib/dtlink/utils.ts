@@ -43,7 +43,20 @@ export function dtlinkResponseTopic(name: string) {
 // Metadata decorators
 //
 
-type NamedFn<N extends string, F> = Record<N, F>;
+// Resolves to `true` if `K` is exactly one string literal,
+// i.e. not a union, `string` or `never`.
+type IsSingleKey<K extends string, U = K> = [K] extends [never]
+  ? false
+  : string extends K
+    ? false
+    : K extends unknown
+      ? [U] extends [K]
+        ? true
+        : false
+      : never;
+
+// An object with a single function property (e.g. `{myFn}`).
+type NamedFn<N extends string, F> = IsSingleKey<N> extends true ? Record<N, F> : never;
 
 function fnMetadata<N extends string, F extends ApiCallable>(
   namedFn: NamedFn<N, F>,

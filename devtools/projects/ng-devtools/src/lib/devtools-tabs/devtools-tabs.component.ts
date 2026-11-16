@@ -36,8 +36,9 @@ import {ButtonComponent} from '../shared/button/button.component';
 import {APP_DATA} from '../application-providers/app_data';
 import {SettingsComponent} from './settings/settings.component';
 import {HorizontalScrollerComponent} from '../shared/horizontal-scroller/horizontal-scroller.component';
-import {convertGeneratorToSignal, DtLinkInitiator} from '../../../../shared-utils';
+import {DtLinkInitiator} from '../../../../shared-utils';
 import {BeDtLink} from '../shared/types/types';
+import {convertGeneratorToSignal} from '../shared/utils/dtlink-utils';
 
 type Tab = 'Components' | 'Profiler' | 'Router Tree' | 'Injector Tree' | 'Transfer State';
 

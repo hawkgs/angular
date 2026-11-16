@@ -9,4 +9,3 @@
 export {DtLinkInitiator} from './dtlink';
 export {DtLinkApi} from './types';
 export {asyncFn, asyncGeneratorFn, syncFn, voidAsyncFn, voidSyncFn} from './utils';
-export {convertGeneratorToSignal} from './signal-utils';

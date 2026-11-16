@@ -31,6 +31,7 @@ import {
   DTLINK_API_REQUEST,
   serializeApiMetadata,
 } from './utils';
+import {AngularDevtoolsError} from '../error';
 
 const API_REQUEST_RETRY = 2500;
 
@@ -39,7 +40,6 @@ type GeneratorResponse = {d: boolean; v?: any};
 export class DtLinkInitiator<T extends DtLinkApi = any> {
   private cleanUpFns: (() => void)[] = [];
   private apiRequestRetryInterval?: ReturnType<typeof setInterval>;
-  private remoteSignalsCache = new Map<string, Signal<unknown>>();
   private remoteApiMetadataResolver?: (d: RemoteApiMetadata) => void;
   private remoteApiMetadata = new Promise<RemoteApiMetadata>(
     (res) => (this.remoteApiMetadataResolver = res),
@@ -69,9 +69,8 @@ export class DtLinkInitiator<T extends DtLinkApi = any> {
         const type = (await this.remoteApiMetadata).get(prop);
 
         if (type === undefined) {
-          // TBD: Use AngularDevtoolsError
-          throw new Error(
-            `AngularDevtoolsError: "${prop}" remote API is not available to call from the initiator. Check what is exposed on the target.`,
+          throw new AngularDevtoolsError(
+            `"${prop}" remote API is not available to call from the initiator. Check what is exposed on the target.`,
           );
         }
 
@@ -143,9 +142,8 @@ export function exposeDtLinkApi(messageBus: MessageBus<any>, api: DtLinkApi) {
 
   for (const metadata of api) {
     if (names.has(metadata.name)) {
-      // TBD: Use AngularDevtoolsError
-      throw new Error(
-        `AngularDevTools: API with name "${metadata.name}" already exists. Please pick a different name`,
+      throw new AngularDevtoolsError(
+        `API with name "${metadata.name}" already exists. Please pick a different name`,
       );
     }
     names.add(metadata.name);

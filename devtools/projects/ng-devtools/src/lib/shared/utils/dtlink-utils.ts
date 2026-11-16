@@ -6,8 +6,11 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
+/** @fileoverview DtLink utilities specific to `ng-devtools` */
+
 import {Signal, signal} from '@angular/core';
 
+/** Convert a DtLink async generator to a signal. */
 export function convertGeneratorToSignal<T, R>(
   generator: () => Promise<AsyncGenerator<T, R>>,
   initialValue: T | R,
