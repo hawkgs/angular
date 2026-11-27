@@ -39,6 +39,12 @@ export class Settings {
     initialValue: true,
   });
 
+  readonly showBoundaryBlocks = this.settingsStore.create({
+    key: 'show_boundary_blocks',
+    category: 'components',
+    initialValue: true,
+  });
+
   readonly performanceTrack = this.settingsStore.create({
     key: 'performance_track',
     category: 'profiling',

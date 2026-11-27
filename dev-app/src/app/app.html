@@ -1,3 +1,11 @@
 <h1>Welcome to the dev app!</h1>
 
+@boundary {
+  <app-foo />
+} @error (let err; when err) {
+  <app-bar />
+} @error {
+  <p>DEFAULT</p>
+}
+
 <router-outlet />

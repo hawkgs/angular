@@ -126,6 +126,7 @@ export class DevToolsComponent implements OnDestroy {
             cdDataStream: this.settings.showCdInExplorer(),
             deferBlocks: this.settings.showDeferBlocks(),
             forBlocks: this.settings.showForBlocks(),
+            boundaryBlocks: this.settings.showBoundaryBlocks(),
           },
         ]);
       },

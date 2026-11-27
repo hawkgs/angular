@@ -34,6 +34,7 @@ let hooks: Partial<Hooks> = {};
 const DIRECTIVE_CONTROL_FLOW: {[key in ControlFlowBlockType]: ElementProfile['type']} = {
   [ControlFlowBlockType.For]: 'for',
   [ControlFlowBlockType.Defer]: 'defer',
+  [ControlFlowBlockType.Boundary]: 'boundary',
 };
 
 export const start = (onFrame: (frame: ProfilerFrame) => void): void => {

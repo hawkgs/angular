@@ -78,6 +78,7 @@ export type HydrationStatus =
 export enum ControlFlowBlockType {
   Defer,
   For,
+  Boundary,
 }
 
 export interface ControlFlowBlock {
@@ -110,6 +111,11 @@ export interface ForLoopBlock extends ControlFlowBlock {
   hasEmptyBlock: boolean;
   items: Descriptor[];
   trackExpression: string;
+}
+
+export interface BoundaryBlock extends ControlFlowBlock {
+  type: ControlFlowBlockType.Boundary;
+  error: any;
 }
 
 export type ChangeDetection = 'ng-on-push' | 'ng-eager' | 'acx-on-push' | 'acx-default';
@@ -308,7 +314,7 @@ export interface DirectiveProfile {
 export interface ElementProfile {
   directives: DirectiveProfile[];
   children: ElementProfile[];
-  type: 'element' | 'defer' | 'for';
+  type: 'element' | 'defer' | 'for' | 'boundary';
 }
 
 export interface ProfilerFrame {
@@ -398,6 +404,7 @@ export interface DevtoolsConfig {
   cdDataStream: boolean;
   forBlocks: boolean;
   deferBlocks: boolean;
+  boundaryBlocks: boolean;
 }
 
 export interface Events {

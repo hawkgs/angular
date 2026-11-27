@@ -124,6 +124,7 @@ export function applyMigrations(
       'show_cd_in_explorer@components': undefined as any,
       'show_defer_blocks@components': undefined as any,
       'show_for_blocks@components': undefined as any,
+      'show_boundary_blocks@components': undefined as any,
     };
 
     dataCopy = newData as unknown as {[key: string]: unknown};

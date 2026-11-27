@@ -17,6 +17,7 @@ import {PropertyViewComponent} from './property-view/property-view.component';
 import {FlatNode} from '../../../shared/object-tree-explorer/object-tree-types';
 import {DevtoolsSignalGraphNode} from '../../../shared/signal-graph';
 import {BlockType} from '../../../shared/utils/control-flow';
+import {BoundaryViewComponent} from './boundary-view/boundary-view.component';
 
 @Component({
   selector: 'ng-property-pane',
@@ -27,6 +28,7 @@ import {BlockType} from '../../../shared/utils/control-flow';
     PropertyViewComponent,
     DeferViewComponent,
     ForLoopViewComponent,
+    BoundaryViewComponent,
   ],
 })
 export class PropertyPaneComponent {

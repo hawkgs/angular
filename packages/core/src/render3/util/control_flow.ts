@@ -30,7 +30,7 @@ import {assertLView} from '../assert';
 import {collectNativeNodes} from '../collect_native_nodes';
 import {getLContext} from '../context_discovery';
 import {CONTAINER_HEADER_OFFSET, LContainer, NATIVE} from '../interfaces/container';
-import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET} from '../interfaces/view';
+import {HOST, INJECTOR, LView, TVIEW, HEADER_OFFSET, TView} from '../interfaces/view';
 import {getNativeByTNode} from './view_utils';
 import {isLContainer, isLView} from '../interfaces/type_checks';
 
@@ -42,8 +42,11 @@ import {
   DeferBlockData,
   ForLoopBlockData,
   RepeaterMetadataShape,
+  BoundaryBlockData,
+  BoundaryErrorBranchData,
 } from './control_flow_types';
-import {TNode} from '../interfaces/node';
+import {isTNodeShape, TNode, TNodeFlags} from '../interfaces/node';
+import {LBoundary} from '../instructions/boundary';
 
 /**
  * Gets all of the control flow blocks that are present inside the specified DOM node.
@@ -60,7 +63,7 @@ export function getControlFlowBlocks(node: Node): ControlFlowBlock[] {
 }
 
 /**
- * Finds and returns all `@defer` blocks in a LView.
+ * Finds and returns all `@defer` blocks in an LView.
  *
  * @param config Finder configuration object.
  * @returns
@@ -100,7 +103,7 @@ const deferBlockFinder: ControlFlowBlockViewFinder = ({
       const viewInjector = lView[INJECTOR];
       const registry = viewInjector.get(DEHYDRATED_BLOCK_REGISTRY, null, {optional: true});
 
-      const renderedLView = getRendererLView(lContainer);
+      const renderedLView = getRenderedLView(lContainer);
       const rootNodes: Node[] = [];
       const hydrationState = inferHydrationState(tDetails, lDetails, registry);
 
@@ -158,7 +161,7 @@ const deferBlockFinder: ControlFlowBlockViewFinder = ({
 };
 
 /**
- * Finds and returns all `@for` blocks in a LView.
+ * Finds and returns all `@for` blocks in an LView.
  *
  * @param config Finder configuration object.
  * @returns
@@ -209,8 +212,55 @@ const forLoopFinder: ControlFlowBlockViewFinder = ({
   } satisfies ForLoopBlockData;
 };
 
+/**
+ * Finds and returns all `@boundary` blocks in an LView.
+ *
+ * @param config Finder configuration object.
+ * @returns
+ */
+const boundaryBlockFinder: ControlFlowBlockViewFinder = ({
+  lView,
+  tView,
+  slotIdx,
+}: ControlFlowBlockViewFinderConfig) => {
+  const slot = lView[slotIdx];
+
+  if (!isLBoundary(slot)) {
+    return null;
+  }
+
+  const lBoundary = slot;
+  const containerIndex = slotIdx + 1;
+  const lContainer = lView[containerIndex];
+  const renderedLView = getRenderedLView(lContainer);
+  const rootNodes: Node[] = [];
+
+  if (renderedLView !== null) {
+    collectNativeNodes(
+      renderedLView[TVIEW],
+      renderedLView,
+      renderedLView[TVIEW].firstChild,
+      rootNodes,
+    );
+  }
+
+  const errorBranches = getBoundaryErrorBranches(lView, tView, slotIdx);
+
+  return {
+    type: ControlFlowBlockType.Boundary,
+    hostNode: lContainer[HOST] as Node,
+    rootNodes: rootNodes,
+    error: lBoundary.error,
+    errorBranches,
+  } satisfies BoundaryBlockData;
+};
+
 // Represents all supported control flow block finders.
-const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [deferBlockFinder, forLoopFinder];
+const CONTROL_FLOW_BLOCK_FINDERS: ControlFlowBlockViewFinder[] = [
+  deferBlockFinder,
+  forLoopFinder,
+  boundaryBlockFinder,
+];
 
 /**
  * Finds all the control flow blocks inside a specific node and view.
@@ -308,7 +358,7 @@ function inferHydrationState(
  * Gets the current LView that is rendered out in a defer block.
  * @param details Instance information about the block.
  */
-function getRendererLView(lContainer: LContainer): LView | null {
+function getRenderedLView(lContainer: LContainer): LView | null {
   // Defer block containers can only ever contain one view.
   // If they're empty, it means that nothing is rendered.
   if (lContainer.length <= CONTAINER_HEADER_OFFSET) {
@@ -349,4 +399,63 @@ function getTrackExpression(metadata: RepeaterMetadataShape): string {
     return 'item';
   }
   return 'function';
+}
+
+function isLBoundary(value: unknown): value is LBoundary {
+  return value instanceof LBoundary;
+}
+
+/**
+ * Extracts all conditional branch blocks from a `TView` based on the slot index
+ * of an `@if`/`@switch` (i.e. control flow start, `ɵɵconditionalCreate`). The algorithm
+ * assumes that the branches indexes are directly and consecutively following the slot index
+ * of the parent conditional create instruction.
+ */
+function getBoundaryErrorBranches(
+  lView: LView,
+  tView: TView,
+  parentSlot: number,
+): BoundaryErrorBranchData[] {
+  const branches: BoundaryErrorBranchData[] = [];
+  // Adjust the index to the slot that follows the conditional start.
+  const adjustedIndex = parentSlot + 1;
+
+  let slot = adjustedIndex;
+  // We start looking for any branches right after the control flow start block data.
+  // If we don't find any neighboring ones, we break the loop.
+  while (slot < tView.bindingStartIndex) {
+    const tNode = tView.data[slot];
+    const isTNode = tNode != null && isTNodeShape(tNode);
+    if (!isTNode) {
+      break;
+    }
+    // Is conditional branch
+    if ((tNode.flags & TNodeFlags.isInControlFlow) !== TNodeFlags.isInControlFlow) {
+      break;
+    }
+
+    const lContainer = lView[slot];
+    const hostNode = lContainer[HOST];
+    const rootNodes: Node[] = [];
+    const renderedLView = getRenderedLView(lContainer);
+
+    if (renderedLView) {
+      collectNativeNodes(
+        renderedLView[TVIEW],
+        renderedLView,
+        renderedLView[TVIEW].firstChild,
+        rootNodes,
+      );
+    }
+
+    branches.push({
+      hostNode,
+      rootNodes,
+    });
+
+    // Move the slot index to the next conditional block.
+    slot += 1;
+  }
+
+  return branches;
 }

@@ -1,0 +1,23 @@
+load("//devtools/tools:defaults.bzl", "ng_project", "sass_binary")
+
+package(default_visibility = ["//devtools:__subpackages__"])
+
+sass_binary(
+    name = "boundary-view_styles",
+    src = "boundary-view.component.scss",
+)
+
+ng_project(
+    name = "boundary-view",
+    srcs = [
+        "boundary-view.component.ts",
+    ],
+    angular_assets = [
+        "boundary-view.component.html",
+        ":boundary-view_styles",
+    ],
+    deps = [
+        "//:node_modules/@angular/core",
+        "//devtools/projects/protocol",
+    ],
+)

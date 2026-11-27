@@ -7,6 +7,7 @@
  */
 
 import {
+  BoundaryBlock,
   ControlFlowBlock,
   ControlFlowBlockType,
   DeferBlock,
@@ -20,5 +21,9 @@ export const BlockType = {
 
   isForLoopBlock(node: ControlFlowBlock | null): node is ForLoopBlock {
     return !!node && node.type === ControlFlowBlockType.For;
+  },
+
+  isBoundaryView(node: ControlFlowBlock | null): node is BoundaryBlock {
+    return !!node && node.type === ControlFlowBlockType.Boundary;
   },
 };

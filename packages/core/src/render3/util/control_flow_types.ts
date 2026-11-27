@@ -13,6 +13,7 @@ import {LiveCollection} from '../list_reconciliation';
 export enum ControlFlowBlockType {
   Defer,
   For,
+  Boundary,
 }
 
 export interface ControlFlowBlockDataBase {
@@ -75,10 +76,21 @@ export interface ForLoopBlockData extends ControlFlowBlockDataBase {
   trackExpression: string;
 }
 
+export interface BoundaryBlockData extends ControlFlowBlockDataBase {
+  type: ControlFlowBlockType.Boundary;
+
+  /** The intercepted error. */
+  error: any;
+
+  errorBranches: BoundaryErrorBranchData[];
+}
+
+export interface BoundaryErrorBranchData extends ControlFlowBlockDataBase {}
+
 /**
  * A control flow block information object.
  */
-export type ControlFlowBlock = DeferBlockData | ForLoopBlockData;
+export type ControlFlowBlock = DeferBlockData | ForLoopBlockData | BoundaryBlockData;
 
 /**
  * A configuration object passed to a `ControlFlowBlockViewFinder` function.

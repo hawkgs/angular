@@ -113,6 +113,10 @@
       color: var(--color-tree-node-console-ref);
       padding-left: 8px;
       font-style: italic;
+
+      &.error {
+        color: var(--dynamic-red-01);
+      }
     }
 
     .hydration {

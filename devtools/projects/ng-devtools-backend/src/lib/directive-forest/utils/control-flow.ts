@@ -18,6 +18,7 @@ import {
   DeferBlock,
   RenderedDeferBlock,
   DevtoolsConfig,
+  BoundaryBlock,
 } from '../../../../../protocol';
 import {ComponentTreeNode} from '../../shared/interfaces';
 import {serializeValue} from '../../shared/state-serializer/state-serializer';
@@ -25,6 +26,7 @@ import {serializeValue} from '../../shared/state-serializer/state-serializer';
 const ELEMENT_NAME_MAP: {[key in ControlFlowBlockType]: string} = {
   [ControlFlowBlockType.Defer]: '@defer',
   [ControlFlowBlockType.For]: '@for',
+  [ControlFlowBlockType.Boundary]: '@boundary',
 };
 
 export function isControlFlowBlock(node: Node, iterator: ControlFlowBlocksIterator) {
@@ -65,6 +67,13 @@ export function mapToDevtoolsControlFlowModel(
           loadingBlock: block.loadingBlock,
         },
       } satisfies DeferBlock as DeferBlock;
+
+    case ControlFlowBlockTypeInternal.Boundary:
+      return {
+        id: `boundaryId-${rootId}-${iteratorCurrentIdx}`,
+        type: ControlFlowBlockType.Boundary,
+        error: block.error,
+      } satisfies BoundaryBlock as BoundaryBlock;
   }
 }
 
@@ -113,6 +122,10 @@ export function blocksFilter(block: ControlFlowBlockInternal, config: DevtoolsCo
   }
 
   if (!config.deferBlocks && block.type === ControlFlowBlockTypeInternal.Defer) {
+    return false;
+  }
+
+  if (!config.boundaryBlocks && block.type === ControlFlowBlockTypeInternal.Boundary) {
     return false;
   }
 

@@ -31,6 +31,10 @@ export class CookieRecipe {
   sugar = computed(() => this.count() * 0.05, {debugName: 'sugar'});
   flour = computed(() => this.count() * 0.2, {debugName: 'flour'});
 
+  constructor() {
+    throw new Error('BOOOM');
+  }
+
   update(event: Event) {
     const input = event.target as HTMLInputElement;
     this.count.set(parseInt(input.value));

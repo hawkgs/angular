@@ -8,6 +8,10 @@
 <div #elementReference>HTMLElement</div>
 <div *appStructural>Test Structural Directive</div>
 <app-sample-properties></app-sample-properties>
-<app-cookies />
+@boundary {
+  <app-cookies />
+} @error (let err) {
+  <p>BOOM CAUGHT: {{ err }}</p>
+}
 <p>Resource value: {{ demoRsrc.value() }}</p>
 <p>Linked signal value: {{ linkedPrimitive() }}</p>

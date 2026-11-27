@@ -160,6 +160,7 @@ export const subscribeToClientEvents = (
 
     getConfig().onChange('deferBlocks', () => messageBus.emit('componentTreeDirty'));
     getConfig().onChange('forBlocks', () => messageBus.emit('componentTreeDirty'));
+    getConfig().onChange('boundaryBlocks', () => messageBus.emit('componentTreeDirty'));
   }
 };
 

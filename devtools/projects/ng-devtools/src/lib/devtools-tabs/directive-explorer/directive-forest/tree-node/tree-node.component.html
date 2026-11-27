@@ -51,6 +51,12 @@
         ({{ forLoop.items.length }} {{ forLoop.items.length === 1 ? 'item' : 'items' }})
       </span>
     }
+  } @else if (BlockType.isBoundaryView(block)) {
+    @let boundary = block;
+
+    @if (boundary.error) {
+      <span class="trait error">(&#64;error)</span>
+    }
   } @else if (!hydration || hydration.status !== 'dehydrated') {
     <!-- Shown/hidden via CSS -->
     <span class="console-reference trait"> == $ng0 </span>

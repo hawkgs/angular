@@ -46,6 +46,15 @@
     </li>
     <li>
       <input
+        id="show-boundary-blocks"
+        type="checkbox"
+        (change)="settings.showBoundaryBlocks.set($event.target.checked)"
+        [checked]="settings.showBoundaryBlocks()"
+      />
+      <label for="show-boundary-blocks">Show &#64;boundary blocks (experimental)</label>
+    </li>
+    <li>
+      <input
         id="show-hydration-overlays"
         type="checkbox"
         (change)="settings.showHydrationOverlays.set($event.target.checked)"
